@@ -1,0 +1,59 @@
+<html>
+
+<head>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        tr {
+            vertical-align: top;
+        }
+
+        button {
+            margin: 2;
+            padding: 15px;
+            min-width: 150px;
+            font-size: 25px;
+        }
+
+        #sharedBtns {
+            padding: 5;
+            background-color: papayawhip;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logs {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30vh;
+            overflow-y: auto;
+        }
+    </style>
+
+    <script>
+        window.localStorage.setItem('debug', 'mediasoup-client:*');
+    </script>
+</head>
+
+<body>
+    <audio id="localAudio" autoplay muted controls hidden></audio>
+    <div class="remote-audio-box"></div>
+    <button id="btnStartProduce" disabled>فتح المايك</button>
+
+    <div class="logs">
+        <ul id="myULContainer"></ul>
+    </div>
+</body>
+<footer>
+    <script src="bundle.js?v=3"></script>
+</footer>
+
+</html>
