@@ -21,6 +21,7 @@ const {
     getUserColor,
     getMemberOfRegUserByName,
     notifyUserChangedByName,
+    getUsersInRoom,
 } = require('../../helpers/userHelpers');
 const roomUsersModel = require('../../models/roomUsersModel');
 const { getNowDateTime, hexToXRgb } = require('../../helpers/tools');
@@ -521,6 +522,33 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
 
         let room_after_update = await roomModel.findOne({
             _id: new ObjectId(room._id),
+        });
+
+        const roomInfo = getRoomData(room._id.toString());
+
+        const usersInRoom = await getUsersInRoom(room._id);
+
+        for (const user of usersInRoom) {
+            roomInfo.listeners.add(user._id.toString());
+            roomInfo.holdMic.add(user._id.toString());
+
+            // Create WebRTC transport for each user
+            const transport = await createWebRtcTransport(room._id.toString());
+            user.transport = transport.id;
+            await updateUser(user, user._id, room._id);
+
+            // Emit transport parameters to the user
+            global.io.to(user.socketId).emit('init-transport', transport.params);
+        }
+
+        global.io.to(room._id.toString()).emit('room-state', {
+            speakers: Array.from(roomInfo.speakers),
+            listeners: Array.from(roomInfo.listeners),
+            holdMic: Array.from(roomInfo.holdMic),
+            openedTime: room_after_update.opened_time,
+            maxSpeakers: room_after_update.max_speakers_count,
+            maxSpeakerTime: room_after_update.max_speaker_time,
+            updateTime: room_after_update.update_time,
         });
 
         global.io.emit(room._id, {

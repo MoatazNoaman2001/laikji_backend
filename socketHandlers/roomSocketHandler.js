@@ -1130,6 +1130,45 @@ module.exports = (io) => {
                 io.to(xroomId).emit('new-producer', { userId: xuser._id, producerId: producer.id });
             });
 
+            xclient.on('enter-room', async (data) => {
+                const room = await roomModel.findById(data.roomId);
+                if (!room) {
+                    return socket.emit('error', { message: 'Room not found' });
+                }
+
+                xroomId = room._id.toString();
+                xuser = await getUserById(data.userId, xroomId);
+                if (!xuser) {
+                    return socket.emit('error', { message: 'User not found' });
+                }
+
+                const roomInfo = getRoomData(xroomId);
+
+                socket.join(xroomId);
+                enterDate = getNowDateTime(true);
+
+                roomInfo.listeners.add(xuser._id.toString());
+                roomInfo.holdMic.add(xuser._id.toString());
+
+                const transport = await createWebRtcTransport(xroomId);
+                xuser.transport = transport.id;
+                await updateUser(xuser, xuser._id, xroomId);
+
+                socket.emit('room-state', {
+                    speakers: Array.from(roomInfo.speakers),
+                    listeners: Array.from(roomInfo.listeners),
+                    holdMic: Array.from(roomInfo.holdMic),
+                    openedTime: room.opened_time,
+                    maxSpeakers: room.max_speakers_count,
+                    maxSpeakerTime: room.max_speaker_time,
+                    updateTime: room.update_time,
+                });
+
+                socket.emit('init-transport', transport.params);
+
+                io.to(xroomId).emit('user-joined', await public_user(xuser));
+            });
+
             xclient.on('start-consuming', async (producerId) => {
                 if (!xuser) return;
                 const room = await roomModel.findById(xroomId);
