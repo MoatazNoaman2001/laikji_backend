@@ -131,6 +131,30 @@ const schema = Schema({
         type: Number,
         default: 0,
     },
+    max_speakers_count: {
+        type: Number,
+        default: 1,
+    },
+    max_speaker_time: {
+        type: Number,
+        default: 10,
+    },
+    max_speaker_count: {
+        type: Number,
+        default: 2,
+    },
+    hold_mic: {
+        type: Boolean,
+        default: false,
+    },
+    update_time: {
+        type: Boolean,
+        default: true,
+    },
+    opened_time: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 module.exports = mongoose.model('Rooms', schema);

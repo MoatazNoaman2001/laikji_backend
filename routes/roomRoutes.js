@@ -3,8 +3,10 @@ const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const groupModel = require('../models/groupModel');
 const roomModel = require('../models/roomModel');
+const userModel = require('../models/userModal');
 const { getSettings, hexToXRgb } = require('../helpers/tools');
 const router = express.Router();
+const mediasoup = require('mediasoup');
 
 router.get('/all', async (req, res) => {
     var response = [];
@@ -118,5 +120,108 @@ router.get('/all', async (req, res) => {
         });
     }
 });
+
+router.post('/:room_id/audio', async (req, res) => {
+    const roomId = req.params.room_id;
+    const user = await helpers.getUserByToken(req.headers.token);
+    if (!user) {
+        return res.status(401).send({ ok: false, error: 'Unauthorized' });
+    }
+
+    let room = await roomModel.findById(roomId);
+    if (!room) {
+        return res.status(404).send({ ok: false, error: 'Room not found' });
+    }
+
+    // Check if the user is allowed to join the room
+    // TODO: Implement room access control logic here
+
+    try {
+        // Get or create Mediasoup worker
+        const worker = await getOrCreateWorker(room);
+
+        // Get or create Mediasoup router
+        const router = await getOrCreateRouter(worker, room);
+
+        // Create a WebRTC transport for the client
+        const transport = await createWebRtcTransport(router);
+
+        // Create an audio producer
+        const producer = await transport.produce({
+            kind: 'audio',
+            rtpParameters: req.body.rtpParameters,
+        });
+
+        // Store the transport and producer IDs in the database
+        room.transports = room.transports || {};
+        room.transports[user._id] = transport.id;
+        room.producers = room.producers || {};
+        room.producers[user._id] = producer.id;
+        await room.save();
+
+        // Send the transport parameters back to the client
+        res.status(200).send({
+            ok: true,
+            id: transport.id,
+            iceParameters: transport.iceParameters,
+            iceCandidates: transport.iceCandidates,
+            dtlsParameters: transport.dtlsParameters,
+        });
+    } catch (error) {
+        console.error('Error in WebRTC setup:', error);
+        res.status(500).send({ ok: false, error: 'Internal server error' });
+    }
+});
+
+// Helper functions for WebRTC setup
+async function getOrCreateWorker(room) {
+    if (!room.mediasoupWorkerId) {
+        const worker = await mediasoup.createWorker({
+            logLevel: 'warn',
+            logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'],
+        });
+        room.mediasoupWorkerId = worker.id;
+        await room.save();
+        return worker;
+    }
+    return await mediasoup.getWorker(room.mediasoupWorkerId);
+}
+
+async function getOrCreateRouter(worker, room) {
+    if (!room.mediasoupRouterId) {
+        const router = await worker.createRouter({
+            mediaCodecs: [
+                {
+                    kind: 'audio',
+                    mimeType: 'audio/opus',
+                    clockRate: 48000,
+                    channels: 2,
+                },
+            ],
+        });
+        room.mediasoupRouterId = router.id;
+        await room.save();
+        return router;
+    }
+    return await worker.getRouter(room.mediasoupRouterId);
+}
+
+async function createWebRtcTransport(router) {
+    return await router.createWebRtcTransport({
+        listenIps: [
+            {
+                ip: process.env.MEDIASOUP_LISTEN_IP || '0.0.0.0',
+                announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP,
+            },
+        ],
+        enableUdp: true,
+        enableTcp: true,
+        preferUdp: true,
+        initialAvailableOutgoingBitrate: 1000000,
+        minimumAvailableOutgoingBitrate: 600000,
+        maxSctpMessageSize: 262144,
+        maxIncomingBitrate: 1500000,
+    });
+}
 
 module.exports = router;

@@ -38,6 +38,12 @@ const moment = require('moment/moment');
 const { getNowDateTime } = require('../helpers/tools');
 const registeredUserModal = require('../models/registeredUserModal');
 const roomUsersModel = require('../models/roomUsersModel');
+const {
+    createWebRtcTransport,
+    createProducer,
+    createConsumer,
+    getRoomData,
+} = require('../helpers/mediasoupHelpers');
 
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -379,23 +385,6 @@ module.exports = (io) => {
 
         var xuser;
 
-        // if (xclient.handshake.query.registeredUserId) {
-        //     var founded = await getUserById(xclient.handshake.query.registeredUserId, xroomId);
-
-        //     if (founded) {
-        //         xuser = founded;
-        //     }
-        // }
-
-        // if (xclient.handshake.query.oldGuest) {
-        //     var founded = await getUserById(xclient.handshake.query.oldGuest, xroomId);
-
-        //     if (founded) {
-        //         // await removeUserFromRoom(xroomId, founded.socketId);
-        //         xuser = founded;
-        //     }
-        // }
-
         let regUser_id = null;
         if (xclient.handshake.query.registeredUserId) {
             regUser_id = xclient.handshake.query.registeredUserId;
@@ -549,15 +538,20 @@ module.exports = (io) => {
                 const userId = data.userId;
                 const myId = data.myId;
 
-                ignoredUsers.set(myId, ignoredUsers.get(myId) !== undefined? [userId] : ignoredUsers.get(myId).indexof(userId) != -1?
-                    ignoredUsers.get(myId).splice(ignoredUsers.get(myId).indexof(userId) , 1) 
-                        : ignoredUsers.get(myId).push(userId));
+                ignoredUsers.set(
+                    myId,
+                    ignoredUsers.get(myId) !== undefined
+                        ? [userId]
+                        : ignoredUsers.get(myId).indexof(userId) != -1
+                        ? ignoredUsers.get(myId).splice(ignoredUsers.get(myId).indexof(userId), 1)
+                        : ignoredUsers.get(myId).push(userId),
+                );
 
                 io.to(xuser.socketId).emit('new-toast', {
                     msg_ar: 'تم تجاهل المستخدم',
                     msg_en: 'user ignored successfully',
-                    msg_fr: `Utilisateur ignoré avec succès`
-                })
+                    msg_fr: `Utilisateur ignoré avec succès`,
+                });
             });
             xclient.on('private-screenshot-taken', async (data) => {
                 const userId = data.userId;
@@ -578,9 +572,9 @@ module.exports = (io) => {
 
                 io.to(otherUser.socketId).emit('new-alert', {
                     msg_ar: `السيد ${xuser.name} يحاول التقاط الشاشة `,
-                    msg_en: `Mr ${xuser.name} try to capture screenShot`
-                })
-            })
+                    msg_en: `Mr ${xuser.name} try to capture screenShot`,
+                });
+            });
 
             xclient.on('send-msg-private', async (data) => {
                 if (!xuser) return;
@@ -1079,6 +1073,150 @@ module.exports = (io) => {
                     }
                 }
             });
+
+            const roomInfo = getRoomData(xroomId);
+
+            socket.on('request-speak', async () => {
+                if (!xuser) return;
+                const room = await roomModel.findById(xroomId);
+                if (!room) return;
+
+                if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
+                    roomInfo.speakers.add(xuser._id.toString());
+
+                    // Create WebRTC transport for the speaker
+                    const transport = await createWebRtcTransport(xroomId);
+                    xuser.transport = transport.id;
+                    await updateUser(xuser, xuser._id, xroomId);
+
+                    io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                    socket.emit('speaker-transport', transport.params);
+
+                    // If opened_time is false, start the timer
+                    if (!room.opened_time) {
+                        let timeLeft = room.max_speaker_time;
+                        const timer = setInterval(() => {
+                            timeLeft--;
+                            if (timeLeft <= 0) {
+                                clearInterval(timer);
+                                roomInfo.speakers.delete(xuser._id.toString());
+                                io.to(xroomId).emit(
+                                    'update-speakers',
+                                    Array.from(roomInfo.speakers),
+                                );
+                                socket.emit('speaking-time-ended');
+                            } else if (room.update_time) {
+                                socket.emit('time-left', timeLeft);
+                            }
+                        }, 1000);
+
+                        // Store the timer reference
+                        xuser.speakTimer = timer;
+                    }
+                } else {
+                    socket.emit('error', { message: 'Max speakers limit reached' });
+                }
+            });
+
+            xclient.on('start-producing', async (rtpParameters) => {
+                if (!xuser || !xuser.transport) return;
+                const room = await roomModel.findById(xroomId);
+                if (!room) return;
+
+                const producer = await createProducer(room, xuser.transport, rtpParameters);
+                xuser.producer = producer.id;
+                await updateUser(xuser, xuser._id, xroomId);
+
+                io.to(xroomId).emit('new-producer', { userId: xuser._id, producerId: producer.id });
+            });
+
+            xclient.on('start-consuming', async (producerId) => {
+                if (!xuser) return;
+                const room = await roomModel.findById(xroomId);
+                if (!room) return;
+
+                if (!xuser.transport) {
+                    const transport = await createWebRtcTransport(room);
+                    xuser.transport = transport.id;
+                    await updateUser(xuser, xuser._id, xroomId);
+                    xclient.emit('consumer-transport', transport.params);
+                }
+
+                const consumer = await createConsumer(room, xuser.transport, producerId);
+                if (!xuser.consumers) xuser.consumers = [];
+                xuser.consumers.push(consumer.id);
+                await updateUser(xuser, xuser._id, xroomId);
+
+                xclient.emit('new-consumer', {
+                    producerId: producerId,
+                    id: consumer.id,
+                    kind: consumer.kind,
+                    rtpParameters: consumer.rtpParameters,
+                    type: consumer.type,
+                    producerPaused: consumer.producerPaused,
+                });
+            });
+
+            xclient.on('release-speak', async () => {
+                if (!xuser) return;
+
+                roomInfo.speakers.delete(xuser._id.toString());
+
+                // Clear the timer if it exists
+                if (xuser.speakTimer) {
+                    clearInterval(xuser.speakTimer);
+                    xuser.speakTimer = null;
+                }
+
+                // Close producer
+                if (xuser.producer) {
+                    await closeProducer(xroomId, xuser.producer);
+                    xuser.producer = null;
+                }
+
+                await updateUser(xuser, xuser._id, xroomId);
+                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+            });
+
+            xclient.on('hold-mic', async (userId) => {
+                if (!xuser || xuser.type !== 'admin') return; // Ensure only admins can hold mic
+                roomInfo.holdMic.add(userId);
+                io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+            });
+
+            socket.on('release-hold-mic', async (userId) => {
+                if (!xuser || xuser.type !== 'admin') return; // Ensure only admins can release hold mic
+
+                roomInfo.holdMic.delete(userId);
+                io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+            });
+
+            xclient.on('toggle-listen', async (isListening) => {
+                if (!xuser) return;
+
+                if (isListening) {
+                    roomInfo.listeners.add(xuser._id.toString());
+                } else {
+                    roomInfo.listeners.delete(xuser._id.toString());
+                    if (xuser.consumers) {
+                        // Close all consumers
+                        for (const consumerId of xuser.consumers) {
+                            await closeConsumer(xroomId, consumerId);
+                        }
+                        xuser.consumers = [];
+                        await updateUser(xuser, xuser._id, xroomId);
+                    }
+                }
+
+                io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
+            });
+
+            xclient.emit('room-state', {
+                speakers: Array.from(roomInfo.speakers),
+                listeners: Array.from(roomInfo.listeners),
+                holdMic: Array.from(roomInfo.holdMic),
+                openedTime: room.opened_time,
+            });
         };
 
         if (
@@ -1136,8 +1274,45 @@ module.exports = (io) => {
             await removeUserFromRoom(xroomId, xuser);
             await removeUserFromWaiting(xroomId, xuser);
 
-            // await roomUsersModel.updateMany({
-            //     userRef: new ObjectId(xuser._id),
+            if (!xuser || !xroomId) return;
+
+            const roomInfo = getRoomData(xroomId);
+            roomInfo.speakers.delete(xuser._id.toString());
+            roomInfo.listeners.delete(xuser._id.toString());
+            roomInfo.holdMic.delete(xuser._id.toString());
+
+            // Clear the timer if it exists
+            if (xuser.speakTimer) {
+                clearInterval(xuser.speakTimer);
+                xuser.speakTimer = null;
+            }
+
+            // Close all WebRTC stuff
+            if (xuser.transport) {
+                await closeTransport(xroomId, xuser.transport);
+            }
+            if (xuser.producer) {
+                await closeProducer(xroomId, xuser.producer);
+            }
+            if (xuser.consumers) {
+                for (const consumerId of xuser.consumers) {
+                    await closeConsumer(xroomId, consumerId);
+                }
+            }
+
+            io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+            io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
+            io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+
+            // Notify others that the user has left
+            io.to(xroomId).emit('user-left', xuser._id.toString());
+
+            if (enterDate) {
+                await addEntryLog(xuser, xroomId, enterDate, 0); // 0 for normal disconnect
+            }
+
+            console.log('User disconnected:', xuser._id.toString(), xuser.name, 'from:', xroomId);
+
             //     roomRef: new ObjectId(xroomId),
             // }, {
             //     socketId: null

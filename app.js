@@ -49,11 +49,11 @@ app.use('/room', require('./routes/roomRoutes'));
 app.use('/chat', require('./routes/chatRoutes'));
 app.use('/test', require('./routes/testRoutes'));
 app.use('/pages', require('./routes/pageRoutes'));
+app.use('/:roomId', require('./routes/micRoutes'));
 
 // Room Admin Routes
 app.use('/room_admin/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/roomRoutes'));
 app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/commandsRoutes'));
-
 // Admin Routes
 app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
 app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));

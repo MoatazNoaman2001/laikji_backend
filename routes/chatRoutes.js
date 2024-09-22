@@ -3,7 +3,6 @@ const helpers = require('../helpers/helpers');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const e = require('express');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
 const { public_user } = require('../helpers/userHelpers');
@@ -19,7 +18,7 @@ var storage = multer.diskStorage({
 const img_uploader = multer({
     storage: storage,
 });
-    
+
 router.post('/send-img', img_uploader.single('img'), async (req, res) => {
     try {
         let xuser = await helpers.getUserByToken(req.headers.token);

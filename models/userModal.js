@@ -35,4 +35,5 @@ const schema = Schema({
         default: getNowDateTime,
     },
 });
+
 module.exports = mongoose.model('Users', schema);

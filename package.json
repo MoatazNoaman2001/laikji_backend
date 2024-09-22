@@ -1,32 +1,31 @@
 {
-  "name": "tlqana-server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "DEBUG='mediasoup*' nodemon app",
-    "dev": "nodemon app"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "crypto": "^1.0.1",
-    "dotenv": "^8.6.0",
-    "express": "^4.18.1",
-    "geoip-lite": "^1.4.5",
-    "https": "^1.0.0",
-    "i18n-iso-countries": "^7.4.0",
-    "jimp": "^0.16.1",
-    "jsonwebtoken": "^8.5.1",
-    "mediasoup": "^3.12.11",
-    "moment": "^2.29.4",
-    "mongoose": "^5.13.14",
-    "multer": "^1.4.4",
-    "nodemon": "^2.0.16",
-    "peer": "^0.5.3",
-    "short-crypt": "^1.0.25",
-    "socket.io": "^3.1.2"
-  }
+    "name": "tlqana-server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "scripts": {
+        "start": "DEBUG='mediasoup*' nodemon app",
+        "dev": "nodemon app"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "crypto": "^1.0.1",
+        "dotenv": "^8.6.0",
+        "express": "^4.18.1",
+        "geoip-lite": "^1.4.5",
+        "https": "^1.0.0",
+        "i18n-iso-countries": "^7.4.0",
+        "jimp": "^0.16.1",
+        "jsonwebtoken": "^8.5.1",
+        "mediasoup": "^3.12.11",
+        "moment": "^2.29.4",
+        "mongoose": "^5.13.14",
+        "multer": "^1.4.4",
+        "nodemon": "^2.0.16",
+        "peer": "^0.5.3",
+        "short-crypt": "^1.0.25",
+        "socket.io": "^3.1.2"
+    }
 }

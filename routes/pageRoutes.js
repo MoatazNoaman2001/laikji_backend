@@ -5,14 +5,14 @@ const router = express.Router();
 router.get('/terms', async (req, res) => {
     const settings = await getSettings();
     try {
-        console.log('terms: '+settings.terms);
+        console.log('terms: ' + settings.terms);
         res.status(200).send({
             ok: true,
             data:
                 '<div class="content" style="white-space: pre-line;color: ' +
                 settings.rgb_terms_fnt +
                 ';">' +
-                settings.terms.replaceAll('\r\n', '<br/>') +
+                settings?.terms?.replaceAll('\r\n', '<br/>') +
                 '</div>',
         });
     } catch (e) {

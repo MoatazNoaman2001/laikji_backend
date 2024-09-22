@@ -26,7 +26,7 @@ const roomUsersModel = require('../../models/roomUsersModel');
 const { getNowDateTime, hexToXRgb } = require('../../helpers/tools');
 const memberModal = require('../../models/memberModal');
 const registeredUserModal = require('../../models/registeredUserModal');
-
+const { getRoomData } = require('../../helpers/mediasoupHelpers');
 var storage = multer.diskStorage({
     destination: 'public/rooms/',
     filename: function (req, file, cb) {
@@ -1039,6 +1039,36 @@ router.put('/change-meeting-password', async (req, res) => {
             ok: false,
             error: e.message,
         });
+    }
+});
+
+router.post('/:roomId/release-hold-mic', async (req, res) => {
+    try {
+        const roomId = req.room;
+        const userId = req.body.userId;
+
+        const roomInfo = getRoomData(roomId);
+        roomInfo.holdMic.delete(userId);
+        io.to(roomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+
+        res.json({ message: 'Mic released' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.post('/:roomId/hold-mic', async (req, res) => {
+    try {
+        const roomId = req.room;
+        const userId = req.body.userId;
+
+        const roomInfo = getRoomData(roomId);
+        roomInfo.holdMic.add(userId);
+        io.to(roomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+
+        res.json({ message: 'Mic held' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 

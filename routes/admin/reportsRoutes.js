@@ -21,6 +21,7 @@ router.get('/', async (req, res) => {
                 response.push(res_item);
             }),
         );
+
         res.status(200).send({
             ok: true,
             data: response,
