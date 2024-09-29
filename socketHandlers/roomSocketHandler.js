@@ -45,6 +45,8 @@ const {
     getRoomData,
 } = require('../helpers/mediasoupHelpers');
 
+let micQueue = [];
+
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -576,6 +578,12 @@ module.exports = (io) => {
                 });
             });
 
+            xclient.on('raise-hand', async (user) => {
+                micQueue.push(user);
+                io.emit('new-raise-hand', {
+                    'user-id': user.id
+                })
+            });
             xclient.on('send-msg-private', async (data) => {
                 if (!xuser) return;
 
