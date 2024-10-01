@@ -23,8 +23,10 @@ async function getSettings() {
         response[item.key] = item.val;
     });
     
-    console.log(grbs);
-    console.log(response);
+    // console groups commented by zk
+    // console.log(grbs);
+    // console response commented by zk
+    // console.log(response);
 
     if (grbs.length !== 0){
     response['special_icon'] = simg(
