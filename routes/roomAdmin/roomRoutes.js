@@ -486,6 +486,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             title: req.body.title ?? room.title,
             description: req.body.description ?? room.description,
             lock_msg: req.body.lock_msg ?? room.lock_msg,
+            mic_setting: req.body.mic_setting,
             private_status:
                 req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
                     ? parseInt(req.body.private_status)

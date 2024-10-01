@@ -578,6 +578,12 @@ module.exports = (io) => {
                 });
             });
 
+            xclient.on('raise-hand', async (user) => {
+                micQueue.push(user);
+                io.emit('new-raise-hand', {
+                    'user-id': user.id
+                })
+            });
             xclient.on('send-msg-private', async (data) => {
                 if (!xuser) return;
 

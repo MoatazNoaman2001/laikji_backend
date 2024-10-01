@@ -4,7 +4,7 @@
     "description": "",
     "main": "app.js",
     "scripts": {
-        "start": "DEBUG='mediasoup*' nodemon app",
+        "start": "nodemon app",
         "dev": "nodemon app"
     },
     "author": "",
