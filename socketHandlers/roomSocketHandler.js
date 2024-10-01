@@ -44,10 +44,9 @@ const {
     createConsumer,
     getRoomData,
 } = require('../helpers/mediasoupHelpers');
-module.exports = (io) =>
- {
+module.exports = (io) => {
     io.use(async (socket, next) => {
-        // console.log("started", socket.handshake.query)
+        // console.log("started", socket.handshake.query.name)
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
@@ -80,6 +79,7 @@ module.exports = (io) =>
         }
 
         let room = await roomModel.findById(room_id);
+        // console.log(room, "the room")
 
         if (!room) {
             return next(
@@ -348,7 +348,7 @@ module.exports = (io) =>
         var xroomId;
         var enterDate = null;
         var key = xclient.handshake.query.key;
-        console.log("on connection")
+        console.log('on connection');
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
         if (!room) {
@@ -1098,9 +1098,9 @@ module.exports = (io) =>
                     socket.emit('speaker-transport', transport.params);
 
                     // If opened_time is false, start the timer
-                    
+
                     if (!room.opened_time) {
-                        // 0r 100 added 
+                        // 0r 100 added
                         let timeLeft = room.max_speaker_time;
                         // console.log(timeLeft)
                         const timer = setInterval(() => {
@@ -1140,14 +1140,15 @@ module.exports = (io) =>
 
             xclient.on('enter-room', async (data) => {
                 const room = await roomModel.findById(data.roomId);
+                console.log(room, 'from enter room l 1144');
                 if (!room) {
-                    return socket.emit('error', { message: 'Room not found' });
+                    return xclient.emit('error', { message: 'Room not found' });
                 }
 
                 xroomId = room._id.toString();
                 xuser = await getUserById(data.userId, xroomId);
                 if (!xuser) {
-                    return socket.emit('error', { message: 'User not found' });
+                    return xclient.emit('error', { message: 'User not found' });
                 }
 
                 const roomInfo = getRoomData(xroomId);
@@ -1226,7 +1227,14 @@ module.exports = (io) =>
             });
 
             xclient.on('hold-mic', async (userId) => {
-                if (!xuser || xuser.type !== enums.userTypes.admin) return; // Ensure only admins can hold mic
+                if (
+                    !xuser ||
+                    (xuser.type !== enums.userTypes.root &&
+                        xuser.type !== enums.userTypes.chatmanager &&
+                        xuser.type !== enums.userTypes.master &&
+                        xuser.type !== enums.userTypes.mastermain)
+                )
+                    return; // Ensure only admins can hold mic
                 roomInfo.holdMic.add(userId);
                 io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
             });
@@ -1242,7 +1250,7 @@ module.exports = (io) =>
             const micQueue = []; // Queue to hold mic requests
             // xclient instead of socket
             xclient.on('request-mic', async () => {
-                console.log("mic queue started", xuser.name)
+                console.log('mic queue started', xuser.name);
                 if (!xuser) return;
 
                 // Add user to the mic queue
@@ -1267,7 +1275,7 @@ module.exports = (io) =>
                     if (nextUser) {
                         // Assign mic to the next user
                         // console.log(roomInfo.speakers, "from next user")
-                        roomInfo.speakers.set({"nextUserId": nextUserId});
+                        roomInfo.speakers.set({ nextUserId: nextUserId });
                         // console.log(roomInfo.speakers, "nextUser")
                         const transport = await createWebRtcTransport(xroomId);
                         nextUser.transport = transport.id;
@@ -1281,7 +1289,7 @@ module.exports = (io) =>
 
             // Call this function when the current speaker's time ends
             let timeLeft = room.max_speaker_time;
-            
+            // console.log(timeLeft, room , "l1284 room")
             const timer = setInterval(() => {
                 timeLeft--;
                 if (timeLeft <= 0) {
@@ -1293,36 +1301,59 @@ module.exports = (io) =>
             }, 1000);
 
             xclient.on('admin-disable-mic', async (data) => {
-                // console.log("admin disable mic rr", data)
-                // console.log(xuser._id, data)
-                // romve true state
-                if (!xuser || xuser.type !== enums.userTypes.admin && 0) return; // Ensure only admins can disable mic
-                // console.log("admin disable mic", data)
+                // console.log('whats wrong')
+                // remove true state
+                if (
+                    !xuser ||
+                    (xuser.type !== enums.userTypes.root &&
+                        xuser.type !== enums.userTypes.chatmanager &&
+                        xuser.type !== enums.userTypes.master &&
+                        xuser.type !== enums.userTypes.mastermain &&
+                        0)
+                )
+                    return; // Ensure only admins can disable mic
 
-                const { userId } = data;
-                const user = await getUserById(userId, xroomId);
-                // console.log(data, userId, xroomId, user)
-                // console.log(user, "user ")
-                if (user) {
-                    user.can_use_mic = false; // Disable mic for the user
-                    await updateUser(user, user._id, xroomId);
-                    io.to(user.socketId).emit('mic-disabled', {
-                        message: 'Your mic has been disabled by an admin.',
+                let { usersId, time } = data;
+                // console.log(usersId, "from disable mic data")
+                // if(usersId)
+                time = time * 1000; // 'time' is the duration to mute the mic
+                if (usersId) {
+                    usersId.map(async (userId) => {
+                        const user = await getUserById(userId, xroomId);
+                        console.log(user, 'woooo');
+                        if (user) {
+                            // Disable mic for the user
+                            // console.log("workin g")
+                            user.can_use_mic = false;
+                            await updateUser(user, user._id, xroomId);
+                            io.to(user.socketId).emit('mic-disabled', {
+                                message:
+                                    'Your mic has been disabled by an admin for ' +
+                                    time / 1000 +
+                                    ' seconds.',
+                            });
+                            // Re-enable the mic after the specified time
+                            setTimeout(async () => {
+                                user.can_use_mic = true;
+                                await updateUser(user, user._id, xroomId);
+                                io.to(user.socketId).emit('mic-enabled', {
+                                    message:
+                                        'Your mic has been re-enabled after ' +
+                                        time / 1000 +
+                                        ' seconds.',
+                                });
+                            }, time);
+                        }
                     });
-                    // console.log(user.can_use_mic, "mic state after")
                 }
             });
 
-            const micTimeLimits = {
-                admin: 300, // 5 minutes
-                member: 180, // 3 minutes
-                guest: 60, // 1 minute
-            };
-
-            const assignMicWithTimeLimit = async (userId) => {
+            const assignMicWithTimeLimit = async (userId, timeLimit = 60) => {
+                // console.log('invoked')
                 const user = await getUserById(userId, xroomId);
+                // console.log(timeLimit)
                 // console.log(user.name, 'from assgin time for mic')
-                const timeLimit = micTimeLimits[user.type] || 60; // Default to 1 minute
+                // const timeLimit = micTimeLimits[user.type] || 60; // Default to 1 minute
 
                 // Start the timer for the assigned user
                 let timeLeft = timeLimit;
@@ -1337,16 +1368,80 @@ module.exports = (io) =>
             };
 
             xclient.on('renew-mic-time', async (data) => {
-                console.log('renew mic')
+                console.log('renew mic');
                 // remvoe true state
-                if (!xuser || xuser.type !== enums.userTypes.admin && 0) return; // Ensure only admins can renew time
-
-                const { userId } = data;
+                if (
+                    !xuser ||
+                    (xuser.type !== enums.userTypes.root &&
+                        xuser.type !== enums.userTypes.chatmanager &&
+                        xuser.type !== enums.userTypes.master &&
+                        xuser.type !== enums.userTypes.mastermain &&
+                        0)
+                )
+                    return; // Ensure only admins can renew time
+                // console.log('returned');
+                const { userId, time } = data;
+                // console.log(time, "from data")
                 const user = await getUserById(userId, xroomId);
-                // console.log(user, "ok")
-                if (user && user.speakTimer) {
-                    clearInterval(user.speakTimer); // Clear existing timer
-                    assignMicWithTimeLimit(userId); // Reassign mic with time limit
+                // console.log(user, "ok", user.speakTimer)
+                if (user) {
+                    clearInterval(timer); // Clear existing timer
+                    assignMicWithTimeLimit(userId, time); // Reassign mic with time limit
+                }
+                io.to(user.socketId).emit('mic-time-renewed', {
+                    message: `Your mic time has been renwed to ${time}.`,
+                });
+            });
+
+            // Add mic sharing feature
+            xclient.on('share-mic', async (data) => {
+                if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
+
+                let { userId, time } = data;
+                console.log(data, 'data value'); // Expecting userId of the recipient and time in seconds
+                if (!time) time = room.max_speaker_time;
+                console.log(time, 'time value 1402');
+                const userToShareWith = await getUserById(userId, xroomId);
+
+                if (userToShareWith) {
+                    // Disable mic for the current user
+                    xuser.can_use_mic = false;
+                    await updateUser(xuser, xuser._id, xroomId);
+                    io.to(xuser.socketId).emit('mic-disabled', {
+                        message: 'You have shared your mic.',
+                    });
+
+                    // Assign mic to the user being shared with
+                    userToShareWith.can_use_mic = true;
+                    await updateUser(userToShareWith, userToShareWith._id, xroomId);
+                    io.to(userToShareWith.socketId).emit('mic-enabled', {
+                        message: 'Your mic has been enabled temporarily.',
+                    });
+
+                    // Start a timer for the sharing period
+                    setTimeout(async () => {
+                        // Re-enable mic for the original user
+                        xuser.can_use_mic = true;
+                        await updateUser(xuser, xuser._id, xroomId);
+                        io.to(xuser.socketId).emit('mic-enabled', {
+                            message: 'Your mic has been re-enabled.',
+                        });
+
+                        // Disable mic for the user who shared the mic
+                        userToShareWith.can_use_mic = false;
+                        await updateUser(userToShareWith, userToShareWith._id, xroomId);
+                        io.to(userToShareWith.socketId).emit('mic-disabled', {
+                            message: 'Your mic has been disabled after sharing.',
+                        });
+
+                        // Re-add the user who shared the mic to the queue
+                        micQueue.push(userToShareWith._id.toString());
+                        io.to(xroomId).emit('mic-queue-update', micQueue);
+                    }, time * 1000); // Convert time to milliseconds
+                } else {
+                    io.to(xclient.id).emit('error', {
+                        message: 'User not found or unable to share mic.',
+                    });
                 }
             });
 
