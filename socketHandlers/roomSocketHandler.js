@@ -355,7 +355,7 @@ module.exports = (io) => {
             xclient.disconnect();
             return;
         }
-
+        ////////////////// START ROOM LOGIN FUNCTIONS///////////////////////
         xroomId = room._id.toString();
 
         var member;
@@ -446,6 +446,7 @@ module.exports = (io) => {
             xroomId,
         );
 
+        /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const continue_to_room = async () => {
             // add user to room
             xclient.join(xroomId);
@@ -581,8 +582,8 @@ module.exports = (io) => {
             xclient.on('raise-hand', async (user) => {
                 micQueue.push(user);
                 io.emit('new-raise-hand', {
-                    'user-id': user.id
-                })
+                    'user-id': user.id,
+                });
             });
             xclient.on('send-msg-private', async (data) => {
                 if (!xuser) return;
@@ -1081,6 +1082,7 @@ module.exports = (io) => {
                     }
                 }
             });
+            ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
 
             const roomInfo = getRoomData(xroomId);
             // console.log(roomInfo, "roominfo l 1080")
@@ -1120,11 +1122,11 @@ module.exports = (io) => {
                                 );
                                 socket.emit('speaking-time-ended');
                             } else if (room.update_time) {
-                                socket.emit('time-left', timeLeft);
+                                socket.emit('time-left', timeLeft); // EVENT SENT EVERY SEC TO TRACK REMAINING TIME
                             }
                         }, 1000);
 
-                        // Store the timer reference
+                        // Store the timer referencek
                         xuser.speakTimer = timer;
                     }
                 } else {
@@ -1481,6 +1483,7 @@ module.exports = (io) => {
             });
         };
 
+        /////////////// CHECk ROOM LOCK CASES //////////////////
         if (
             room.lock_status == 0 ||
             xuser.type == enums.userTypes.mastermain ||
@@ -1520,6 +1523,7 @@ module.exports = (io) => {
             });
         }
 
+        ////////////////// DISCONNECT CLIENT /////////////////////////
         xclient.on('disconnect', async (data) => {
             console.log(
                 'disconnected client:',
