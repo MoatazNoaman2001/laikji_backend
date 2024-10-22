@@ -1134,6 +1134,78 @@ module.exports = (io) => {
                 }
             });
 
+            const micQueue = []; // Queue to hold mic requests == raise hand
+            // xclient instead of socket
+            xclient.on('request-mic', async () => {
+                console.log('mic queue started', xuser.name);
+                if (!xuser) return;
+                // Add user to the mic queue
+                micQueue.push(xuser._id.toString());
+                io.to(xroomId).emit('mic-queue-update', micQueue);
+
+                // Notify the user that their request has been received
+                // replaced socket with xclient
+                xclient.emit('mic-requested', {
+                    message: 'Your request to speak has been added to the queue.',
+                });
+                await assignMic();
+            });
+
+            const assignMic = async () => {
+                if (micQueue.length > 0) {
+                    const nextUserId = micQueue.shift(); // Get the next user in the queue
+                    const nextUser = await getUserById(nextUserId, xroomId);
+                    if (nextUser) {
+                        const room = await roomModel.findById(xroomId);
+                        if (!room) return;
+
+                        if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
+                            roomInfo.speakers.add(nextUser._id.toString());
+
+                            // Create WebRTC transport for the speaker
+                            const transport = await createWebRtcTransport(xroomId);
+                            nextUser.transport = transport.id;
+                            await updateUser(nextUser, nextUser._id, xroomId);
+
+                            io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                            socket.emit('speaker-transport', transport.params);
+
+                            // If opened_time is false, start the timer
+                            if (!room.opened_time) {
+                                speakerTimer(room, nextUser);
+                            }
+                        } else {
+                            socket.emit('error', { message: 'Max speakers limit reached' });
+                        }
+                    }
+                }
+            };
+
+            const speakerTimer = async (room, speaker) => {
+                let timeLeft = room.max_speaker_time;
+                let startTime = Date.now();
+                const elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Calculate elapsed time in seconds
+                timeLeft = room.max_speaker_time - elapsedTime;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        roomInfo.speakers.delete(speaker._id.toString());
+                        io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                        socket.emit('speaking-time-ended');
+                        assignMic();
+                    } else if (room.update_time) {
+                        console.log(timeLeft);
+                        socket.emit('speaker-time-update', {
+                            userId: speaker._id,
+                            timeShow: timeLeft,
+                        }); // EVENT SENT EVERY SEC TO TRACK REMAINING TIME
+                    }
+                }, 1000);
+                // Store the timer reference
+                speaker.speakTimer = timer;
+            };
+
             xclient.on('start-producing', async (rtpParameters) => {
                 if (!xuser || !xuser.transport) return;
                 const room = await roomModel.findById(xroomId);
@@ -1179,6 +1251,7 @@ module.exports = (io) => {
                     maxSpeakers: room.max_speakers_count,
                     maxSpeakerTime: room.max_speaker_time,
                     updateTime: room.update_time,
+                    mic: room.mic,
                 });
 
                 socket.emit('init-transport', transport.params);
@@ -1254,59 +1327,18 @@ module.exports = (io) => {
                 io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
             });
 
-            // test mic features
-            const micQueue = []; // Queue to hold mic requests
-            // xclient instead of socket
-            xclient.on('request-mic', async () => {
-                console.log('mic queue started', xuser.name);
-                if (!xuser) return;
-
-                // Add user to the mic queue
-                micQueue.push(xuser._id.toString());
-                // console.log(micQueue)
-                io.to(xroomId).emit('mic-queue-update', micQueue);
-                // console.log(micQueue, "after update l 1252")
-
-                // Notify the user that their request has been received
-                // replaced socket with xclient
-                xclient.emit('mic-requested', {
-                    message: 'Your request to speak has been added to the queue.',
-                });
-            });
-
-            const assignMic = async () => {
-                // console.log("assign mic ", micQueue)
-                if (micQueue.length > 0) {
-                    const nextUserId = micQueue.shift(); // Get the next user in the queue
-                    const nextUser = await getUserById(nextUserId, xroomId);
-                    // console.log('many ')
-                    if (nextUser) {
-                        // Assign mic to the next user
-                        // console.log(roomInfo.speakers, "from next user")
-                        roomInfo.speakers.set({ nextUserId: nextUserId });
-                        // console.log(roomInfo.speakers, "nextUser")
-                        const transport = await createWebRtcTransport(xroomId);
-                        nextUser.transport = transport.id;
-                        await updateUser(nextUser, nextUser._id, xroomId);
-                        // console.log(Array.from(roomInfo.speakers), "array speakers")
-                        io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                        io.to(nextUser.socketId).emit('speaker-transport', transport.params);
-                    }
-                }
-            };
-
-            // Call this function when the current speaker's time ends
-            let timeLeft = room.max_speaker_time;
-            // console.log(timeLeft, room , "l1284 room")
-            const timer = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    roomInfo.speakers.delete(xuser._id.toString());
-                    // console.log(xuser._id, "is deleted after", timeLeft)
-                    assignMic(); // Assign mic to the next user
-                }
-            }, 1000);
+            // // Call this function when the current speaker's time ends
+            // let timeLeft = room.max_speaker_time;
+            // // console.log(timeLeft, room , "l1284 room")
+            // const timer = setInterval(() => {
+            //     timeLeft--;
+            //     if (timeLeft <= 0) {
+            //         clearInterval(timer);
+            //         roomInfo.speakers.delete(xuser._id.toString());
+            //         // console.log(xuser._id, "is deleted after", timeLeft)
+            //         assignMic(); // Assign mic to the next user
+            //     }
+            // }, 1000);
 
             xclient.on('admin-disable-mic', async (data) => {
                 // console.log('whats wrong')
@@ -1371,7 +1403,7 @@ module.exports = (io) => {
                         clearInterval(timer);
                         roomInfo.speakers.delete(userId);
                         assignMic(); // Assign mic to the next user
-                    }
+                    } // maybe here send speaker-time-update
                 }, 1000);
             };
 
