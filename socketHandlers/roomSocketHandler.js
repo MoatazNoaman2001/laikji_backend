@@ -44,6 +44,16 @@ const {
     createConsumer,
     getRoomData,
 } = require('../helpers/mediasoupHelpers');
+
+const micQueue = []; // Queue to hold mic requests
+const allMutedList = []; // list for users whom muted all participarates
+let currentSpeaker = null; // Tracks the current user who has the mic
+const activeTimers = new Map();
+let micAssigning = false; // Flag to prevent concurrent mic assignments
+
+let userTimers = new Map();
+const speakerTimers = new Map();
+
 module.exports = (io) => {
     io.use(async (socket, next) => {
         // console.log("started", socket.handshake.query.name)
@@ -485,6 +495,7 @@ module.exports = (io) => {
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
 
             // xuser = await updateUser({ enterDate: getNowDateTime(true), ...xuser }, xuser._id, xroomId);
+            // return micQueue, speakersQueue at another event
             xclient.emit('started', {
                 ok: true,
                 user: xuser,
@@ -1085,101 +1096,303 @@ module.exports = (io) => {
             ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
 
             const roomInfo = getRoomData(xroomId);
-            // console.log(roomInfo, "roominfo l 1080")
-            // console.log(sokcet)
-            // xclient instead of socket
-            xclient.on('request-speak', async () => {
-                // console.log("speak okkkkkkkkkk")
-                if (!xuser) return;
-                const room = await roomModel.findById(xroomId);
-                if (!room) return;
 
-                if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
-                    roomInfo.speakers.add(xuser._id.toString());
-
-                    // Create WebRTC transport for the speaker
-                    const transport = await createWebRtcTransport(xroomId);
-                    xuser.transport = transport.id;
-                    await updateUser(xuser, xuser._id, xroomId);
-
-                    io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                    socket.emit('speaker-transport', transport.params);
-
-                    // If opened_time is false, start the timer
-
-                    if (!room.opened_time) {
-                        // 0r 100 added
-                        let timeLeft = room.max_speaker_time;
-                        // console.log(timeLeft)
-                        const timer = setInterval(() => {
-                            timeLeft--;
-                            if (timeLeft <= 0) {
-                                clearInterval(timer);
-                                roomInfo.speakers.delete(xuser._id.toString());
-                                io.to(xroomId).emit(
-                                    'update-speakers',
-                                    Array.from(roomInfo.speakers),
-                                );
-                                socket.emit('speaking-time-ended');
-                            } else if (room.update_time) {
-                                socket.emit('time-left', timeLeft); // EVENT SENT EVERY SEC TO TRACK REMAINING TIME
-                            }
-                        }, 1000);
-
-                        // Store the timer referencek
-                        xuser.speakTimer = timer;
-                    }
-                } else {
-                    socket.emit('error', { message: 'Max speakers limit reached' });
+            const getUserTimeLeft = (userType) => {
+                const { talk_dur } = room.mic; // Assuming room.mic.talk_dur is an array of durations based on user type
+                switch (userType) {
+                    case enums.userTypes.guest:
+                        return convertToMilliseconds(talk_dur[0]);
+                    case enums.userTypes.member:
+                        return convertToMilliseconds(talk_dur[1]);
+                    case enums.userTypes.admin:
+                        return convertToMilliseconds(talk_dur[2]);
+                    case enums.userTypes.superadmin:
+                        return convertToMilliseconds(talk_dur[3]);
+                    case enums.userTypes.master:
+                        return convertToMilliseconds(talk_dur[4]);
+                    default:
+                        return 0;
                 }
-            });
+            };
+            const clearUserTimers = (userId) => {
+                console.log('clear timer started');
+                const updatedTimers = new Map();
+                for (let [key, value] of userTimers.entries()) {
+                    if (key != userId) {
+                        updatedTimers.set(key, value);
+                    } else {
+                        console.log('Clearing timers for userId:', userId);
+                        clearTimeout(value.timer);
+                        clearInterval(value.interval);
+                    }
+                }
+                userTimers = updatedTimers;
+                console.log('UserTimers after deletion:', userTimers);
+            };
+            const startSpeakerTimer = (userId, timeLeft, socketId) => {
+                clearUserTimers(userId);
+                console.log(`Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`);
 
-            const micQueue = []; // Queue to hold mic requests == raise hand
-            // xclient instead of socket
+                const timer = setTimeout(() => {
+                    console.log(`Time's up for user ${userId}`);
+                    io.to(socketId).emit('mic-disabled', {
+                        message: 'Your speaking time has ended',
+                    });
+                    io.to(xroomId).emit('speaker-time-update', {
+                        userId: userId,
+                        timeLeft: "Time's up",
+                    });
+
+                    releaseMic();
+                    // // Remove the user from speakers list
+                    // roomInfo.speakers.delete(userId);
+                    // io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+
+                    // // Reset current speaker
+                    // currentSpeaker = null;
+
+                    // // Assign mic to the next user in queue if available
+                    // if (micQueue.length > 0) {
+                    //     assignMic();
+                    // }
+                }, timeLeft * 1000);
+
+                // Store the timer reference
+                // speakerTimers.set(userId, timer);
+
+                // Emit time updates every second
+                const interval = setInterval(() => {
+                    timeLeft -= 1000;
+                    io.to(room.socketId).emit('speaker-time-update', {
+                        userId: userId,
+                        timeLeft: timeLeft / 1000,
+                    });
+
+                    if (timeLeft <= 0) {
+                        // clearInterval(interval);
+                        clearUserTimers(userId);
+                        io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                        io.to(xroomId).emit('mic-queue-update', micQueue);
+                    }
+                }, 1000);
+                userTimers.set(userId, { timer, interval });
+                console.log(speakerTimers, 'timers');
+                console.log(`Timer for user ${userId} is active.`);
+            };
+            const assignMic = async () => {
+                if (micAssigning || currentSpeaker) {
+                    console.log('Mic is currently in use or being assigned. Please wait.');
+                    return;
+                }
+
+                micAssigning = true; // Lock mic assignment immediately
+                try {
+                    // Check if the queue is empty
+                    if (micQueue.length === 0) {
+                        console.log('Mic queue is empty.');
+                        micAssigning = false; // Unlock assignment
+                        return;
+                    }
+
+                    const nextUserId = micQueue.shift(); // Get the next user from the queue
+                    console.log(
+                        `Assigning mic to user: ${nextUserId}. Queue length: ${micQueue.length}`,
+                    );
+
+                    const nextUser = await getUserById(nextUserId, xroomId);
+
+                    if (!nextUser || roomInfo.speakers.has(nextUserId)) {
+                        console.log(
+                            `User ${nextUserId} is already a speaker or not found. Skipping...`,
+                        );
+                        micAssigning = false; // Unlock assignment
+                        await assignMic(); // Recursively try the next user
+                        return;
+                    }
+                    const room = await roomModel.findById(xroomId);
+                    if (!room) return;
+
+                    if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
+                        assignSpeaker(nextUserId, nextUser);
+                    } else {
+                        socket.emit('error', { message: 'Max speakers limit reached' });
+                    }
+                } catch (error) {
+                    console.error(`Error in mic assignment: ${error.message}`);
+                } finally {
+                    micAssigning = false; // Unlock mic assignment after the process is done
+                    console.log('Mic assignment process completed.');
+                }
+            };
+
+            const assignSpeaker = async (speakerId, speaker) => {
+                currentSpeaker = speakerId;
+                // Create WebRTC transport for the speaker
+                const transport = await createWebRtcTransport(xroomId);
+                nextUser.transport = transport.id;
+                console.log(`Mic assigned to user: ${speakerId}`);
+                await updateUser(nextUser, nextUser._id, xroomId);
+                roomInfo.speakers.add(speakerId);
+                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                socket.emit('speaker-transport', transport.params);
+
+                //io.to(xroomId).emit('mic-queue-update', micQueue);
+
+                const timeLeft = getUserTimeLeft(speaker.type);
+                if (timeLeft > 0) {
+                    console.log(
+                        `Starting timer for user ${speakerId}. Time left: ${timeLeft} seconds.`,
+                    );
+                    startSpeakerTimer(speakerId, timeLeft, speaker.socketId);
+                } else {
+                    // If there is no time limit (open mic)
+                    io.to(xroomId).emit('speaker-time-update', {
+                        userId: speakerId,
+                        timeLeft: 'You have an open mic',
+                    });
+                    io.to(speaker.socketId).emit('mic-enabled', {
+                        message: 'Your mic has been enabled',
+                    });
+                }
+            };
+            // Function to handle mic request
             xclient.on('request-mic', async () => {
-                console.log('mic queue started', xuser.name);
+                console.log(
+                    `Mic request received from user ${xuser._id}. Current speaker: ${currentSpeaker}`,
+                );
                 if (!xuser) return;
-                // Add user to the mic queue
+                if (currentSpeaker === null && micQueue.length === 0) {
+                    // Assign mic directly to the first user
+                    assignSpeaker(xuser._id.toString(), xuser);
+                    //startSpeakerTimer(xuser._id.toString(), timeLeft, xuser.socketId);
+                    // await updateUser(xuser, xuser._id, xroomId);
+                    //  io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                } else if (!micQueue.includes(xuser._id.toString())) {
+                    // Add subsequent users to the queue
+                    micQueue.push(xuser._id);
+                    io.to(room.socketId).emit('mic-queue-update', micQueue);
+                }
+
+                // If the user is already in the queue, decline the request
+                if (micQueue.includes(xuser._id.toString())) {
+                    console.log(`User ${xuser._id} is already in the queue.`);
+                    xclient.emit('mic-declined', {
+                        message: 'You are already in the queue',
+                    });
+                    return;
+                }
+                // Add user to the queue if there's an active speaker
                 micQueue.push(xuser._id.toString());
+                console.log(
+                    `User ${xuser._id} added to the queue. Queue length: ${micQueue.length}`,
+                );
                 io.to(xroomId).emit('mic-queue-update', micQueue);
 
-                // Notify the user that their request has been received
-                // replaced socket with xclient
                 xclient.emit('mic-requested', {
                     message: 'Your request to speak has been added to the queue.',
                 });
-                await assignMic();
+
+                // If no current speaker, try assigning mic immediately
+                if (!currentSpeaker && !micAssigning) {
+                    console.log(`No current speaker. Assigning mic from the queue.`);
+                    await assignMic();
+                }
             });
 
-            const assignMic = async () => {
-                if (micQueue.length > 0) {
-                    const nextUserId = micQueue.shift(); // Get the next user in the queue
-                    const nextUser = await getUserById(nextUserId, xroomId);
-                    if (nextUser) {
-                        const room = await roomModel.findById(xroomId);
-                        if (!room) return;
+            // console.log(roomInfo, "roominfo l 1080")
+            // console.log(sokcet)
+            // xclient instead of socket
+            // xclient.on('request-speak', async () => {
+            //     // console.log("speak okkkkkkkkkk")
+            //     if (!xuser) return;
+            //     const room = await roomModel.findById(xroomId);
+            //     if (!room) return;
 
-                        if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
-                            roomInfo.speakers.add(nextUser._id.toString());
+            //     if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
+            //         roomInfo.speakers.add(xuser._id.toString());
 
-                            // Create WebRTC transport for the speaker
-                            const transport = await createWebRtcTransport(xroomId);
-                            nextUser.transport = transport.id;
-                            await updateUser(nextUser, nextUser._id, xroomId);
+            //         // Create WebRTC transport for the speaker
+            //         const transport = await createWebRtcTransport(xroomId);
+            //         xuser.transport = transport.id;
+            //         await updateUser(xuser, xuser._id, xroomId);
 
-                            io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                            socket.emit('speaker-transport', transport.params);
+            //         io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+            //         socket.emit('speaker-transport', transport.params);
 
-                            // If opened_time is false, start the timer
-                            if (!room.opened_time) {
-                                speakerTimer(room, nextUser);
-                            }
-                        } else {
-                            socket.emit('error', { message: 'Max speakers limit reached' });
-                        }
-                    }
-                }
-            };
+            //         // If opened_time is false, start the timer
+
+            //         if (!room.opened_time) {
+            //             // 0r 100 added
+            //             let timeLeft = room.max_speaker_time;
+            //             // console.log(timeLeft)
+            //             const timer = setInterval(() => {
+            //                 timeLeft--;
+            //                 if (timeLeft <= 0) {
+            //                     clearInterval(timer);
+            //                     roomInfo.speakers.delete(xuser._id.toString());
+            //                     io.to(xroomId).emit(
+            //                         'update-speakers',
+            //                         Array.from(roomInfo.speakers),
+            //                     );
+            //                     socket.emit('speaking-time-ended');
+            //                 } else if (room.update_time) {
+            //                     socket.emit('time-left', timeLeft); // EVENT SENT EVERY SEC TO TRACK REMAINING TIME
+            //                 }
+            //             }, 1000);
+
+            //             // Store the timer referencek
+            //             xuser.speakTimer = timer;
+            //         }
+            //     } else {
+            //         socket.emit('error', { message: 'Max speakers limit reached' });
+            //     }
+            // });
+
+            // // xclient instead of socket
+            // xclient.on('request-mic', async () => {
+            //     console.log('mic queue started', xuser.name);
+            //     if (!xuser) return;
+            //     // Add user to the mic queue
+            //     micQueue.push(xuser._id.toString());
+            //     io.to(xroomId).emit('mic-queue-update', micQueue);
+
+            //     // Notify the user that their request has been received
+            //     // replaced socket with xclient
+            //     xclient.emit('mic-requested', {
+            //         message: 'Your request to speak has been added to the queue.',
+            //     });
+            //     await assignMic();
+            // });
+
+            // const assignMic = async () => {
+            //     if (micQueue.length > 0) {
+            //         const nextUserId = micQueue.shift(); // Get the next user in the queue
+            //         const nextUser = await getUserById(nextUserId, xroomId);
+            //         if (nextUser) {
+            //             const room = await roomModel.findById(xroomId);
+            //             if (!room) return;
+
+            //             if (roomInfo.speakers.size < room.max_speakers_count || room.opened_time) {
+            //                 roomInfo.speakers.add(nextUser._id.toString());
+
+            //                 // Create WebRTC transport for the speaker
+            //                 const transport = await createWebRtcTransport(xroomId);
+            //                 nextUser.transport = transport.id;
+            //                 await updateUser(nextUser, nextUser._id, xroomId);
+
+            //                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+            //                 socket.emit('speaker-transport', transport.params);
+
+            //                 // If opened_time is false, start the timer
+            //                 if (!room.opened_time) {
+            //                     speakerTimer(room, nextUser);
+            //                 }
+            //             } else {
+            //                 socket.emit('error', { message: 'Max speakers limit reached' });
+            //             }
+            //         }
+            //     }
+            // };
 
             const speakerTimer = async (room, speaker) => {
                 let timeLeft = room.max_speaker_time;
@@ -1507,9 +1720,10 @@ module.exports = (io) => {
                 io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
             });
 
-            xclient.emit('room-state', {
+            xclient.emit('mic-state', {
                 speakers: Array.from(roomInfo.speakers),
                 listeners: Array.from(roomInfo.listeners),
+                micQueue: micQueue,
                 holdMic: Array.from(roomInfo.holdMic),
                 openedTime: room.opened_time,
             });

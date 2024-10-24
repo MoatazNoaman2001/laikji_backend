@@ -47,13 +47,10 @@ const schema = Schema({
         },
     },
     mic: {
-        type: Object,
-        default: {
-            mic_permission: int,
-            talk_dur: [300, 300, 300, 300, 300],
-            mic_setting: [false, true, true, false],
-            shared_mic_capacity: 3,
-        },
+        mic_permission: { type: Number },
+        talk_dur: { type: [Number], default: [300, 300, 300, 300, 300] },
+        mic_setting: { type: [Boolean], default: [false, true, true, false] },
+        shared_mic_capacity: { type: Number, default: 3 },
     },
     owner: {
         type: Object,
