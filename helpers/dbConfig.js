@@ -9,9 +9,11 @@ module.exports = () => {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false,
+            // bufferCommands: false, // Disable buffering
+            serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
         },
         (er, db) => {
-            if (er) console.log(er);
+            if (er) console.log(`error from db ${er}`);
             else console.log('DB is connected!');
         },
     );

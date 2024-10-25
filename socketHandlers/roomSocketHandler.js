@@ -1096,7 +1096,18 @@ module.exports = (io) => {
             ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
 
             const roomInfo = getRoomData(xroomId);
+            function convertToMilliseconds(time) {
+                const timeStr = time.toString();
+                const length = timeStr.length;
 
+                if (length >= 3) {
+                    const seconds = parseInt(timeStr.slice(-2)) || 0;
+                    const minutes = parseInt(timeStr.slice(0, -2)) || 0;
+                    return (minutes * 60 + seconds) * 1000;
+                } else {
+                    return time * 1000;
+                }
+            }
             const getUserTimeLeft = (userType) => {
                 const { talk_dur } = room.mic; // Assuming room.mic.talk_dur is an array of durations based on user type
                 switch (userType) {
@@ -1163,7 +1174,7 @@ module.exports = (io) => {
                 // Emit time updates every second
                 const interval = setInterval(() => {
                     timeLeft -= 1000;
-                    io.to(room.socketId).emit('speaker-time-update', {
+                    io.to(xroomId).emit('speaker-time-update', {
                         userId: userId,
                         timeLeft: timeLeft / 1000,
                     });
@@ -1171,10 +1182,9 @@ module.exports = (io) => {
                     if (timeLeft <= 0) {
                         // clearInterval(interval);
                         clearUserTimers(userId);
-                        io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                        io.to(xroomId).emit('mic-queue-update', micQueue);
+                        releaseMic();
                     }
-                }, 1000);
+                }, 1000); // time 100 here for test
                 userTimers.set(userId, { timer, interval });
                 console.log(speakerTimers, 'timers');
                 console.log(`Timer for user ${userId} is active.`);
@@ -1225,16 +1235,36 @@ module.exports = (io) => {
                 }
             };
 
+            const releaseMic = () => {
+                if (currentSpeaker) {
+                    roomInfo.speakers.delete(currentSpeaker);
+                    micQueue.pop(currentSpeaker);
+
+                    // Clear any existing timer for the current speaker
+                    if (speakerTimers.has(currentSpeaker)) {
+                        clearTimeout(speakerTimers.get(currentSpeaker));
+                        clearInterval(speakerTimers.get(currentSpeaker + '_interval'));
+                        speakerTimers.pop(currentSpeaker);
+                        speakerTimers.pop(currentSpeaker + '_interval');
+                    }
+                    io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                    io.to(xroomId).emit('mic-queue-update', micQueue);
+                    currentSpeaker = null;
+                    console.log('Mic released. Attempting to assign to next user.');
+                    assignMic();
+                }
+            };
+
             const assignSpeaker = async (speakerId, speaker) => {
                 currentSpeaker = speakerId;
                 // Create WebRTC transport for the speaker
                 const transport = await createWebRtcTransport(xroomId);
-                nextUser.transport = transport.id;
+                speaker.transport = transport.id;
                 console.log(`Mic assigned to user: ${speakerId}`);
-                await updateUser(nextUser, nextUser._id, xroomId);
-                roomInfo.speakers.add(speakerId);
+                await updateUser(speaker, speaker._id, xroomId);
+                roomInfo.speakers.set(speakerId, speaker);
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                socket.emit('speaker-transport', transport.params);
+                xclient.emit('speaker-transport', transport.params);
 
                 //io.to(xroomId).emit('mic-queue-update', micQueue);
 
