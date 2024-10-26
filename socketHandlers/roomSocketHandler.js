@@ -1154,7 +1154,7 @@ module.exports = (io) => {
                         timeLeft: "Time's up",
                     });
 
-                    releaseMic();
+                    releaseMic(userId);
                     // // Remove the user from speakers list
                     // roomInfo.speakers.delete(userId);
                     // io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
@@ -1182,7 +1182,7 @@ module.exports = (io) => {
                     if (timeLeft <= 0) {
                         // clearInterval(interval);
                         clearUserTimers(userId);
-                        releaseMic();
+                        releaseMic(userId);
                     }
                 }, 1000); // time 100 here for test
                 userTimers.set(userId, { timer, interval });
@@ -1235,11 +1235,8 @@ module.exports = (io) => {
                 }
             };
 
-            const releaseMic = () => {
+            const releaseMic = (userId) => {
                 if (currentSpeaker) {
-                    roomInfo.speakers.delete(currentSpeaker);
-                    micQueue.pop(currentSpeaker);
-
                     // Clear any existing timer for the current speaker
                     if (speakerTimers.has(currentSpeaker)) {
                         clearTimeout(speakerTimers.get(currentSpeaker));
@@ -1247,8 +1244,12 @@ module.exports = (io) => {
                         speakerTimers.pop(currentSpeaker);
                         speakerTimers.pop(currentSpeaker + '_interval');
                     }
+                    // remove speaker from speakers list
+                    roomInfo.speakers.delete(currentSpeaker);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                    io.to(xroomId).emit('mic-queue-update', micQueue);
+                    // notify room that the speaker's time has been ended
+                    io.to(xroomId).emit('speaker-ended', userId);
+
                     currentSpeaker = null;
                     console.log('Mic released. Attempting to assign to next user.');
                     assignMic();
@@ -1258,15 +1259,17 @@ module.exports = (io) => {
             const assignSpeaker = async (speakerId, speaker) => {
                 currentSpeaker = speakerId;
                 // Create WebRTC transport for the speaker
-                const transport = await createWebRtcTransport(xroomId);
-                speaker.transport = transport.id;
+                // const transport = await createWebRtcTransport(xroomId);
+                // speaker.transport = transport.id;
+                // xclient.emit('speaker-transport', transport.params);
+
                 console.log(`Mic assigned to user: ${speakerId}`);
                 await updateUser(speaker, speaker._id, xroomId);
+                // remove user from mic queue after assigning mic to him
+                micQueue.pop(speakerId);
+                io.to(xroomId).emit('mic-queue-update', micQueue);
                 roomInfo.speakers.set(speakerId, speaker);
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                xclient.emit('speaker-transport', transport.params);
-
-                //io.to(xroomId).emit('mic-queue-update', micQueue);
 
                 const timeLeft = getUserTimeLeft(speaker.type);
                 if (timeLeft > 0) {
