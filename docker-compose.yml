@@ -16,6 +16,9 @@ services:
     image: mongo:latest
     ports:
       - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $PASSWORD
     volumes:
       - mongo-data:/data/db
     networks:
