@@ -493,6 +493,7 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
+            const roomInfo = getRoomData(xroomId);
 
             // xuser = await updateUser({ enterDate: getNowDateTime(true), ...xuser }, xuser._id, xroomId);
             // return micQueue, speakersQueue at another event
@@ -504,6 +505,8 @@ module.exports = (io) => {
                 users: users_in_room,
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
+                micQueue: micQueue,
+                speakers: roomInfo != null? roomInfo.speakers: []
             });
 
             if (xuser.is_visible) {
@@ -1095,7 +1098,6 @@ module.exports = (io) => {
             });
             ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
 
-            const roomInfo = getRoomData(xroomId);
             function convertToMilliseconds(time) {
                 const timeStr = time.toString();
                 const length = timeStr.length;
