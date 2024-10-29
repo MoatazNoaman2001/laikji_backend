@@ -48,15 +48,12 @@ const {
 const micQueue = []; // Queue to hold mic requests
 const allMutedList = []; // list for users whom muted all participarates
 let currentSpeaker = null; // Tracks the current user who has the mic
-const activeTimers = new Map();
 let micAssigning = false; // Flag to prevent concurrent mic assignments
-
 let userTimers = new Map();
 const speakerTimers = new Map();
 
 module.exports = (io) => {
     io.use(async (socket, next) => {
-        // console.log("started", socket.handshake.query.name)
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
@@ -89,8 +86,6 @@ module.exports = (io) => {
         }
 
         let room = await roomModel.findById(room_id);
-        // console.log(room, "the room")
-
         if (!room) {
             return next(
                 new Error(
@@ -1247,7 +1242,7 @@ module.exports = (io) => {
                         speakerTimers.pop(currentSpeaker + '_interval');
                     }
                     // remove speaker from speakers list
-                    roomInfo.speakers.delete(currentSpeaker);
+                    roomInfo.speakers.pop(currentSpeaker);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
                     // notify room that the speaker's time has been ended
                     io.to(xroomId).emit('speaker-ended', userId);
@@ -1260,6 +1255,11 @@ module.exports = (io) => {
 
             const assignSpeaker = async (speakerId, speaker) => {
                 currentSpeaker = speakerId;
+                roomInfo.speakers.push(speakerId);
+                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                // remove user from mic queue after assigning mic to him
+                micQueue.pop(speakerId);
+                io.to(xroomId).emit('mic-queue-update', micQueue);
                 // Create WebRTC transport for the speaker
                 // const transport = await createWebRtcTransport(xroomId);
                 // speaker.transport = transport.id;
@@ -1267,11 +1267,6 @@ module.exports = (io) => {
 
                 console.log(`Mic assigned to user: ${speakerId}`);
                 await updateUser(speaker, speaker._id, xroomId);
-                // remove user from mic queue after assigning mic to him
-                micQueue.pop(speakerId);
-                io.to(xroomId).emit('mic-queue-update', micQueue);
-                roomInfo.speakers.set(speakerId, speaker);
-                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
                 const timeLeft = getUserTimeLeft(speaker.type);
                 if (timeLeft > 0) {
@@ -1352,7 +1347,7 @@ module.exports = (io) => {
                 }
                 if (roomInfo.speakers.has(userId)) {
                     console.log('User found in speakers some', roomInfo.speakers);
-                    roomInfo.speakers.delete(userId);
+                    roomInfo.speakers.pop(userId);
                     console.log('after delete user id', roomInfo.speakers);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
                 } else {
@@ -1481,7 +1476,7 @@ module.exports = (io) => {
             xclient.on('release-speak', async () => {
                 if (!xuser) return;
 
-                roomInfo.speakers.delete(xuser._id.toString());
+                roomInfo.speakers.pop(xuser._id.toString());
 
                 // Clear the timer if it exists
                 if (xuser.speakTimer) {
@@ -1593,7 +1588,7 @@ module.exports = (io) => {
                     timeLeft--;
                     if (timeLeft <= 0) {
                         clearInterval(timer);
-                        roomInfo.speakers.delete(userId);
+                        roomInfo.speakers.pop(userId);
                         assignMic(); // Assign mic to the next user
                     } // maybe here send speaker-time-update
                 }, 1000);
@@ -1765,6 +1760,12 @@ module.exports = (io) => {
         }
 
         ////////////////// DISCONNECT CLIENT /////////////////////////
+        //  xclient.on('disconnect', function () {
+        //      micQueue.pop(xuser._id.toString());
+        //      roomInfo.speakers.pop(xuser._id.toString());
+        //      clearUserTimers(xuser._id.toString());
+        //  });
+
         xclient.on('disconnect', async (data) => {
             console.log(
                 'disconnected client:',
@@ -1784,9 +1785,14 @@ module.exports = (io) => {
             if (!xuser || !xroomId) return;
 
             const roomInfo = getRoomData(xroomId);
-            roomInfo.speakers.delete(xuser._id.toString());
-            roomInfo.listeners.delete(xuser._id.toString());
-            roomInfo.holdMic.delete(xuser._id.toString());
+            if (roomInfo.speakers.has(xuser._id.toString())) {
+                roomInfo.speakers.pop(xuser._id.toString());
+                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+            }
+            micQueue.pop(xuser._id.toString());
+            io.to(xroomId).emit('mic-queue-update', micQueue);
+
+            // roomInfo.holdMic.delete(xuser._id.toString());
 
             // Clear the timer if it exists
             if (xuser.speakTimer) {
@@ -1794,22 +1800,21 @@ module.exports = (io) => {
                 xuser.speakTimer = null;
             }
 
-            // Close all WebRTC stuff
-            if (xuser.transport) {
-                await closeTransport(xroomId, xuser.transport);
-            }
-            if (xuser.producer) {
-                await closeProducer(xroomId, xuser.producer);
-            }
-            if (xuser.consumers) {
-                for (const consumerId of xuser.consumers) {
-                    await closeConsumer(xroomId, consumerId);
-                }
-            }
+            // // Close all WebRTC stuff
+            // if (xuser.transport) {
+            //     await closeTransport(xroomId, xuser.transport);
+            // }
+            // if (xuser.producer) {
+            //     await closeProducer(xroomId, xuser.producer);
+            // }
+            // if (xuser.consumers) {
+            //     for (const consumerId of xuser.consumers) {
+            //         await closeConsumer(xroomId, consumerId);
+            //     }
+            // }
 
-            io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-            io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
-            io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+            // io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
+            // io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
 
             // Notify others that the user has left
             io.to(xroomId).emit('user-left', xuser._id.toString());
