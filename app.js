@@ -1,4 +1,3 @@
-const env = require('dotenv').config();
 const express = require('express');
 const socket = require('socket.io');
 const dbConfig = require('./helpers/dbConfig');
