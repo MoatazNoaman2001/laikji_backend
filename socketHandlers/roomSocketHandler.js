@@ -501,7 +501,7 @@ module.exports = (io) => {
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
                 micQueue: micQueue,
-                speakers: roomInfo != null ? roomInfo.speakers : [],
+                speakers: roomInfo != null ? roomInfo.speakers : {},
             });
 
             if (xuser.is_visible) {
@@ -588,12 +588,6 @@ module.exports = (io) => {
                 });
             });
 
-            xclient.on('raise-hand', async (user) => {
-                micQueue.push(user);
-                io.emit('new-raise-hand', {
-                    'user-id': user.id,
-                });
-            });
             xclient.on('send-msg-private', async (data) => {
                 if (!xuser) return;
 
@@ -1197,7 +1191,7 @@ module.exports = (io) => {
                         speakerTimers.pop(currentSpeaker + '_interval');
                     }
                     // remove speaker from speakers list
-                    roomInfo.speakers.pop(currentSpeaker);
+                    roomInfo.speakers.delete(currentSpeaker);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
                     // notify room that the speaker's time has been ended
                     io.to(xroomId).emit('speaker-ended', userId);
@@ -1222,12 +1216,14 @@ module.exports = (io) => {
                     }
 
                     const nextUserId = micQueue.shift(); // Get the next user from the queue
+                    io.to(xroomId).emit('mic-queue-update', micQueue);
+
                     console.log(
                         `Assigning mic to user: ${nextUserId}. Queue length: ${micQueue.length}`,
                     );
 
                     const nextUser = await getUserById(nextUserId, xroomId);
-                    if (!nextUser || roomInfo.speakers.includes(nextUserId)) {
+                    if (!nextUser || roomInfo.speakers.has(nextUserId)) {
                         console.log(
                             `User ${nextUserId} is already a speaker or not found. Skipping...`,
                         );
@@ -1254,13 +1250,14 @@ module.exports = (io) => {
 
             const assignSpeaker = async (speakerId, speaker) => {
                 currentSpeaker = speakerId;
-                roomInfo.speakers.push(speakerId);
+                roomInfo.speakers.add(speakerId);
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
                 // Remove user from micQueue after assigning mic to them
-                micQueue.pop(speakerId);
-                io.to(xroomId).emit('mic-queue-update', micQueue);
-
+                if (micQueue.includes(speakerId)) {
+                    micQueue.pop(speakerId);
+                    io.to(xroomId).emit('mic-queue-update', micQueue);
+                }
                 console.log(`Mic assigned to user: ${speakerId}`);
                 await updateUser(speaker, speaker._id, xroomId);
 
@@ -1287,29 +1284,37 @@ module.exports = (io) => {
                     `Mic request received from user ${xuser._id}. Current speaker: ${currentSpeaker}`,
                 );
                 if (!xuser) return;
-
-                if (micQueue.includes(xuser._id)) {
-                    // Remove the user from the mic queue if they are already there
-                    micQueue = micQueue.filter((id) => id !== xuser._id);
-                    io.to(xroomId).emit('mic-queue-update', micQueue);
-                    console.log(`User ${xuser._id} removed from the queue.`);
-                } else {
-                    // Add user to the queue if they are not already there
-                    micQueue.push(xuser._id);
-                    io.to(xroomId).emit('mic-queue-update', micQueue);
+                if (micQueue.length === 0 && !currentSpeaker) {
+                    // Assign mic directly to the first user
+                    assignSpeaker(xuser._id.toString(), xuser);
+                    //startSpeakerTimer(xuser._id.toString(), timeLeft, xuser.socketId);
+                    // await updateUser(xuser, xuser._id, xroomId);
+                    //  io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                } else if (currentSpeaker && !micQueue.includes(xuser._id.toString())) {
+                    // Add user to the queue if there's an active speaker
+                    micQueue.push(xuser._id.toString());
                     console.log(
                         `User ${xuser._id} added to the queue. Queue length: ${micQueue.length}`,
                     );
+                    io.to(xroomId).emit('mic-queue-update', micQueue);
                 }
 
-                if (!currentSpeaker && !micAssigning) {
-                    // Assign mic directly to the first user if no current speaker
-                    await assignSpeaker(xuser._id, xuser);
+                // If the user is already in the queue, decline the request
+                if (micQueue.includes(xuser._id.toString())) {
+                    console.log(`User ${xuser._id} is already in the queue.`);
+                    xclient.emit('mic-declined', { message: 'You are already in the queue' });
+                    return;
                 }
 
                 xclient.emit('mic-requested', {
                     message: 'Your request to speak has been added to the queue.',
                 });
+
+                // If no current speaker, try assigning mic immediately
+                if (!currentSpeaker && !micAssigning) {
+                    console.log(`No current speaker. Assigning mic from the queue.`);
+                    await assignMic();
+                }
             });
 
             xclient.on('decline-mic', async () => {
@@ -1320,19 +1325,19 @@ module.exports = (io) => {
                 console.log('userId type:', typeof userId, 'value:', userId);
 
                 clearUserTimers(userId);
-                releaseMic(userId);
+                //releaseMic(userId);
 
                 // Remove user from micQueue if present
                 if (micQueue.includes(userId)) {
                     micQueue.pop(userId);
                     io.to(xroomId).emit('mic-queue-update', micQueue);
                 }
-                if (roomInfo.speakers.includes(xclient._id)) {
+                if (roomInfo.speakers.has(xclient._id)) {
                     console.log(roomInfo.speakers, 'at decline room speakers if');
                 }
-                if (roomInfo.speakers.includes(userId)) {
+                if (roomInfo.speakers.has(userId)) {
                     console.log('User found in speakers some', roomInfo.speakers);
-                    roomInfo.speakers.pop(userId);
+                    roomInfo.speakers.delete(userId);
                     console.log('after delete user id', roomInfo.speakers);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
                     io.to(xroomId).emit('speaker-ended', userId);
@@ -1660,25 +1665,6 @@ module.exports = (io) => {
 
             // end test mic features
 
-            xclient.on('toggle-listen', async (isListening) => {
-                if (!xuser) return;
-
-                if (isListening) {
-                    roomInfo.listeners.add(xuser._id.toString());
-                } else {
-                    roomInfo.listeners.delete(xuser._id.toString());
-                    if (xuser.consumers) {
-                        // Close all consumers
-                        for (const consumerId of xuser.consumers) {
-                            await closeConsumer(xroomId, consumerId);
-                        }
-                        xuser.consumers = [];
-                        await updateUser(xuser, xuser._id, xroomId);
-                    }
-                }
-
-                io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
-            });
             xclient.on('mute-all', async () => {
                 console.log('all muted list started', xuser.name);
                 if (!xuser) return;
@@ -1698,7 +1684,6 @@ module.exports = (io) => {
 
             xclient.emit('mic-state', {
                 speakers: Array.from(roomInfo.speakers),
-                listeners: Array.from(roomInfo.listeners),
                 micQueue: micQueue,
                 holdMic: Array.from(roomInfo.holdMic),
                 openedTime: room.opened_time,
@@ -1782,7 +1767,9 @@ module.exports = (io) => {
 
             // Clear the timer if it exists
             if (xuser.speakTimer) {
-                clearInterval(xuser.speakTimer);
+                clearUserTimers();
+                releaseMic(xuser._id.toString());
+
                 xuser.speakTimer = null;
             }
 
