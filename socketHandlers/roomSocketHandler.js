@@ -1086,6 +1086,7 @@ module.exports = (io) => {
                 }
             });
             ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
+            // localhost:9500?name=test2&roomId=66f80aa1f67b8fe03bca0637&key=02218e5d-0128-40a8-a315-4d7cfc0f9f50
 
             function convertToMilliseconds(time) {
                 const timeStr = time.toString();
@@ -1201,6 +1202,7 @@ module.exports = (io) => {
                     assignMic();
                 }
             };
+
             const assignMic = async () => {
                 if (micAssigning || currentSpeaker) {
                     console.log('Mic is currently in use or being assigned. Please wait.');
@@ -1396,73 +1398,73 @@ module.exports = (io) => {
             //     io.to(xroomId).emit('new-producer', { userId: xuser._id, producerId: producer.id });
             // });
 
-            xclient.on('enter-room', async (data) => {
-                const room = await roomModel.findById(data.roomId);
-                console.log(room, 'from enter room l 1144');
-                if (!room) {
-                    return xclient.emit('error', { message: 'Room not found' });
-                }
+            // xclient.on('enter-room', async (data) => {
+            //     const room = await roomModel.findById(data.roomId);
+            //     console.log(room, 'from enter room l 1144');
+            //     if (!room) {
+            //         return xclient.emit('error', { message: 'Room not found' });
+            //     }
 
-                xroomId = room._id.toString();
-                xuser = await getUserById(data.userId, xroomId);
-                if (!xuser) {
-                    return xclient.emit('error', { message: 'User not found' });
-                }
+            //     xroomId = room._id.toString();
+            //     xuser = await getUserById(data.userId, xroomId);
+            //     if (!xuser) {
+            //         return xclient.emit('error', { message: 'User not found' });
+            //     }
 
-                const roomInfo = getRoomData(xroomId);
+            //     const roomInfo = getRoomData(xroomId);
 
-                socket.join(xroomId);
-                enterDate = getNowDateTime(true);
+            //     socket.join(xroomId);
+            //     enterDate = getNowDateTime(true);
 
-                roomInfo.listeners.add(xuser._id.toString());
-                roomInfo.holdMic.add(xuser._id.toString());
+            //     roomInfo.listeners.add(xuser._id.toString());
+            //     roomInfo.holdMic.add(xuser._id.toString());
 
-                const transport = await createWebRtcTransport(xroomId);
-                xuser.transport = transport.id;
-                await updateUser(xuser, xuser._id, xroomId);
+            //     const transport = await createWebRtcTransport(xroomId);
+            //     xuser.transport = transport.id;
+            //     await updateUser(xuser, xuser._id, xroomId);
 
-                socket.emit('room-state', {
-                    speakers: Array.from(roomInfo.speakers),
-                    listeners: Array.from(roomInfo.listeners),
-                    holdMic: Array.from(roomInfo.holdMic),
-                    openedTime: room.opened_time,
-                    maxSpeakers: room.max_speakers_count,
-                    maxSpeakerTime: room.max_speaker_time,
-                    updateTime: room.update_time,
-                    mic: room.mic,
-                });
+            //     socket.emit('room-state', {
+            //         speakers: Array.from(roomInfo.speakers),
+            //         listeners: Array.from(roomInfo.listeners),
+            //         holdMic: Array.from(roomInfo.holdMic),
+            //         openedTime: room.opened_time,
+            //         maxSpeakers: room.max_speakers_count,
+            //         maxSpeakerTime: room.max_speaker_time,
+            //         updateTime: room.update_time,
+            //         mic: room.mic,
+            //     });
 
-                socket.emit('init-transport', transport.params);
+            //     socket.emit('init-transport', transport.params);
 
-                io.to(xroomId).emit('user-joined', await public_user(xuser));
-            });
+            //     io.to(xroomId).emit('user-joined', await public_user(xuser));
+            // });
 
-            xclient.on('start-consuming', async (producerId) => {
-                if (!xuser) return;
-                const room = await roomModel.findById(xroomId);
-                if (!room) return;
+            // xclient.on('start-consuming', async (producerId) => {
+            //     if (!xuser) return;
+            //     const room = await roomModel.findById(xroomId);
+            //     if (!room) return;
 
-                if (!xuser.transport) {
-                    const transport = await createWebRtcTransport(room);
-                    xuser.transport = transport.id;
-                    await updateUser(xuser, xuser._id, xroomId);
-                    xclient.emit('consumer-transport', transport.params);
-                }
+            //     if (!xuser.transport) {
+            //         const transport = await createWebRtcTransport(room);
+            //         xuser.transport = transport.id;
+            //         await updateUser(xuser, xuser._id, xroomId);
+            //         xclient.emit('consumer-transport', transport.params);
+            //     }
 
-                const consumer = await createConsumer(room, xuser.transport, producerId);
-                if (!xuser.consumers) xuser.consumers = [];
-                xuser.consumers.push(consumer.id);
-                await updateUser(xuser, xuser._id, xroomId);
+            //     const consumer = await createConsumer(room, xuser.transport, producerId);
+            //     if (!xuser.consumers) xuser.consumers = [];
+            //     xuser.consumers.push(consumer.id);
+            //     await updateUser(xuser, xuser._id, xroomId);
 
-                xclient.emit('new-consumer', {
-                    producerId: producerId,
-                    id: consumer.id,
-                    kind: consumer.kind,
-                    rtpParameters: consumer.rtpParameters,
-                    type: consumer.type,
-                    producerPaused: consumer.producerPaused,
-                });
-            });
+            //     xclient.emit('new-consumer', {
+            //         producerId: producerId,
+            //         id: consumer.id,
+            //         kind: consumer.kind,
+            //         rtpParameters: consumer.rtpParameters,
+            //         type: consumer.type,
+            //         producerPaused: consumer.producerPaused,
+            //     });
+            // });
 
             xclient.on('release-speak', async () => {
                 if (!xuser) return;
