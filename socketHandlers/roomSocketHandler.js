@@ -1147,21 +1147,7 @@ module.exports = (io) => {
                     });
 
                     releaseMic(userId);
-                    // // Remove the user from speakers list
-                    // roomInfo.speakers.delete(userId);
-                    // io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-
-                    // // Reset current speaker
-                    // currentSpeaker = null;
-
-                    // // Assign mic to the next user in queue if available
-                    // if (micQueue.length > 0) {
-                    //     assignMic();
-                    // }
                 }, timeLeft * 1000);
-
-                // Store the timer reference
-                // speakerTimers.set(userId, timer);
 
                 // Emit time updates every second
                 const interval = setInterval(() => {
@@ -1264,6 +1250,7 @@ module.exports = (io) => {
                 await updateUser(speaker, speaker._id, xroomId);
 
                 const timeLeft = getUserTimeLeft(speaker.type);
+
                 if (timeLeft > 0) {
                     console.log(
                         `Starting timer for user ${speakerId}. Time left: ${timeLeft} seconds.`,
@@ -1569,10 +1556,7 @@ module.exports = (io) => {
             });
 
             const assignMicWithTimeLimit = async (userId, timeLimit = 60) => {
-                // console.log('invoked')
                 const user = await getUserById(userId, xroomId);
-                // console.log(timeLimit)
-                // console.log(user.name, 'from assgin time for mic')
                 // const timeLimit = micTimeLimits[user.type] || 60; // Default to 1 minute
 
                 // Start the timer for the assigned user
@@ -1589,7 +1573,6 @@ module.exports = (io) => {
 
             xclient.on('renew-mic-time', async (data) => {
                 console.log('renew mic');
-                // remvoe true state
                 if (
                     !xuser ||
                     (xuser.type !== enums.userTypes.root &&
@@ -1599,16 +1582,10 @@ module.exports = (io) => {
                         0)
                 )
                     return; // Ensure only admins can renew time
-                // console.log('returned');
-                const { userId, time } = data;
-                // console.log(time, "from data")
-                const user = await getUserById(userId, xroomId);
-                // console.log(user, "ok", user.speakTimer)
-                if (user) {
-                    clearInterval(timer); // Clear existing timer
-                    assignMicWithTimeLimit(userId, time); // Reassign mic with time limit
-                }
-                io.to(user.socketId).emit('mic-time-renewed', {
+                const { userId, time, userSocket } = data;
+                startSpeakerTimer(userId, time, userSocket);
+
+                io.to(userSocket).emit('mic-time-renewed', {
                     message: `Your mic time has been renwed to ${time}.`,
                 });
             });
@@ -1758,7 +1735,7 @@ module.exports = (io) => {
             if (!xuser || !xroomId) return;
 
             const roomInfo = getRoomData(xroomId);
-            if (roomInfo.speakers.includes(xuser._id.toString())) {
+            if (roomInfo.speakers.has(xuser._id.toString())) {
                 roomInfo.speakers.pop(xuser._id.toString());
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
             }
