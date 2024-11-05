@@ -1055,7 +1055,7 @@ router.put('/change-meeting-password', async (req, res) => {
             });
         }
 
-        let room = await roomModel.findById(req.room._id);
+        let room = await roomModel.findById(req.body.roomid);
         room.meetingPassword = req.body.password;
         room.save();
 
