@@ -1174,7 +1174,7 @@ module.exports = (io) => {
                     currentSpeaker = null;
             
                     // Remove speaker from roomInfo and update the client
-                    roomInfo.speakers = roomInfo.speakers.filter(speaker => speaker !== userId);
+                    roomInfo.speakers = roomInfo.speakers.filter((speaker,inedx) => speaker !== userId);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
             
                     // Assign the mic to the next user in the queue, if available
@@ -1755,8 +1755,8 @@ module.exports = (io) => {
             if (!xuser || !xroomId) return;
 
             const roomInfo = getRoomData(xroomId);
-            if (roomInfo.speakers.includes(xuser._id.toString())) {
-                roomInfo.speakers.pop(xuser._id.toString());
+            if (roomInfo.speakers.has(xuser._id.toString())) {
+                roomInfo.speakers.delete(xuser._id.toString());
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
             }
             micQueue.pop(xuser._id.toString());
