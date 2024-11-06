@@ -20,7 +20,7 @@ const roomData = new Map();
 function getRoomData(roomId) {
     if (!roomData.has(roomId)) {
         roomData.set(roomId, {
-            speakers: [],
+            speakers: new Set(),
             listeners: new Set(),
             holdMic: new Set(),
         });
