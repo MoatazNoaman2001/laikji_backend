@@ -1172,7 +1172,7 @@ module.exports = (io) => {
                     currentSpeaker = null;
             
                     // Remove speaker from roomInfo and update the client
-                    roomInfo.speakers = roomInfo.speakers.filter((speaker,inedx) => speaker !== userId);
+                    roomInfo.speakers.delete(userId);
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
             
                     // Assign the mic to the next user in the queue, if available
@@ -1580,7 +1580,6 @@ module.exports = (io) => {
 
                 const { userId } = data;
                 const speaker = await getUserById(userId, xroomId);
-
                 if (speaker) {
                     const timeLeft = getUserTimeLeft(speaker.type);
                     startSpeakerTimer(userId, timeLeft);
@@ -1590,6 +1589,8 @@ module.exports = (io) => {
             // Add mic sharing feature
             xclient.on('share-mic', async (data) => {
                 if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
+
+                if (roomInfo.mic.mic_setting[])
 
                 let { userId } = data;
                 const userToShareWith = await getUserById(userId, xroomId);
