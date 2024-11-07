@@ -1160,8 +1160,9 @@ module.exports = (io) => {
                     if (speakerTimers.has(currentSpeaker)) {
                         clearTimeout(speakerTimers.get(currentSpeaker));
                         clearInterval(speakerTimers.get(currentSpeaker + '_interval'));
-                        speakerTimers.pop(currentSpeaker);
-                        speakerTimers.pop(currentSpeaker + '_interval');
+                        speakerTimers = speakerTimers.filter(id=> id !==currentSpeaker || id !== currentSpeaker + '_interval');
+                        // speakerTimers.pop(currentSpeaker);
+                        // speakerTimers.pop(currentSpeaker + '_interval');
                     }
                     // remove speaker from speakers list
                     roomInfo.speakers.delete(currentSpeaker);
@@ -1255,7 +1256,7 @@ module.exports = (io) => {
 
                 // Remove user from micQueue after assigning mic to them
                 if (micQueue.includes(speakerId)) {
-                    micQueue.pop(speakerId);
+                    micQueue = micQueue.filter(id=> id !==speakerId);
                     io.to(xroomId).emit('mic-queue-update', micQueue);
                 }
                 console.log(`Mic assigned to user: ${speakerId}`);
@@ -1326,7 +1327,7 @@ module.exports = (io) => {
 
                 // Remove user from micQueue if present
                 if (micQueue.includes(userId)) {
-                    micQueue.pop(userId);
+                    micQueue = micQueue.filter(id=> id !==userId);
                     io.to(xroomId).emit('mic-queue-update', Array.from(micQueue));
                 }
                 if (roomInfo.speakers.has(xclient._id)) {
@@ -1624,7 +1625,7 @@ module.exports = (io) => {
                 console.log('all muted list', xuser.name);
                 if (!xuser) return;
                 if (allMutedList.includes(xuser._id.toString()))
-                    allMutedList.pop(xuser._id.toString());
+                    allMutedList = allMutedList.filter(id=> id !==userId.toString());
                 io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
             });
 
@@ -1706,7 +1707,7 @@ module.exports = (io) => {
                 roomInfo.speakers.delete(xuser._id.toString());
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
             }
-            micQueue.pop(xuser._id.toString());
+            micQueue = micQueue.filter(id=> id !==xuser._id.toString());
             io.to(xroomId).emit('mic-queue-update', micQueue);
 
             // roomInfo.holdMic.delete(xuser._id.toString());
