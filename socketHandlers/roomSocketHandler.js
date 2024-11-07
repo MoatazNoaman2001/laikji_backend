@@ -1294,7 +1294,7 @@ module.exports = (io) => {
                 // If the user is already in the queue, decline the request
                 if (micQueue.includes(xuser._id.toString())) {
                     console.log(`User ${xuser._id} is already in the queue.`);
-                    micQueue = micQueue.filter((id) => id !== speakerId);
+                    micQueue = micQueue.filter((id) => id !== xuser._id.toString());
                     io.to(xroomId).emit('mic-queue-update', micQueue);
                     return;
                 }
