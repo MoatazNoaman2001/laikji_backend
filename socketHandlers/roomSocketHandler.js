@@ -1464,7 +1464,7 @@ module.exports = (io) => {
             xclient.on('release-speak', async () => {
                 if (!xuser) return;
 
-                roomInfo.speakers.pop(xuser._id.toString());
+                roomInfo.speakers.delete(xuser._id.toString());
 
                 // Clear the timer if it exists
                 if (xuser.speakTimer) {
@@ -1560,7 +1560,7 @@ module.exports = (io) => {
                     timeLeft--;
                     if (timeLeft <= 0) {
                         clearInterval(timer);
-                        roomInfo.speakers.pop(userId);
+                        roomInfo.speakers.delete(userId);
                         assignMic(); // Assign mic to the next user
                     }
                 }, 1000);
@@ -1679,7 +1679,7 @@ module.exports = (io) => {
         ////////////////// DISCONNECT CLIENT /////////////////////////
         //  xclient.on('disconnect', function () {
         //      micQueue.pop(xuser._id.toString());
-        //      roomInfo.speakers.pop(xuser._id.toString());
+        //      roomInfo.speakers.delete(xuser._id.toString());
         //      clearUserTimers(xuser._id.toString());
         //  });
 
