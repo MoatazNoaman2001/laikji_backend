@@ -489,8 +489,7 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
-            const roomInfo = getRoomData(xroomId);
-
+            const roomInfo = await getRoomData(xroomId);
             // xuser = await updateUser({ enterDate: getNowDateTime(true), ...xuser }, xuser._id, xroomId);
             // return micQueue, speakersQueue at another event
             xclient.emit('started', {
