@@ -1590,7 +1590,9 @@ module.exports = (io) => {
             xclient.on('share-mic', async (data) => {
                 if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
-                if (roomInfo.mic.mic_setting[])
+                if (!roomInfo.mic.mic_setting[2]){
+                    return;
+                }
 
                 let { userId } = data;
                 const userToShareWith = await getUserById(userId, xroomId);
