@@ -502,7 +502,7 @@ module.exports = (io) => {
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
                 micQueue: micQueue,
-                speakers: roomInfo != null ? roomInfo.speakers : {},
+                speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
 
             if (xuser.is_visible) {
