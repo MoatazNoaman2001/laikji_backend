@@ -1178,9 +1178,8 @@ module.exports = (io) => {
                         );
                     }
                     // remove speaker from speakers list
-                    roomInfo.speakers = roomInfo.speakers.filter(
-                        (speaker, inedx) => speaker !== userId,
-                    );
+                    roomInfo.speakers.delete(userId);
+
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
                     // notify room that the speaker's time has been ended
                     io.to(xroomId).emit('speaker-ended', userId);
