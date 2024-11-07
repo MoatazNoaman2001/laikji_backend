@@ -1294,7 +1294,8 @@ module.exports = (io) => {
                 // If the user is already in the queue, decline the request
                 if (micQueue.includes(xuser._id.toString())) {
                     console.log(`User ${xuser._id} is already in the queue.`);
-                    xclient.emit('mic-declined', { message: 'You are already in the queue' });
+                    micQueue = micQueue.filter((id) => id !== speakerId);
+                    io.to(xroomId).emit('mic-queue-update', micQueue);
                     return;
                 }
 
