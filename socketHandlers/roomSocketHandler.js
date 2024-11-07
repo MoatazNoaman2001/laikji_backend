@@ -46,7 +46,7 @@ const {
 } = require('../helpers/mediasoupHelpers');
 const { json } = require('express');
 
-const micQueue = []; // Queue to hold mic requests
+var micQueue = []; // Queue to hold mic requests
 const allMutedList = []; // list for users whom muted all participarates
 let currentSpeaker = null; // Tracks the current user who has the mic
 let micAssigning = false; // Flag to prevent concurrent mic assignments
