@@ -1267,39 +1267,40 @@ module.exports = (io) => {
             };
 
             // Function to handle mic request
-            xclient.on('request-mic', async () => {
+            xclient.on('request-mic', async (data) => {
                 console.log(
                     `Mic request received from user ${xuser._id}. Current speaker: ${currentSpeaker}`,
                 );
-                if (!xuser) return;
+                // if (!xuser) return;
+                const user = await getUserById(data.userId, xroomId);
                 if (!currentSpeaker && micQueue.length === 0) {
-                    assignSpeaker(xuser._id.toString(), xuser);
+                    assignSpeaker(user._id.toString(), user);
                 } else {
                     if (
-                        currentSpeaker === xuser._id.toString() ||
-                        roomInfo.speakers.has(xuser._id.toString())
+                        currentSpeaker === user._id.toString() ||
+                        roomInfo.speakers.has(user._id.toString())
                     ) {
-                        clearUserTimers(xuser._id.toString());
-                        releaseMic(xuser._id.toString());
+                        clearUserTimers(user._id.toString());
+                        releaseMic(user._id.toString());
 
                         console.log('User found in speakers some', roomInfo.speakers);
-                        // roomInfo.speakers.delete(xuser._id.toString());
+                        // roomInfo.speakers.delete(user._id.toString());
                         console.log('after delete user id', roomInfo.speakers);
                         //io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                        //io.to(xroomId).emit('speaker-ended', xuser._id.toString());
+                        //io.to(xroomId).emit('speaker-ended', user._id.toString());
                         // currentSpeaker = null;
                         // assignMic(); // Try to assign mic to next user in queue
-                        console.log(`User ${xuser._id.toString()} has declined the mic.`);
-                    } else if (!micQueue.includes(xuser._id.toString())) {
+                        console.log(`User ${user._id.toString()} has declined the mic.`);
+                    } else if (!micQueue.includes(user._id.toString())) {
                         // Add user to the queue if there's an active speaker
-                        micQueue.push(xuser._id.toString());
+                        micQueue.push(user._id.toString());
                         console.log(
-                            `User ${xuser._id} added to the queue. Queue length: ${micQueue.length}`,
+                            `User ${user._id} added to the queue. Queue length: ${micQueue.length}`,
                         );
                         io.to(xroomId).emit('mic-queue-update', micQueue);
-                    } else if (micQueue.includes(xuser._id.toString())) {
+                    } else if (micQueue.includes(user._id.toString())) {
                         console.log(`User ${xuser._id} is already in the queue.`);
-                        micQueue = micQueue.filter((id) => id !== xuser._id.toString());
+                        micQueue = micQueue.filter((id) => id !== user._id.toString());
                         io.to(xroomId).emit('mic-queue-update', micQueue);
                         return;
                     }
