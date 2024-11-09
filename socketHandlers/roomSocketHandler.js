@@ -1273,7 +1273,7 @@ module.exports = (io) => {
                 );
                 // if (!xuser) return;
                 const user = await getUserById(data.userId, xroomId);
-                if (roomInfo.speakers.length === 0 && micQueue.length === 0) {
+                if (!currentSpeaker && micQueue.length === 0) {
                     assignSpeaker(user._id.toString(), user);
                 } else {
                     if (
