@@ -63,7 +63,8 @@ app.use('/admin/spys', require('./routes/admin/spyRoutes'));
 app.use('/admin/reports', require('./routes/admin/reportsRoutes'));
 app.use('/admin/settings', require('./routes/admin/settingsRoutes'));
 app.use('/admin/global', require('./routes/admin/globalRoutes'));
-
+app.use('/admin/auth', require('./routes/admin/authRoutes'));
+// here to put the dashboard login routes
 // Member Routes
 app.use(
     '/member/:member_id',

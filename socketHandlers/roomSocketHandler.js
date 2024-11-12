@@ -1630,7 +1630,7 @@ module.exports = (io) => {
 
             // end test mic features
 
-            xclient.on('mute-all', async () => {
+            xclient.on('mute-all', async (data) => {
                 console.log('all muted list started', xuser.name);
                 if (!xuser) return;
 
@@ -1731,6 +1731,7 @@ module.exports = (io) => {
             }
             micQueue = micQueue.filter((id) => id !== xuser._id.toString());
             io.to(xroomId).emit('mic-queue-update', micQueue);
+            io.to(xroomId).emit('muted-list', { 'muted-list': [] });
 
             // roomInfo.holdMic.delete(xuser._id.toString());
 
