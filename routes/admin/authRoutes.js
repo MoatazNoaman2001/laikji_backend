@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'خطأ في الاسم أو كلمة المرور' });
         }
         var accessToken = helpers.generateToken(user.roomUserRef);
-        res.json({ accessToken });
+        res.json({ accessToken, user });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
