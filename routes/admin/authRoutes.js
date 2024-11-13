@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const User = require('../../models/memberModal');
+const User = require('../../models/registeredUserModal');
 const router = express.Router();
 const helpers = require('../../helpers/helpers');
 
