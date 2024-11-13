@@ -1728,6 +1728,7 @@ module.exports = (io) => {
             if (roomInfo.speakers.has(xuser._id.toString())) {
                 roomInfo.speakers.delete(xuser._id.toString());
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                io.to(xroomId).emit('muted-list', { 'muted-list': [] });
             }
             micQueue = micQueue.filter((id) => id !== xuser._id.toString());
             io.to(xroomId).emit('mic-queue-update', micQueue);
