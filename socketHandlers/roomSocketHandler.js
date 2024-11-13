@@ -1732,8 +1732,6 @@ module.exports = (io) => {
             }
             micQueue = micQueue.filter((id) => id !== xuser._id.toString());
             io.to(xroomId).emit('mic-queue-update', micQueue);
-            io.to(xroomId).emit('muted-list', { 'muted-list': [] });
-
             // roomInfo.holdMic.delete(xuser._id.toString());
 
             // Clear the timer if it exists
