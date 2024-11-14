@@ -351,7 +351,6 @@ module.exports = (io) => {
         }
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
-        const allMutedList = []; // list for users whom muted all participarates
         var xroomId;
         var enterDate = null;
         var key = xclient.handshake.query.key;
@@ -1729,10 +1728,13 @@ module.exports = (io) => {
             if (roomInfo.speakers.has(xuser._id.toString())) {
                 roomInfo.speakers.delete(xuser._id.toString());
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                io.to(xroomId).emit('muted-list', { 'muted-list': [] });
             }
             micQueue = micQueue.filter((id) => id !== xuser._id.toString());
             io.to(xroomId).emit('mic-queue-update', micQueue);
+            if (allMutedList.includes(xuser._id.toString())) {
+                allMutedList.pop(xuser._id.toString());
+                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+            }
             // roomInfo.holdMic.delete(xuser._id.toString());
 
             // Clear the timer if it exists
