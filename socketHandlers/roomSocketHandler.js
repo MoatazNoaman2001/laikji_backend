@@ -500,6 +500,7 @@ module.exports = (io) => {
                 users: users_in_room,
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
+                'muted-list': allMutedList,
                 micQueue: micQueue,
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
