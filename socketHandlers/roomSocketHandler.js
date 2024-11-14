@@ -547,25 +547,33 @@ module.exports = (io) => {
 
             xclient.on('ignore-user', async (data) => {
                 if (!xuser) return;
-                xuser = await getUserById(xuser._id, xroomId);
+
                 const userId = data.userId;
                 const myId = data.myId;
 
-                ignoredUsers.set(
-                    myId,
-                    ignoredUsers.get(myId) !== undefined
-                        ? [userId]
-                        : ignoredUsers.get(myId).indexof(userId) != -1
-                        ? ignoredUsers.get(myId).splice(ignoredUsers.get(myId).indexof(userId), 1)
-                        : ignoredUsers.get(myId).push(userId),
-                );
+                // Initialize an array for myId if it doesn't exist
+                if (!ignoredUsers.has(myId)) {
+                    ignoredUsers.set(myId, []);
+                }
+
+                const userIgnoreList = ignoredUsers.get(myId);
+                const userIndex = userIgnoreList.indexOf(userId);
+
+                if (userIndex !== -1) {
+                    // User is already in the list, so remove them
+                    userIgnoreList.splice(userIndex, 1);
+                } else {
+                    // User is not in the list, so add them
+                    userIgnoreList.push(userId);
+                }
 
                 io.to(xuser.socketId).emit('new-toast', {
                     msg_ar: 'تم تجاهل المستخدم',
-                    msg_en: 'user ignored successfully',
+                    msg_en: 'User ignored successfully',
                     msg_fr: `Utilisateur ignoré avec succès`,
                 });
             });
+
             xclient.on('private-screenshot-taken', async (data) => {
                 const userId = data.userId;
                 xuser = await getUserById(xuser._id, xroomId);
