@@ -351,6 +351,7 @@ module.exports = (io) => {
         }
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
+        const allMutedList = []; // list for users whom muted all participarates
         var xroomId;
         var enterDate = null;
         var key = xclient.handshake.query.key;
