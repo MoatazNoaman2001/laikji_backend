@@ -296,7 +296,12 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
             name: req.body.owner_name,
             email: req.body.owner_email,
         },
-        mic: req.body.mic,
+        mic: {
+            mic_permission: req.body.mic_permission,
+            talk_dur: req.body.talk_dur,
+            mic_setting: req.body.mic_setting,
+            shared_mic_capacity: req.body.shared_mic_capacity,
+        },
     };
 
     if (req.file && req.file.filename) {
