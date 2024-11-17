@@ -486,7 +486,12 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             title: req.body.title ?? room.title,
             description: req.body.description ?? room.description,
             lock_msg: req.body.lock_msg ?? room.lock_msg,
-            mic_setting: req.body.mic_setting,
+            mic: {
+                mic_permission: req.body.mic_permission,
+                talk_dur: req.body.talk_dur,
+                mic_setting: req.body.mic_setting,
+                shared_mic_capacity: req.body.shared_mic_capacity,
+            },
             private_status:
                 req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
                     ? parseInt(req.body.private_status)
@@ -529,18 +534,18 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
 
         const usersInRoom = await getUsersInRoom(room._id);
 
-        for (const user of usersInRoom) {
-            roomInfo.listeners.add(user._id.toString());
-            roomInfo.holdMic.add(user._id.toString());
+        // for (const user of usersInRoom) {
+        //     roomInfo.listeners.add(user._id.toString());
+        //     roomInfo.holdMic.add(user._id.toString());
 
-            // Create WebRTC transport for each user
-            const transport = await createWebRtcTransport(room._id.toString());
-            user.transport = transport.id;
-            await updateUser(user, user._id, room._id);
+        //     // Create WebRTC transport for each user
+        //     const transport = await createWebRtcTransport(room._id.toString());
+        //     user.transport = transport.id;
+        //     await updateUser(user, user._id, room._id);
 
-            // Emit transport parameters to the user
-            global.io.to(user.socketId).emit('init-transport', transport.params);
-        }
+        //     // Emit transport parameters to the user
+        //     global.io.to(user.socketId).emit('init-transport', transport.params);
+        // }
 
         global.io.to(room._id.toString()).emit('room-state', {
             speakers: Array.from(roomInfo.speakers),

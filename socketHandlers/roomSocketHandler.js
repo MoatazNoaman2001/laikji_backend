@@ -44,7 +44,6 @@ const {
     createConsumer,
     getRoomData,
 } = require('../helpers/mediasoupHelpers');
-const { json } = require('express');
 
 var micQueue = []; // Queue to hold mic requests
 const allMutedList = []; // list for users whom muted all participarates
@@ -1525,7 +1524,7 @@ module.exports = (io) => {
             });
 
             const startSharedTimer = (userId, currentSpeakerTimer) => {
-                clearUserTimers(userId);
+                //clearUserTimers(userId);
 
                 const timer = currentSpeakerTimer.timer;
                 const interval = currentSpeakerTimer.interval;
