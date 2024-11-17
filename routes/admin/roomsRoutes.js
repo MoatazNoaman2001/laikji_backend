@@ -299,7 +299,7 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
         mic: {
             mic_permission: req.body.mic_permission,
             talk_dur: req.body.talk_dur,
-            mic_setting: JSON.parse(req.body.mic_setting),
+            // mic_setting: JSON.parse(req.body.mic_setting),
             shared_mic_capacity: req.body.shared_mic_capacity,
         },
     };
