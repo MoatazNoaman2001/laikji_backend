@@ -167,6 +167,7 @@ async function public_room(room) {
             direction: room.welcome.direction,
             color: room.welcome.color,
         },
+        mic: room.mic,
         colors: await getAppUsersColors(),
     };
 }
