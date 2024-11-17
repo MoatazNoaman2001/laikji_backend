@@ -273,7 +273,7 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
 
     const endDate = new Date(req.body.endDate).toISOString();
     const startDate = new Date(req.body.startDate).toISOString();
-
+    console.log('update room req ' + JSON.stringify(req.body, null, 2));
     let update = {
         name: req.body.name,
         description: req.body.description,
