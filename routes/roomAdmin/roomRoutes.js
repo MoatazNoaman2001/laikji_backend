@@ -481,6 +481,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         if (req.file && req.file.filename) {
             helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
+        console.log('update request ' + JSON.stringify(req.body, null, 2));
 
         var update = {
             title: req.body.title ?? room.title,
