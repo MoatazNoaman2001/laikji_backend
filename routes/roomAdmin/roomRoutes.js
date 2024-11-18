@@ -481,19 +481,18 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         if (req.file && req.file.filename) {
             helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
-        console.log('update request ' + JSON.stringify(req.room, null, 2));
         console.log('update request2 ' + JSON.stringify(req.body, null, 2));
-        console.log('update request3 ' + JSON.stringify(req.room.mic, null, 2));
+        console.log('update request3 ' + JSON.stringify(req.body.mic, null, 2));
 
         var update = {
             title: req.body.title ?? room.title,
             description: req.body.description ?? room.description,
             lock_msg: req.body.lock_msg ?? room.lock_msg,
             mic: {
-                mic_permission: req.room.mic.mic_permission,
-                talk_dur: req.room.mic.talk_dur,
-                mic_setting: req.room.mic.mic_setting,
-                shared_mic_capacity: req.room.mic.shared_mic_capacity,
+                mic_permission: req.body.mic.mic_permission,
+                talk_dur: req.body.mic.talk_dur,
+                mic_setting: req.body.mic.mic_setting,
+                shared_mic_capacity: req.body.mic.shared_mic_capacity,
             },
             private_status:
                 req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
