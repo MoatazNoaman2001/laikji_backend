@@ -1108,8 +1108,9 @@ module.exports = (io) => {
                 }
             }
             const getUserTimeLeft = (userType) => {
-                const { talk_dur } = room.mic.talk_dur;
-                console.log('room is ' + room.mic); // Assuming room.mic.talk_dur is an array of durations based on user type
+                console.log('room is ' + room.mic);
+
+                const talk_dur = room.mic.talk_dur;
                 switch (userType) {
                     case enums.userTypes.guest:
                         return convertToMilliseconds(talk_dur[0]);
