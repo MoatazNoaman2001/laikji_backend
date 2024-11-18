@@ -255,132 +255,137 @@ router.post('/', img_uploader.single('icon'), async (req, res) => {
     });
 });
 
+// dashboard update
 router.put('/:id', img_uploader.single('icon'), async (req, res) => {
-    const id = req.params.id;
+    try {
+        const id = req.params.id;
 
-    const same_name_count = await roomModel.count({
-        name: req.body.name,
-        _id: { $ne: new ObjectId(id) },
-        isMeeting: false,
-    });
-
-    if (same_name_count > 0) {
-        return res.status(200).send({
-            ok: false,
-            msg: 'اسم الغرفة موجود مسبقاً',
-        });
-    }
-
-    const endDate = new Date(req.body.endDate).toISOString();
-    const startDate = new Date(req.body.startDate).toISOString();
-    let update = {
-        name: req.body.name,
-        description: req.body.description,
-        groupRef: req.body.groupRef,
-        isGold: req.body.type == '1',
-        isSpecial: req.body.type == '2',
-        endDate: endDate,
-        startDate: startDate,
-        o_name: req.body.o_name,
-        o_phone: req.body.o_phone,
-        o_email: req.body.o_email,
-        o_address: req.body.o_address,
-        o_other: req.body.o_other,
-        master_count: req.body.master_count,
-        super_admin_count: req.body.super_admin_count,
-        admin_count: req.body.admin_count,
-        member_count: req.body.member_count,
-        capacity: req.body.capacity,
-        owner: {
-            name: req.body.owner_name,
-            email: req.body.owner_email,
-        },
-        mic: {
-            mic_permission: req.body.mic_permission,
-            talk_dur: req.body.talk_dur,
-            mic_setting: req.body.mic_setting,
-            shared_mic_capacity: req.body.shared_mic_capacity,
-        },
-    };
-
-    if (req.file && req.file.filename) {
-        update.icon = 'rooms/' + req.file.filename;
-        helpers.resizeImage(update.icon);
-
-        const old_item = await roomModel.find({
-            _id: new ObjectId(id),
+        const same_name_count = await roomModel.count({
+            name: req.body.name,
+            _id: { $ne: new ObjectId(id) },
+            isMeeting: false,
         });
 
-        if (old_item.length > 0) {
-            old_icon = old_item[0].icon;
-            helpers.removeFile(old_icon);
+        if (same_name_count > 0) {
+            return res.status(200).send({
+                ok: false,
+                msg: 'اسم الغرفة موجود مسبقاً',
+            });
         }
-    }
 
-    // update meeting
-    await roomModel.findOneAndUpdate(
-        {
-            parentRef: new ObjectId(id),
-            isMeeting: true,
-        },
-        {
-            ...update,
-            parentRef: id,
-            isMeeting: true,
-            isGold: false,
-            isSpecial: false,
-            groupRef: '606b8f8844e78f128ecbfac2',
-            description: '',
-            outside_style: {
-                background: '255|255|255',
-                font_color: '0|0|0',
+        const endDate = new Date(req.body.endDate).toISOString();
+        const startDate = new Date(req.body.startDate).toISOString();
+        let update = {
+            name: req.body.name,
+            description: req.body.description,
+            groupRef: req.body.groupRef,
+            isGold: req.body.type == '1',
+            isSpecial: req.body.type == '2',
+            endDate: endDate,
+            startDate: startDate,
+            o_name: req.body.o_name,
+            o_phone: req.body.o_phone,
+            o_email: req.body.o_email,
+            o_address: req.body.o_address,
+            o_other: req.body.o_other,
+            master_count: req.body.master_count,
+            super_admin_count: req.body.super_admin_count,
+            admin_count: req.body.admin_count,
+            member_count: req.body.member_count,
+            capacity: req.body.capacity,
+            owner: {
+                name: req.body.owner_name,
+                email: req.body.owner_email,
             },
-            inside_style: {
-                background_1: '61|147|185',
-                background_2: '72|170|211',
-                border_1: '72|170|211',
-                font_color: '255|255|255',
+            mic: {
+                mic_permission: req.body.mic_permission,
+                talk_dur: req.body.talk_dur,
+                mic_setting: req.body.mic_setting,
+                shared_mic_capacity: req.body.shared_mic_capacity,
             },
-            meetingPassword: '0000',
-        },
-    );
+        };
 
-    // update room
-    await roomModel.findOneAndUpdate(
-        {
-            _id: new ObjectId(id),
-        },
-        update,
-    );
+        if (req.file && req.file.filename) {
+            update.icon = 'rooms/' + req.file.filename;
+            helpers.resizeImage(update.icon);
 
-    const query = {
-        type: enums.fileTypes.mastermain,
-        username: 'MASTER',
-        roomRefs: { $in: [new ObjectId(id)] },
-    };
+            const old_item = await roomModel.find({
+                _id: new ObjectId(id),
+            });
 
-    const master_mem = await memberModal.findOne(query);
+            if (old_item.length > 0) {
+                old_icon = old_item[0].icon;
+                helpers.removeFile(old_icon);
+            }
+        }
 
-    if (master_mem) {
-        master_mem.password = req.body.master_password;
-        master_mem.code = req.body.master_code;
-        master_mem.endDate = endDate;
-        await master_mem.save();
+        // update meeting
+        await roomModel.findOneAndUpdate(
+            {
+                parentRef: new ObjectId(id),
+                isMeeting: true,
+            },
+            {
+                ...update,
+                parentRef: id,
+                isMeeting: true,
+                isGold: false,
+                isSpecial: false,
+                groupRef: '606b8f8844e78f128ecbfac2',
+                description: '',
+                outside_style: {
+                    background: '255|255|255',
+                    font_color: '0|0|0',
+                },
+                inside_style: {
+                    background_1: '61|147|185',
+                    background_2: '72|170|211',
+                    border_1: '72|170|211',
+                    font_color: '255|255|255',
+                },
+                meetingPassword: '0000',
+            },
+        );
+
+        // update room
+        await roomModel.findOneAndUpdate(
+            {
+                _id: new ObjectId(id),
+            },
+            update,
+        );
+
+        const query = {
+            type: enums.fileTypes.mastermain,
+            username: 'MASTER',
+            roomRefs: { $in: [new ObjectId(id)] },
+        };
+
+        const master_mem = await memberModal.findOne(query);
+
+        if (master_mem) {
+            master_mem.password = req.body.master_password;
+            master_mem.code = req.body.master_code;
+            master_mem.endDate = endDate;
+            await master_mem.save();
+        }
+
+        const regUser = await registeredUserModal.findOne(master_mem.regUserRef);
+        if (regUser) {
+            regUser.password = req.body.master_password;
+            await regUser.save();
+        }
+
+        await helpers.notifyRoomChanged(id, true, false);
+
+        global.home_io.emit('groups_refresh', {});
+
+        res.status(200).send({
+            ok: true,
+        });
+    } catch (err) {
+        console.log('error from update room admin route ' + err.toString());
     }
-
-    const regUser = await registeredUserModal.findOne(master_mem.regUserRef);
-    if (regUser) {
-        regUser.password = req.body.master_password;
-        await regUser.save();
-    }
-
-    await helpers.notifyRoomChanged(id, true, false);
-
-    global.home_io.emit('groups_refresh', {});
-
-    res.status(200).send({
-        ok: true,
-    });
 });
 
 router.delete('/:id', async (req, res) => {
