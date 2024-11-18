@@ -260,6 +260,7 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
     try {
         const id = req.params.id;
 
+        // Check for duplicate names
         const same_name_count = await roomModel.count({
             name: req.body.name,
             _id: { $ne: new ObjectId(id) },
@@ -272,59 +273,78 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                 msg: 'اسم الغرفة موجود مسبقاً',
             });
         }
-        console.log('mic settings ' + JSON.stringify(req.body, null, 2));
-        const endDate = new Date(req.body.endDate).toISOString();
-        const startDate = new Date(req.body.startDate).toISOString();
-        let update = {
-            name: req.body.name,
-            description: req.body.description,
-            groupRef: req.body.groupRef,
-            isGold: req.body.type == '1',
-            isSpecial: req.body.type == '2',
-            endDate: endDate,
-            startDate: startDate,
-            o_name: req.body.o_name,
-            o_phone: req.body.o_phone,
-            o_email: req.body.o_email,
-            o_address: req.body.o_address,
-            o_other: req.body.o_other,
-            master_count: req.body.master_count,
-            super_admin_count: req.body.super_admin_count,
-            admin_count: req.body.admin_count,
-            member_count: req.body.member_count,
-            capacity: req.body.capacity,
-            owner: {
-                name: req.body.owner_name,
-                email: req.body.owner_email,
-            },
-            mic: {
-                mic_permission: req.body.mic_permission,
-                talk_dur: req.body.talk_dur,
-                mic_setting: req.body.mic_setting,
-                shared_mic_capacity: req.body.shared_mic_capacity,
-            },
-        };
+
+        // Prepare the update object dynamically
+        const update = {};
+
+        const fieldsToUpdate = [
+            'name',
+            'description',
+            'groupRef',
+            'type',
+            'endDate',
+            'startDate',
+            'o_name',
+            'o_phone',
+            'o_email',
+            'o_address',
+            'o_other',
+            'master_count',
+            'super_admin_count',
+            'admin_count',
+            'member_count',
+            'capacity',
+            'owner_name',
+            'owner_email',
+            'mic_permission',
+            'talk_dur',
+            'mic_setting',
+            'shared_mic_capacity',
+        ];
+
+        fieldsToUpdate.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                // Special handling for nested structures or transformations
+                if (field === 'endDate' || field === 'startDate') {
+                    update[field] = new Date(req.body[field]).toISOString();
+                } else if (field === 'type') {
+                    update.isGold = req.body.type === '1';
+                    update.isSpecial = req.body.type === '2';
+                } else if (field === 'owner_name' || field === 'owner_email') {
+                    update.owner = {
+                        ...(update.owner || {}),
+                        [field === 'owner_name' ? 'name' : 'email']: req.body[field],
+                    };
+                } else if (
+                    field === 'mic_permission' ||
+                    field === 'talk_dur' ||
+                    field === 'mic_setting' ||
+                    field === 'shared_mic_capacity'
+                ) {
+                    update.mic = {
+                        ...(update.mic || {}),
+                        [field]: req.body[field],
+                    };
+                } else {
+                    update[field] = req.body[field];
+                }
+            }
+        });
 
         if (req.file && req.file.filename) {
             update.icon = 'rooms/' + req.file.filename;
             helpers.resizeImage(update.icon);
 
-            const old_item = await roomModel.find({
-                _id: new ObjectId(id),
-            });
-
+            const old_item = await roomModel.find({ _id: new ObjectId(id) });
             if (old_item.length > 0) {
-                old_icon = old_item[0].icon;
+                const old_icon = old_item[0].icon;
                 helpers.removeFile(old_icon);
             }
         }
 
-        // update meeting
+        // Update meeting
         await roomModel.findOneAndUpdate(
-            {
-                parentRef: new ObjectId(id),
-                isMeeting: true,
-            },
+            { parentRef: new ObjectId(id), isMeeting: true },
             {
                 ...update,
                 parentRef: id,
@@ -347,14 +367,10 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
             },
         );
 
-        // update room
-        await roomModel.findOneAndUpdate(
-            {
-                _id: new ObjectId(id),
-            },
-            update,
-        );
+        // Update room
+        await roomModel.findOneAndUpdate({ _id: new ObjectId(id) }, update);
 
+        // Update master member details if applicable
         const query = {
             type: enums.fileTypes.mastermain,
             username: 'MASTER',
@@ -362,11 +378,10 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
         };
 
         const master_mem = await memberModal.findOne(query);
-
         if (master_mem) {
             master_mem.password = req.body.master_password;
             master_mem.code = req.body.master_code;
-            master_mem.endDate = endDate;
+            master_mem.endDate = update.endDate;
             await master_mem.save();
         }
 
@@ -376,15 +391,14 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
             await regUser.save();
         }
 
+        // Notify and emit refresh event
         await helpers.notifyRoomChanged(id, true, false);
-
         global.home_io.emit('groups_refresh', {});
 
-        res.status(200).send({
-            ok: true,
-        });
+        res.status(200).send({ ok: true });
     } catch (err) {
         console.log('error from update room admin route ' + err.toString());
+        res.status(500).send({ ok: false, error: 'Something went wrong.' });
     }
 });
 
