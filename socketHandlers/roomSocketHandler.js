@@ -1148,7 +1148,7 @@ module.exports = (io) => {
                 try {
                     if (timeLeft > 0) {
                         console.log(
-                            `Starting timer for user ${speakerId}. Time left: ${timeLeft} seconds.`,
+                            `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
                         );
                         clearUserTimers(userId);
                         console.log(
@@ -1201,118 +1201,137 @@ module.exports = (io) => {
             };
 
             const releaseMic = (userId) => {
-                if (roomInfo.speakers.length !== 0) {
-                    // Clear any existing timer for the current speaker
-                    clearUserTimers(userId);
-                    // remove speaker from speakers list
-                    roomInfo.speakers.delete(userId);
+                try {
+                    if (roomInfo.speakers.length !== 0) {
+                        // Clear any existing timer for the current speaker
+                        clearUserTimers(userId);
+                        // remove speaker from speakers list
+                        roomInfo.speakers.delete(userId);
 
-                    io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                    // notify room that the speaker's time has been ended
-                    io.to(xroomId).emit('speaker-ended', userId);
+                        io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                        // notify room that the speaker's time has been ended
+                        io.to(xroomId).emit('speaker-ended', userId);
 
-                    // currentSpeaker = null;
-                    console.log('Mic released. Attempting to assign to next user.');
-                    assignMic();
+                        // currentSpeaker = null;
+                        console.log('Mic released. Attempting to assign to next user.');
+                        assignMic();
+                    }
+                } catch (err) {
+                    console.log('error from release mic ' + err.toString());
                 }
             };
 
             const assignMic = async () => {
-                if (micAssigning /*|| currentSpeaker*/) {
-                    console.log('Mic is currently in use or being assigned. Please wait.');
-                    return;
-                }
-
-                micAssigning = true; // Lock mic assignment immediately
                 try {
-                    if (micQueue.length === 0) {
-                        console.log('Mic queue is empty.');
-                        micAssigning = false; // Unlock assignment
+                    if (micAssigning /*|| currentSpeaker*/) {
+                        console.log('Mic is currently in use or being assigned. Please wait.');
                         return;
                     }
 
-                    const nextUserId = micQueue.shift(); // Get the next user from the queue
-                    io.to(xroomId).emit('mic-queue-update', micQueue);
+                    micAssigning = true; // Lock mic assignment immediately
+                    try {
+                        if (micQueue.length === 0) {
+                            console.log('Mic queue is empty.');
+                            micAssigning = false; // Unlock assignment
+                            return;
+                        }
 
-                    console.log(
-                        `Assigning mic to user: ${nextUserId}. Queue length: ${micQueue.length}`,
-                    );
+                        const nextUserId = micQueue.shift(); // Get the next user from the queue
+                        io.to(xroomId).emit('mic-queue-update', micQueue);
 
-                    const nextUser = await getUserById(nextUserId, xroomId);
-                    if (!nextUser || roomInfo.speakers.has(nextUserId)) {
                         console.log(
-                            `User ${nextUserId} is already a speaker or not found. Skipping...`,
+                            `Assigning mic to user: ${nextUserId}. Queue length: ${micQueue.length}`,
                         );
+
+                        const nextUser = await getUserById(nextUserId, xroomId);
+                        if (!nextUser || roomInfo.speakers.has(nextUserId)) {
+                            console.log(
+                                `User ${nextUserId} is already a speaker or not found. Skipping...`,
+                            );
+                            micAssigning = false;
+                            await assignMic(); // Recursively try the next user
+                            return;
+                        }
+
+                        const room = await roomModel.findById(xroomId);
+                        if (!room) return;
+
+                        if (
+                            roomInfo.speakers.length < room.max_speakers_count ||
+                            room.opened_time
+                        ) {
+                            await assignSpeaker(nextUserId, nextUser);
+                        } else {
+                            socket.emit('error', { message: 'Max speakers limit reached' });
+                        }
+                    } catch (error) {
+                        console.error(`Error in mic assignment: ${error.message}`);
+                    } finally {
                         micAssigning = false;
-                        await assignMic(); // Recursively try the next user
-                        return;
+                        console.log('Mic assignment process completed.');
                     }
-
-                    const room = await roomModel.findById(xroomId);
-                    if (!room) return;
-
-                    if (roomInfo.speakers.length < room.max_speakers_count || room.opened_time) {
-                        await assignSpeaker(nextUserId, nextUser);
-                    } else {
-                        socket.emit('error', { message: 'Max speakers limit reached' });
-                    }
-                } catch (error) {
-                    console.error(`Error in mic assignment: ${error.message}`);
-                } finally {
-                    micAssigning = false;
-                    console.log('Mic assignment process completed.');
+                } catch (err) {
+                    console.log('error from assign mic ' + err.toString());
                 }
             };
 
             const assignSpeaker = async (speakerId, speaker) => {
-                //currentSpeaker = speakerId;
-                roomInfo.speakers.add(speakerId);
-                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                try {
+                    //currentSpeaker = speakerId;
+                    roomInfo.speakers.add(speakerId);
+                    io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
-                // Remove user from micQueue after assigning mic to them
-                if (micQueue.includes(speakerId)) {
-                    micQueue = micQueue.filter((id) => id !== speakerId);
-                    io.to(xroomId).emit('mic-queue-update', micQueue);
+                    // Remove user from micQueue after assigning mic to them
+                    if (micQueue.includes(speakerId)) {
+                        micQueue = micQueue.filter((id) => id !== speakerId);
+                        io.to(xroomId).emit('mic-queue-update', micQueue);
+                    }
+                    console.log(`Mic assigned to user: ${speakerId}`);
+                    await updateUser(speaker, speaker._id, xroomId);
+
+                    const timeLeft = getUserTimeLeft(speaker.type);
+                    startSpeakerTimer(speakerId, timeLeft);
+                } catch (err) {
+                    console.log('error from assign speaker ' + err.toString());
                 }
-                console.log(`Mic assigned to user: ${speakerId}`);
-                await updateUser(speaker, speaker._id, xroomId);
-
-                const timeLeft = getUserTimeLeft(speaker.type);
-                startSpeakerTimer(speakerId, timeLeft);
             };
 
             // Function to handle mic request
             xclient.on('request-mic', async (data) => {
-                console.log(
-                    `Mic request received from user ${xuser._id}. Current speaker: ${currentSpeaker}`,
-                );
-                // if (!xuser) return;
-                const user = await getUserById(data.userId, xroomId);
-                console.log('speakers length' + Array.from(roomInfo.speakers).length);
-                if (Array.from(roomInfo.speakers).length === 0) {
-                    assignSpeaker(user._id.toString(), user);
-                } else {
-                    if (roomInfo.speakers.has(user._id.toString())) {
-                        // clearUserTimers(user._id.toString());
-                        releaseMic(user._id.toString());
+                try {
+                    console.log(
+                        `Mic request received from user ${xuser._id}. Current speaker: ${currentSpeaker}`,
+                    );
+                    // if (!xuser) return;
+                    const user = await getUserById(data.userId, xroomId);
+                    console.log('speakers length' + Array.from(roomInfo.speakers).length);
+                    if (Array.from(roomInfo.speakers).length === 0) {
+                        assignSpeaker(user._id.toString(), user);
+                    } else {
+                        if (roomInfo.speakers.has(user._id.toString())) {
+                            // clearUserTimers(user._id.toString());
+                            releaseMic(user._id.toString());
 
-                        console.log('User found in speakers some', roomInfo.speakers);
-                        console.log('after delete user id', roomInfo.speakers);
+                            console.log('User found in speakers some', roomInfo.speakers);
+                            console.log('after delete user id', roomInfo.speakers);
 
-                        console.log(`User ${user._id.toString()} has declined the mic.`);
-                    } else if (!micQueue.includes(user._id.toString())) {
-                        // Add user to the queue if there's an active speaker
-                        micQueue.push(user._id.toString());
-                        console.log(
-                            `User ${user._id} added to the queue. Queue length: ${micQueue.length}`,
-                        );
-                        io.to(xroomId).emit('mic-queue-update', micQueue);
-                    } else if (micQueue.includes(user._id.toString())) {
-                        console.log(`User ${xuser._id} is already in the queue.`);
-                        micQueue = micQueue.filter((id) => id !== user._id.toString());
-                        io.to(xroomId).emit('mic-queue-update', micQueue);
-                        return;
+                            console.log(`User ${user._id.toString()} has declined the mic.`);
+                        } else if (!micQueue.includes(user._id.toString())) {
+                            // Add user to the queue if there's an active speaker
+                            micQueue.push(user._id.toString());
+                            console.log(
+                                `User ${user._id} added to the queue. Queue length: ${micQueue.length}`,
+                            );
+                            io.to(xroomId).emit('mic-queue-update', micQueue);
+                        } else if (micQueue.includes(user._id.toString())) {
+                            console.log(`User ${xuser._id} is already in the queue.`);
+                            micQueue = micQueue.filter((id) => id !== user._id.toString());
+                            io.to(xroomId).emit('mic-queue-update', micQueue);
+                            return;
+                        }
                     }
+                } catch (err) {
+                    console.log('error from request mic ' + err.toString());
                 }
             });
 
@@ -1481,53 +1500,66 @@ module.exports = (io) => {
             };
 
             xclient.on('renew-mic-time', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        0)
-                )
-                    return; // Ensure only admins can renew time
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            0)
+                    )
+                        return; // Ensure only admins can renew time
 
-                const { userId } = data;
-                const speaker = await getUserById(userId, xroomId);
+                    const { userId } = data;
+                    const speaker = await getUserById(userId, xroomId);
 
-                if (speaker) {
-                    const timeLeft = getUserTimeLeft(speaker.type);
-                    startSpeakerTimer(userId, timeLeft);
+                    if (speaker) {
+                        const timeLeft = getUserTimeLeft(speaker.type);
+                        startSpeakerTimer(userId, timeLeft);
+                    }
+                } catch (err) {
+                    console.log('error from renew mic time' + err.toString());
                 }
             });
 
             // Add mic sharing feature
             xclient.on('share-mic', async (data) => {
-                if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
+                try {
+                    if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
-                let { userId } = data;
-                const userToShareWith = await getUserById(userId, xroomId);
+                    let { userId } = data;
+                    const userToShareWith = await getUserById(userId, xroomId);
 
-                if (userToShareWith) {
-                    if (micQueue.includes(userToShareWith._id.toString())) {
-                        micQueue = micQueue.filter((id) => id !== userToShareWith._id.toString());
-                        io.to(xroomId).emit('mic-queue-update', micQueue);
-                        userToShareWith.can_use_mic = true;
-                        await updateUser(userToShareWith, userToShareWith._id, xroomId);
-                        io.to(userToShareWith.socketId).emit('mic-enabled', {
-                            message: 'Your mic has been enabled temporarily.',
-                        });
-                        if (!roomInfo.speakers.has(userToShareWith._id.toString())) {
-                            roomInfo.speakers.add(userToShareWith._id.toString());
-                            io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                    if (userToShareWith) {
+                        if (micQueue.includes(userToShareWith._id.toString())) {
+                            micQueue = micQueue.filter(
+                                (id) => id !== userToShareWith._id.toString(),
+                            );
+                            io.to(xroomId).emit('mic-queue-update', micQueue);
+                            userToShareWith.can_use_mic = true;
+                            await updateUser(userToShareWith, userToShareWith._id, xroomId);
+                            io.to(userToShareWith.socketId).emit('mic-enabled', {
+                                message: 'Your mic has been enabled temporarily.',
+                            });
+                            if (!roomInfo.speakers.has(userToShareWith._id.toString())) {
+                                roomInfo.speakers.add(userToShareWith._id.toString());
+                                io.to(xroomId).emit(
+                                    'update-speakers',
+                                    Array.from(roomInfo.speakers),
+                                );
+                            }
+                        }
+                        // Retrieve the timer of the current speaker
+                        const currentSpeakerTimer = userTimers.get(xuser._id.toString());
+                        if (currentSpeakerTimer) {
+                            startSharedTimer(userToShareWith._id, currentSpeakerTimer);
+                        } else {
+                            console.error('No active timer found for the current speaker.');
                         }
                     }
-                    // Retrieve the timer of the current speaker
-                    const currentSpeakerTimer = userTimers.get(xuser._id.toString());
-                    if (currentSpeakerTimer) {
-                        startSharedTimer(userToShareWith._id, currentSpeakerTimer);
-                    } else {
-                        console.error('No active timer found for the current speaker.');
-                    }
+                } catch (err) {
+                    console.log('error from share mic ' + err.toString());
                 }
             });
 
@@ -1544,16 +1576,20 @@ module.exports = (io) => {
 
             // end test mic features
 
-            xclient.on('mute-all', async (data) => {
-                console.log('all muted list started', xuser.name);
-                if (!xuser) return;
+            xclient.on('mute-all', async () => {
+                try {
+                    console.log('all muted list started', xuser.name);
+                    if (!xuser) return;
 
-                if (!allMutedList.includes(xuser._id.toString())) {
-                    allMutedList.push(xuser._id.toString());
-                    io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
-                } else {
-                    allMutedList.pop(xuser._id.toString());
-                    io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                    if (!allMutedList.includes(xuser._id.toString())) {
+                        allMutedList.push(xuser._id.toString());
+                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                    } else {
+                        allMutedList.pop(xuser._id.toString());
+                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                    }
+                } catch (err) {
+                    console.log('error from mute all ' + err.toString());
                 }
             });
 
