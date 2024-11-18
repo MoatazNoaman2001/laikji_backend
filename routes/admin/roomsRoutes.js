@@ -272,7 +272,7 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                 msg: 'اسم الغرفة موجود مسبقاً',
             });
         }
-
+        console.log('mic settings ' + req.body.mic);
         const endDate = new Date(req.body.endDate).toISOString();
         const startDate = new Date(req.body.startDate).toISOString();
         let update = {
@@ -298,10 +298,10 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                 email: req.body.owner_email,
             },
             mic: {
-                mic_permission: req.body.mic_permission,
-                talk_dur: req.body.talk_dur,
-                mic_setting: req.body.mic_setting,
-                shared_mic_capacity: req.body.shared_mic_capacity,
+                mic_permission: req.body.mic.mic_permission,
+                talk_dur: req.body.mic.talk_dur,
+                mic_setting: req.body.mic.mic_setting,
+                shared_mic_capacity: req.body.mic.shared_mic_capacity,
             },
         };
 
