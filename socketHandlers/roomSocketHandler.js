@@ -1160,7 +1160,7 @@ module.exports = (io) => {
                                 userId: userId,
                                 timeLeft: "Time's up",
                             });
-
+                            clearUserTimers(userId);
                             releaseMic(userId);
                         }, timeLeft * 1000);
                         // Emit time updates every second
@@ -1173,9 +1173,8 @@ module.exports = (io) => {
                             if (timeLeft <= 0) {
                                 console.log('stop timer from interval');
                                 for (const speakerId of roomInfo.speakers) {
-                                    // clearUserTimers(speakerId);
+                                    clearUserTimers(speakerId);
                                     releaseMic(speakerId);
-
                                     console.log(
                                         `Cleared timer and released mic for user ${speakerId}`,
                                     );
@@ -1204,8 +1203,7 @@ module.exports = (io) => {
                 try {
                     if (roomInfo.speakers.length !== 0) {
                         // Clear any existing timer for the current speaker
-                        clearUserTimers(userId);
-                        // remove speaker from speakers list
+                        // clearUserTimers(userId);
                         roomInfo.speakers.delete(userId);
 
                         io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
@@ -1309,7 +1307,7 @@ module.exports = (io) => {
                         assignSpeaker(user._id.toString(), user);
                     } else {
                         if (roomInfo.speakers.has(user._id.toString())) {
-                            // clearUserTimers(user._id.toString());
+                            clearUserTimers(user._id.toString());
                             releaseMic(user._id.toString());
 
                             console.log('User found in speakers some', roomInfo.speakers);
@@ -1608,7 +1606,7 @@ module.exports = (io) => {
             !xuser.is_visible
         ) {
             continue_to_room();
-        } else if (room.lock_status == 2 && xuser.type && xuser.type != enums.userTypes.guest) {
+        } else if (room.lock_status == 1 && xuser.type && xuser.type != enums.userTypes.guest) {
             continue_to_room();
         } else {
             addUserToWaiting(xroomId, xuser);
@@ -1681,7 +1679,7 @@ module.exports = (io) => {
 
             // Clear the timer if it exists
             if (xuser.speakTimer) {
-                //clearUserTimers(xuser._id.toString());
+                clearUserTimers(xuser._id.toString());
                 releaseMic(xuser._id.toString());
 
                 xuser.speakTimer = null;
