@@ -1134,10 +1134,8 @@ module.exports = (io) => {
                         updatedTimers.set(key, value);
                     } else {
                         console.log('Clearing timers for userId:', userId);
-                        if (Array.from(roomInfo.speakers).length === 1) {
-                            clearTimeout(value.timer);
-                            clearInterval(value.interval);
-                        }
+                        clearTimeout(value.timer);
+                        clearInterval(value.interval);
                     }
                 }
                 userTimers = updatedTimers;
