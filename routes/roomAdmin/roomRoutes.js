@@ -499,7 +499,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
                     ? parseInt(req.body.private_status)
                     : room.private_status,
             lock_status:
-                req.body.lock_status && req.body.lock_status in ['0', '1', '2']
+                req.body.lock_status && req.body.lock_status in [0, 1, 2]
                     ? parseInt(req.body.lock_status)
                     : room.lock_status,
             inside_style: {
