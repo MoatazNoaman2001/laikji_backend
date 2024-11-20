@@ -489,10 +489,10 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             description: req.body.description ?? room.description,
             lock_msg: req.body.lock_msg ?? room.lock_msg,
             mic: {
-                mic_permission: req.body.mic.mic_permission,
-                talk_dur: req.body.mic.talk_dur,
-                mic_setting: req.body.mic.mic_setting,
-                shared_mic_capacity: req.body.mic.shared_mic_capacity,
+                mic_permission: req.body.mic_permission,
+                talk_dur: req.body.talk_dur,
+                mic_setting: req.body.mic_setting,
+                shared_mic_capacity: req.body.shared_mic_capacity,
             },
             private_status:
                 req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
