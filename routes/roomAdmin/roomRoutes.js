@@ -519,17 +519,15 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
                 }
             }
         });
-
+        console.log('type is ' + typeof req.body.mic);
         // Handle `mic` nested object
         if (req.body.mic) {
             let micData;
             try {
-                micData = {
-                    mic_permission: req.body.mic.mic_permission,
-                    talk_dur: req.body.mic.talk_dur,
-                    mic_setting: req.body.mic.mic_setting,
-                    shared_mic_capacity: req.body.mic.shared_mic_capacity,
-                };
+                // Parse mic data if it's a string
+                micData =
+                    typeof req.body.mic === 'string' ? JSON.parse(req.body.mic) : req.body.mic;
+                console.log('mic data ' + JSON.stringify(micData, null, 2));
             } catch (e) {
                 console.error('Invalid mic data format:', req.body.mic);
                 return res.status(400).send({
@@ -540,6 +538,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
 
             // Merge mic updates with existing room mic settings
             update.mic = {
+                ...(room.mic || {}),
                 ...micData,
             };
         }
