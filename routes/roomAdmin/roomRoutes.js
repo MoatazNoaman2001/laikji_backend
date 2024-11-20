@@ -526,10 +526,10 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
                         ? parseInt(req.body[field])
                         : room[field];
                 } else if (
-                    field === 'mic_permission' ||
-                    field === 'talk_dur' ||
-                    field === 'mic_setting' ||
-                    field === 'shared_mic_capacity'
+                    field === req.body.mic['mic_permission'] ||
+                    field === req.body.mic['talk_dur'] ||
+                    field === req.body.mic['mic_setting'] ||
+                    field === req.body.mic['shared_mic_capacity']
                 ) {
                     update.mic = {
                         ...(update.mic || {}),
@@ -583,7 +583,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         const room_after_update = await roomModel.findById(room._id);
 
         global.io.to(room._id.toString()).emit('room-state', {
-            // Emit updated room state
+            room: room,
         });
 
         await helpers.notifyRoomChanged(room._id, false, true);
