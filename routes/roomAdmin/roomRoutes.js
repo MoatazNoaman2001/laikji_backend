@@ -540,7 +540,6 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
 
             // Merge mic updates with existing room mic settings
             update.mic = {
-                ...(room.mic || {}),
                 ...micData,
             };
         }
