@@ -485,6 +485,13 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         console.log('update req from app ' + JSON.stringify(req.body, null, 2));
         console.log('mic req from app ' + JSON.stringify(req.body.mic, null, 2));
         var update = {
+            mic: {
+                mic_permission: req.body.mic.mic_permission ?? room.mic.mic_permission,
+                talk_dur: req.body.mic.talk_dur ?? room.mic.talk_dur,
+                mic_setting: req.body.mic.mic_setting ?? room.mic.mic_setting,
+                shared_mic_capacity:
+                    req.body.mic.shared_mic_capacity ?? room.mic.shared_mic_capacity,
+            },
             title: req.body.title ?? room.title,
             description: req.body.description ?? room.description,
             lock_msg: req.body.lock_msg ?? room.lock_msg,
@@ -512,13 +519,6 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
                 text: req.body.welcome_text ?? room.welcome.text,
                 direction: req.body.welcome_direction ?? room.welcome.direction,
                 color: req.body.welcome_color ?? room.welcome.color,
-                mic: {
-                    mic_permission: req.body.mic_permission ?? room.mic.mic_permission,
-                    talk_dur: req.body.talk_dur ?? room.mic.talk_dur,
-                    mic_setting: req.body.mic_setting ?? room.mic.mic_setting,
-                    shared_mic_capacity:
-                        req.body.shared_mic_capacity ?? room.mic.shared_mic_capacity,
-                },
             },
         };
 
@@ -535,20 +535,15 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         console.log(room_after_update, 'what happended');
         const roomInfo = getRoomData(room._id.toString());
 
-        const usersInRoom = await getUsersInRoom(room._id);
+        // const usersInRoom = await getUsersInRoom(room._id);
 
-        for (const user of usersInRoom) {
-            roomInfo.listeners.add(user._id.toString());
-            roomInfo.holdMic.add(user._id.toString());
+        // for (const user of usersInRoom) {
+        //     roomInfo.listeners.add(user._id.toString());
+        //     roomInfo.holdMic.add(user._id.toString());
 
-            // Create WebRTC transport for each user
-            const transport = await createWebRtcTransport(room._id.toString());
-            user.transport = transport.id;
-            await updateUser(user, user._id, room._id);
+        //     await updateUser(user, user._id, room._id);
 
-            // Emit transport parameters to the user
-            global.io.to(user.socketId).emit('init-transport', transport.params);
-        }
+        // }
 
         global.io.to(room._id.toString()).emit('room-state', {
             speakers: Array.from(roomInfo.speakers),
