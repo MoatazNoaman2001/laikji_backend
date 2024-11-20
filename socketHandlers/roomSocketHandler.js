@@ -1607,7 +1607,7 @@ module.exports = (io) => {
             !xuser.is_visible
         ) {
             continue_to_room();
-        } else if (room.lock_status == 1 && xuser.type && xuser.type != enums.userTypes.guest) {
+        } else if (room.lock_status === 1 && xuser.type && xuser.type != enums.userTypes.guest) {
             continue_to_room();
         } else {
             addUserToWaiting(xroomId, xuser);
