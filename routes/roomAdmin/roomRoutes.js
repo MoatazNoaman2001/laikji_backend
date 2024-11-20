@@ -524,9 +524,12 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         if (req.body.mic) {
             let micData;
             try {
-                // Parse mic data if it's a string
-                micData =
-                    typeof req.body.mic === 'string' ? JSON.parse(req.body.mic) : req.body.mic;
+                micData = {
+                    mic_permission: req.body.mic.mic_permission,
+                    talk_dur: req.body.mic.talk_dur,
+                    mic_setting: req.body.mic.mic_setting,
+                    shared_mic_capacity: req.body.mic.shared_mic_capacity,
+                };
             } catch (e) {
                 console.error('Invalid mic data format:', req.body.mic);
                 return res.status(400).send({
