@@ -1673,7 +1673,7 @@ module.exports = (io) => {
             micQueue = micQueue.filter((id) => id !== xuser._id.toString());
             io.to(xroomId).emit('mic-queue-update', micQueue);
             if (allMutedList.includes(xuser._id.toString())) {
-                allMutedList.pop(xuser._id.toString());
+                allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
                 io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
             }
             // roomInfo.holdMic.delete(xuser._id.toString());
