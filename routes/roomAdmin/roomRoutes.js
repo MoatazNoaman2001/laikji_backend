@@ -520,10 +520,25 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             }
         });
 
+        // Handle `mic` nested object
         if (req.body.mic) {
+            let micData;
+            try {
+                // Parse mic data if it's a string
+                micData =
+                    typeof req.body.mic === 'string' ? JSON.parse(req.body.mic) : req.body.mic;
+            } catch (e) {
+                console.error('Invalid mic data format:', req.body.mic);
+                return res.status(400).send({
+                    ok: false,
+                    error: 'Invalid mic data format.',
+                });
+            }
+
+            // Merge mic updates with existing room mic settings
             update.mic = {
                 ...(room.mic || {}),
-                ...req.body.mic,
+                ...micData,
             };
         }
 
