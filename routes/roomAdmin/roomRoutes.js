@@ -477,6 +477,8 @@ router.delete('/word-filters/:id', async (req, res) => {
 
 // app update
 router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
+    console.log('update req from app ' + JSON.stringify(req.body, null, 2));
+    console.log('mic req from app ' + JSON.stringify(req.body.mic, null, 2));
     try {
         const room = req.room;
         const update = {};
