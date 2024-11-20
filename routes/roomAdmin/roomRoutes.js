@@ -488,47 +488,95 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             });
         }
 
-        if (req.file && req.file.filename) {
-            helpers.resizeImage('rooms/' + req.file.filename, true, 900);
-        }
+        // if (req.file && req.file.filename) {
+        //     helpers.resizeImage('rooms/' + req.file.filename, true, 900);
+        // }
 
-        let update = {
-            title: req.body.title ?? room.title,
-            description: req.body.description ?? room.description,
-            lock_msg: req.body.lock_msg ?? room.lock_msg,
-            mic: {
-                mic_permission: req.body.mic?.mic_permission ?? room.mic?.mic_permission,
-                talk_dur: req.body.mic?.talk_dur ?? room.mic?.talk_dur,
-                mic_setting: req.body.mic?.mic_setting ?? room.mic?.mic_setting,
-                shared_mic_capacity:
-                    req.body.mic?.shared_mic_capacity ?? room.mic?.shared_mic_capacity,
-            },
-            private_status:
-                req.body.private_status && ['0', '1', '2', '3'].includes(req.body.private_status)
-                    ? parseInt(req.body.private_status)
-                    : room.private_status,
-            lock_status:
-                req.body.lock_status && [0, 1, 2].includes(req.body.lock_status)
-                    ? parseInt(req.body.lock_status)
-                    : room.lock_status,
-            inside_style: {
-                background_1: req.body.background_1 ?? room.inside_style.background_1,
-                background_2: req.body.background_2 ?? room.inside_style.background_2,
-                border_1: req.body.border_1 ?? room.inside_style.border_1,
-                font_color: req.body.font_color ?? room.inside_style.font_color,
-            },
-            welcome: {
-                img:
-                    req.body.delete_welcome_img === 'yes'
-                        ? null
-                        : req.file?.filename
-                        ? 'rooms/' + req.file.filename
-                        : room.welcome?.img,
-                text: req.body.welcome_text ?? room.welcome?.text,
-                direction: req.body.welcome_direction ?? room.welcome?.direction,
-                color: req.body.welcome_color ?? room.welcome?.color,
-            },
-        };
+        const update = {};
+
+        // Define the fields to be updated
+        const fieldsToUpdate = [
+            'title',
+            'description',
+            'lock_msg',
+            'private_status',
+            'lock_status',
+            'background_1',
+            'background_2',
+            'border_1',
+            'font_color',
+            'welcome_text',
+            'welcome_direction',
+            'welcome_color',
+            'mic_permission',
+            'talk_dur',
+            'mic_setting',
+            'shared_mic_capacity',
+        ];
+
+        // Process each field dynamically
+        fieldsToUpdate.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                if (field === 'private_status') {
+                    update[field] = ['0', '1', '2', '3'].includes(req.body[field])
+                        ? parseInt(req.body[field])
+                        : room[field];
+                } else if (field === 'lock_status') {
+                    update[field] = [0, 1, 2].includes(req.body[field])
+                        ? parseInt(req.body[field])
+                        : room[field];
+                } else if (
+                    field === 'mic_permission' ||
+                    field === 'talk_dur' ||
+                    field === 'mic_setting' ||
+                    field === 'shared_mic_capacity'
+                ) {
+                    update.mic = {
+                        ...(update.mic || {}),
+                        [field]: req.body[field],
+                    };
+                } else if (
+                    field === 'background_1' ||
+                    field === 'background_2' ||
+                    field === 'border_1' ||
+                    field === 'font_color'
+                ) {
+                    update.inside_style = {
+                        ...(update.inside_style || {}),
+                        [field]: req.body[field],
+                    };
+                } else if (
+                    field === 'welcome_text' ||
+                    field === 'welcome_direction' ||
+                    field === 'welcome_color'
+                ) {
+                    update.welcome = {
+                        ...(update.welcome || {}),
+                        [field === 'welcome_text'
+                            ? 'text'
+                            : field === 'welcome_direction'
+                            ? 'direction'
+                            : 'color']: req.body[field],
+                    };
+                } else {
+                    update[field] = req.body[field];
+                }
+            }
+        });
+
+        if (req.body.delete_welcome_img === 'yes') {
+            update.welcome = {
+                ...(update.welcome || {}),
+                img: null,
+            };
+        } else if (req.file?.filename) {
+            const imgPath = 'rooms/' + req.file.filename;
+            helpers.resizeImage(imgPath, true, 900);
+            update.welcome = {
+                ...(update.welcome || {}),
+                img: imgPath,
+            };
+        }
 
         await roomModel.findByIdAndUpdate(room._id, update);
 
