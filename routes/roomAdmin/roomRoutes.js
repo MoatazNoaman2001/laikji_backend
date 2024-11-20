@@ -478,80 +478,88 @@ router.delete('/word-filters/:id', async (req, res) => {
 // app update
 router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
     try {
-        let room = req.room;
-        if (req.file && req.file.filename) {
-            helpers.resizeImage('rooms/' + req.file.filename, true, 900);
-        }
-        console.log(
-            'update request2 for room ' + room.name + ' ' + JSON.stringify(req.body, null, 2),
-        );
+        const room = req.room;
+        const update = {};
 
-        var update = {
-            title: req.body.title ?? room.title,
-            description: req.body.description ?? room.description,
-            lock_msg: req.body.lock_msg ?? room.lock_msg,
-            mic: {
-                mic_permission: req.body.mic.mic_permission ?? room.mic.mic_permission,
-                talk_dur: req.body.mic.talk_dur ?? room.mic.talk_dur,
-                mic_setting: req.body.mic.mic_setting ?? room.mic.mic_setting,
-                shared_mic_capacity:
-                    req.body.mic.shared_mic_capacity ?? room.mic.shared_mic_capacity,
-            },
-            private_status:
-                req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
-                    ? parseInt(req.body.private_status)
-                    : room.private_status,
-            lock_status:
-                req.body.lock_status && req.body.lock_status in [0, 1, 2]
-                    ? parseInt(req.body.lock_status)
-                    : room.lock_status,
-            inside_style: {
-                background_1: req.body.background_1 ?? room.inside_style.background_1,
-                background_2: req.body.background_2 ?? room.inside_style.background_2,
-                border_1: req.body.border_1 ?? room.inside_style.border_1,
-                font_color: req.body.font_color ?? room.inside_style.font_color,
-            },
-            welcome: {
-                img:
-                    req.body.delete_welcome_img == 'yes'
-                        ? null
-                        : req.file && req.file.filename
-                        ? 'rooms/' + req.file.filename
-                        : room.welcome.img,
-                text: req.body.welcome_text ?? room.welcome.text,
-                direction: req.body.welcome_direction ?? room.welcome.direction,
-                color: req.body.welcome_color ?? room.welcome.color,
-            },
-        };
+        const fieldsToUpdate = [
+            'title',
+            'description',
+            'lock_msg',
+            'private_status',
+            'lock_status',
+            'background_1',
+            'background_2',
+            'border_1',
+            'font_color',
+            'welcome_text',
+            'welcome_direction',
+            'welcome_color',
+        ];
 
-        await roomModel.findOneAndUpdate(
-            {
-                _id: new ObjectId(room._id),
-            },
-            update,
-        );
-
-        let room_after_update = await roomModel.findOne({
-            _id: new ObjectId(room._id),
+        fieldsToUpdate.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                if (
+                    field.startsWith('background_') ||
+                    field.startsWith('border_') ||
+                    field === 'font_color'
+                ) {
+                    update.inside_style = {
+                        ...(update.inside_style || {}),
+                        [field]: req.body[field],
+                    };
+                } else if (field.startsWith('welcome_')) {
+                    update.welcome = {
+                        ...(update.welcome || {}),
+                        [field.replace('welcome_', '')]: req.body[field],
+                    };
+                } else {
+                    update[field] = req.body[field];
+                }
+            }
         });
 
-        const roomInfo = getRoomData(room._id.toString());
+        if (req.body.mic) {
+            update.mic = {
+                ...(room.mic || {}),
+                ...req.body.mic,
+            };
+        }
 
+        if (req.body.delete_welcome_img === 'yes') {
+            update.welcome = {
+                ...(update.welcome || {}),
+                img: null,
+            };
+        } else if (req.file && req.file.filename) {
+            const imgPath = 'rooms/' + req.file.filename;
+            helpers.resizeImage(imgPath, true, 900);
+
+            update.welcome = {
+                ...(update.welcome || {}),
+                img: imgPath,
+            };
+        } else if (room.welcome && room.welcome.img) {
+            update.welcome = {
+                ...(update.welcome || {}),
+                img: room.welcome.img,
+            };
+        }
+
+        if (req.body.private_status && ['0', '1', '2', '3'].includes(req.body.private_status)) {
+            update.private_status = parseInt(req.body.private_status);
+        }
+
+        if (req.body.lock_status && [0, 1, 2].includes(parseInt(req.body.lock_status))) {
+            update.lock_status = parseInt(req.body.lock_status);
+        }
+
+        await roomModel.findOneAndUpdate({ _id: new ObjectId(room._id) }, update);
+
+        const room_after_update = await roomModel.findOne({ _id: new ObjectId(room._id) });
+        const roomInfo = getRoomData(room._id.toString());
         const usersInRoom = await getUsersInRoom(room._id);
 
-        // for (const user of usersInRoom) {
-        //     roomInfo.listeners.add(user._id.toString());
-        //     roomInfo.holdMic.add(user._id.toString());
-
-        //     // Create WebRTC transport for each user
-        //     const transport = await createWebRtcTransport(room._id.toString());
-        //     user.transport = transport.id;
-        //     await updateUser(user, user._id, room._id);
-
-        //     // Emit transport parameters to the user
-        //     global.io.to(user.socketId).emit('init-transport', transport.params);
-        // }
-
+        // Emit updated room state to connected clients
         global.io.to(room._id.toString()).emit('room-state', {
             speakers: Array.from(roomInfo.speakers),
             listeners: Array.from(roomInfo.listeners),
@@ -567,8 +575,8 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             data: await helpers.public_room(room_after_update),
         });
 
+        // Notify and log the changes
         await helpers.notifyRoomChanged(room._id, false, true);
-
         addAdminLog(req.user, room._id, `قام بتغيير إعدادات الروم`, `has changed room settings`);
 
         return res.status(200).send({
