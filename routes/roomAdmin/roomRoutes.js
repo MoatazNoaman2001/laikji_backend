@@ -477,135 +477,78 @@ router.delete('/word-filters/:id', async (req, res) => {
 
 // app update
 router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
-    console.log('update req from app ' + JSON.stringify(req.body, null, 2));
-    console.log('mic req from app ' + JSON.stringify(req.body.mic, null, 2));
     try {
         const room = req.room;
-        const update = {};
-
-        const fieldsToUpdate = [
-            'title',
-            'description',
-            'lock_msg',
-            'private_status',
-            'lock_status',
-            'background_1',
-            'background_2',
-            'border_1',
-            'font_color',
-            'welcome_text',
-            'welcome_direction',
-            'welcome_color',
-        ];
-
-        fieldsToUpdate.forEach((field) => {
-            if (req.body[field] !== undefined) {
-                if (
-                    field.startsWith('background_') ||
-                    field.startsWith('border_') ||
-                    field === 'font_color'
-                ) {
-                    update.inside_style = {
-                        ...(update.inside_style || {}),
-                        [field]: req.body[field],
-                    };
-                } else if (field.startsWith('welcome_')) {
-                    update.welcome = {
-                        ...(update.welcome || {}),
-                        [field.replace('welcome_', '')]: req.body[field],
-                    };
-                } else {
-                    update[field] = req.body[field];
-                }
-            }
-        });
-        console.log('type is ' + typeof req.body.mic);
-        // Handle `mic` nested object
-        if (req.body.mic) {
-            let micData;
-            try {
-                // Parse mic data if it's a string
-                micData =
-                    typeof req.body.mic === 'string' ? JSON.parse(req.body.mic) : req.body.mic;
-                console.log('mic data ' + JSON.stringify(micData, null, 2));
-            } catch (e) {
-                console.error('Invalid mic data format:', req.body.mic);
-                return res.status(400).send({
-                    ok: false,
-                    error: 'Invalid mic data format.',
-                });
-            }
-
-            // Merge mic updates with existing room mic settings
-            update.mic = {
-                ...(room.mic || {}),
-                ...micData,
-            };
+        console.log('update req from app ' + JSON.stringify(req.body, null, 2));
+        console.log('mic req from app ' + JSON.stringify(req.body.mic, null, 2));
+        if (!room) {
+            return res.status(404).send({
+                ok: false,
+                msg: 'Room not found.',
+            });
         }
 
-        if (req.body.delete_welcome_img === 'yes') {
-            update.welcome = {
-                ...(update.welcome || {}),
-                img: null,
-            };
-        } else if (req.file && req.file.filename) {
-            const imgPath = 'rooms/' + req.file.filename;
-            helpers.resizeImage(imgPath, true, 900);
-
-            update.welcome = {
-                ...(update.welcome || {}),
-                img: imgPath,
-            };
-        } else if (room.welcome && room.welcome.img) {
-            update.welcome = {
-                ...(update.welcome || {}),
-                img: room.welcome.img,
-            };
+        if (req.file && req.file.filename) {
+            helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
 
-        if (req.body.private_status && ['0', '1', '2', '3'].includes(req.body.private_status)) {
-            update.private_status = parseInt(req.body.private_status);
-        }
+        let update = {
+            title: req.body.title ?? room.title,
+            description: req.body.description ?? room.description,
+            lock_msg: req.body.lock_msg ?? room.lock_msg,
+            mic: {
+                mic_permission: req.body.mic?.mic_permission ?? room.mic?.mic_permission,
+                talk_dur: req.body.mic?.talk_dur ?? room.mic?.talk_dur,
+                mic_setting: req.body.mic?.mic_setting ?? room.mic?.mic_setting,
+                shared_mic_capacity:
+                    req.body.mic?.shared_mic_capacity ?? room.mic?.shared_mic_capacity,
+            },
+            private_status:
+                req.body.private_status && ['0', '1', '2', '3'].includes(req.body.private_status)
+                    ? parseInt(req.body.private_status)
+                    : room.private_status,
+            lock_status:
+                req.body.lock_status && [0, 1, 2].includes(req.body.lock_status)
+                    ? parseInt(req.body.lock_status)
+                    : room.lock_status,
+            inside_style: {
+                background_1: req.body.background_1 ?? room.inside_style.background_1,
+                background_2: req.body.background_2 ?? room.inside_style.background_2,
+                border_1: req.body.border_1 ?? room.inside_style.border_1,
+                font_color: req.body.font_color ?? room.inside_style.font_color,
+            },
+            welcome: {
+                img:
+                    req.body.delete_welcome_img === 'yes'
+                        ? null
+                        : req.file?.filename
+                        ? 'rooms/' + req.file.filename
+                        : room.welcome?.img,
+                text: req.body.welcome_text ?? room.welcome?.text,
+                direction: req.body.welcome_direction ?? room.welcome?.direction,
+                color: req.body.welcome_color ?? room.welcome?.color,
+            },
+        };
 
-        if (req.body.lock_status && [0, 1, 2].includes(parseInt(req.body.lock_status))) {
-            update.lock_status = parseInt(req.body.lock_status);
-        }
+        await roomModel.findByIdAndUpdate(room._id, update);
 
-        await roomModel.findOneAndUpdate({ _id: new ObjectId(room._id) }, update);
+        const room_after_update = await roomModel.findById(room._id);
 
-        const room_after_update = await roomModel.findOne({ _id: new ObjectId(room._id) });
-        const roomInfo = getRoomData(room._id.toString());
-        const usersInRoom = await getUsersInRoom(room._id);
-
-        // Emit updated room state to connected clients
         global.io.to(room._id.toString()).emit('room-state', {
-            speakers: Array.from(roomInfo.speakers),
-            listeners: Array.from(roomInfo.listeners),
-            holdMic: Array.from(roomInfo.holdMic),
-            openedTime: room_after_update.opened_time,
-            maxSpeakers: room_after_update.max_speakers_count,
-            maxSpeakerTime: room_after_update.max_speaker_time,
-            updateTime: room_after_update.update_time,
+            // Emit updated room state
         });
 
-        global.io.emit(room._id, {
-            type: 'room-update',
-            data: await helpers.public_room(room_after_update),
-        });
-
-        // Notify and log the changes
         await helpers.notifyRoomChanged(room._id, false, true);
-        addAdminLog(req.user, room._id, `قام بتغيير إعدادات الروم`, `has changed room settings`);
 
         return res.status(200).send({
             ok: true,
-            data: await getRoomInfo(room),
+            data: await helpers.public_room(room_after_update),
         });
-    } catch (e) {
-        console.error(e);
-        return res.status(500).send({
+    } catch (err) {
+        console.error('Error updating room:', err);
+        res.status(500).send({
             ok: false,
-            error: e.message,
+            error: err.message,
         });
     }
 });
