@@ -1458,9 +1458,9 @@ module.exports = (io) => {
                             timeLeft: timeLeft / 1000,
                         });
                         if (timeLeft <= 0) {
-                            clearUserTimers(speakerId);
-                            releaseMic(speakerId);
-                            console.log(`Cleared timer and released mic for user ${speakerId}`);
+                            clearUserTimers(userId);
+                            releaseMic(userId);
+                            console.log(`Cleared timer and released mic for user ${userId}`);
                         }
                     }, 1000);
                     userTimers.set(userId, { timer, interval, timeLeft });
