@@ -1106,11 +1106,11 @@ module.exports = (io) => {
                     const user = await getUserById(data.userId, xroomId);
                     console.log('speakers length' + Array.from(roomInfo.speakers).length);
                     if (Array.from(roomInfo.speakers).length === 0) {
-                        assignSpeaker(user._id.toString(), user, roomInfo);
+                        assignSpeaker(user._id.toString(), user);
                     } else {
                         if (roomInfo.speakers.has(user._id.toString())) {
-                            clearUserTimers(user._id.toString(), roomInfo);
-                            releaseMic(user._id.toString(), roomInfo);
+                            clearUserTimers(user._id.toString());
+                            releaseMic(user._id.toString());
 
                             console.log('User found in speakers some', roomInfo.speakers);
                             console.log('after delete user id', roomInfo.speakers);
@@ -1294,7 +1294,7 @@ module.exports = (io) => {
                     if (timeLeft <= 0) {
                         clearInterval(timer);
                         roomInfo.speakers.pop(userId);
-                        assignMic(roomInfo); // Assign mic to the next user
+                        assignMic(); // Assign mic to the next user
                     }
                 }, 1000);
             };
@@ -1316,7 +1316,7 @@ module.exports = (io) => {
 
                     if (speaker) {
                         const timeLeft = getUserTimeLeft(speaker.type);
-                        startSpeakerTimer(userId, timeLeft, roomInfo);
+                        startSpeakerTimer(userId, timeLeft);
                     }
                 } catch (err) {
                     console.log('error from renew mic time' + err.toString());
@@ -1430,13 +1430,13 @@ module.exports = (io) => {
                     return 0;
             }
         };
-        const startSpeakerTimer = (userId, timeLeft, roomInfo) => {
+        const startSpeakerTimer = (userId, timeLeft) => {
             try {
                 if (timeLeft > 0) {
                     console.log(
                         `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
                     );
-                    clearUserTimers(userId, roomInfo);
+                    clearUserTimers(userId);
                     console.log(
                         `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
                     );
@@ -1446,8 +1446,8 @@ module.exports = (io) => {
                             userId: userId,
                             timeLeft: "Time's up",
                         });
-                        clearUserTimers(userId, roomInfo);
-                        releaseMic(userId, roomInfo);
+                        clearUserTimers(userId);
+                        releaseMic(userId);
                     }, timeLeft * 1000);
                     // Emit time updates every second
                     const interval = setInterval(() => {
@@ -1459,8 +1459,8 @@ module.exports = (io) => {
                         if (timeLeft <= 0) {
                             //console.log('stop timer from interval');
                             for (const speakerId of roomInfo.speakers) {
-                                clearUserTimers(speakerId, roomInfo);
-                                releaseMic(speakerId, roomInfo);
+                                clearUserTimers(speakerId);
+                                releaseMic(speakerId);
                                 console.log(`Cleared timer and released mic for user ${speakerId}`);
                             }
                         }
@@ -1483,7 +1483,7 @@ module.exports = (io) => {
             }
         };
 
-        const clearUserTimers = (userId, roomInfo) => {
+        const clearUserTimers = (userId) => {
             console.log('clear timer started');
             const updatedTimers = new Map();
             for (let [key, value] of userTimers.entries()) {
@@ -1498,14 +1498,14 @@ module.exports = (io) => {
                     );
 
                     if (updatedSpeakers.length > 0) {
-                        startSpeakerTimer(updatedSpeakers[0], value.timeLeft, roomInfo);
+                        startSpeakerTimer(updatedSpeakers[0], value.timeLeft);
                     }
                 }
             }
             userTimers = updatedTimers;
             console.log('UserTimers after deletion:', userTimers);
         };
-        const releaseMic = (userId, roomInfo) => {
+        const releaseMic = (userId) => {
             try {
                 const updatedSpeakers = Array.from(roomInfo.speakers).filter(
                     (speaker) => speaker !== userId,
@@ -1514,13 +1514,13 @@ module.exports = (io) => {
                 // notify room that the speaker's time has been ended
                 io.to(xroomId).emit('speaker-ended', userId);
                 console.log('Mic released. Attempting to assign to next user.');
-                assignMic(roomInfo);
+                assignMic();
             } catch (err) {
                 console.log('error from release mic ' + err.toString());
             }
         };
 
-        const assignMic = async (roomInfo) => {
+        const assignMic = async () => {
             try {
                 if (micAssigning /*|| currentSpeaker*/) {
                     console.log('Mic is currently in use or being assigned. Please wait.');
@@ -1548,7 +1548,7 @@ module.exports = (io) => {
                             `User ${nextUserId} is already a speaker or not found. Skipping...`,
                         );
                         micAssigning = false;
-                        await assignMic(roomInfo); // Recursively try the next user
+                        await assignMic(); // Recursively try the next user
                         return;
                     }
 
@@ -1556,7 +1556,7 @@ module.exports = (io) => {
                     if (!room) return;
 
                     if (roomInfo.speakers.length < room.max_speakers_count || room.opened_time) {
-                        await assignSpeaker(nextUserId, nextUser, roomInfo);
+                        await assignSpeaker(nextUserId, nextUser);
                     } else {
                         socket.emit('error', { message: 'Max speakers limit reached' });
                     }
@@ -1571,7 +1571,7 @@ module.exports = (io) => {
             }
         };
 
-        const assignSpeaker = async (speakerId, speaker, roomInfo) => {
+        const assignSpeaker = async (speakerId, speaker) => {
             try {
                 //currentSpeaker = speakerId;
                 roomInfo.speakers.add(speakerId);
@@ -1586,7 +1586,7 @@ module.exports = (io) => {
                 await updateUser(speaker, speaker._id, xroomId);
 
                 const timeLeft = getUserTimeLeft(speaker.type);
-                startSpeakerTimer(speakerId, timeLeft, roomInfo);
+                startSpeakerTimer(speakerId, timeLeft);
             } catch (err) {
                 console.log('error from assign speaker ' + err.toString());
             }
@@ -1659,8 +1659,8 @@ module.exports = (io) => {
             if (!xuser || !xroomId) return;
             // Clear the timer if it exists
             if (roomInfo.speakers.has(xuser._id.toString())) {
-                clearUserTimers(xuser._id.toString(), roomInfo);
-                releaseMic(xuser._id.toString(), roomInfo);
+                clearUserTimers(xuser._id.toString());
+                releaseMic(xuser._id.toString());
 
                 xuser.speakTimer = null;
             }
