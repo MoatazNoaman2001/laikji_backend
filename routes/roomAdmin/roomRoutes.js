@@ -489,12 +489,8 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         const micString = req.body.mic;
         const validJsonString = micString.replace(/(\w+):/g, '"$1":');
 
-        try {
-            const micObject = JSON.parse(validJsonString);
-            console.log('mic req from app', micObject['talk_dur']);
-        } catch (error) {
-            console.error('Failed to parse mic JSON:', error);
-        }
+        const micObject = JSON.parse(validJsonString);
+        console.log('mic req from app', micObject['talk_dur']);
         var update = {
             mic: {
                 mic_permission: micObject.mic_permission ?? room.mic.mic_permission,
