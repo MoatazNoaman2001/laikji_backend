@@ -1398,6 +1398,7 @@ module.exports = (io) => {
                 openedTime: room.opened_time,
             });
         };
+        const roomInfo = getRoomData(xroomId);
 
         function convertToMilliseconds(time) {
             const timeStr = time.toString();
