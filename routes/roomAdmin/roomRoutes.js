@@ -482,8 +482,8 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         if (req.file && req.file.filename) {
             helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
-        console.log('update req from app ' + JSON.stringify(req.body.talk_dur, null, 2));
-        console.log('mic req from app ' + JSON.stringify(req.body.mic.talk_dur, null, 2));
+        console.log('update req from app ' + JSON.stringify(req.body.mic['talk_dur'], null, 2));
+        console.log('mic req from app ' + JSON.stringify(req.body, null, 2));
         var update = {
             mic: {
                 mic_permission: req.body.mic_permission ?? room.mic.mic_permission,
@@ -532,7 +532,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         let room_after_update = await roomModel.findOne({
             _id: new ObjectId(room._id),
         });
-        console.log(room_after_update, 'what happended');
+        // console.log(room_after_update, 'what happended');
         const roomInfo = getRoomData(room._id.toString());
 
         // const usersInRoom = await getUsersInRoom(room._id);
