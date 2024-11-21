@@ -451,6 +451,8 @@ module.exports = (io) => {
         );
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
+        const roomInfo = await getRoomData(xroomId);
+
         const continue_to_room = async () => {
             // add user to room
             xclient.join(xroomId);
@@ -487,7 +489,6 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
-            const roomInfo = await getRoomData(xroomId);
             // xuser = await updateUser({ enterDate: getNowDateTime(true), ...xuser }, xuser._id, xroomId);
             // return micQueue, speakersQueue at another event
             xclient.emit('started', {
