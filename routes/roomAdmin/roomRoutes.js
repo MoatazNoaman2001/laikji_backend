@@ -71,6 +71,7 @@ const getRoomInfo = async (room) => {
         admin_count: room.admin_count,
         member_count: room.member_count,
         colors: await getAppUsersColors(),
+        mic: room.mic,
     };
 };
 
@@ -488,7 +489,6 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             const micString = req.body.mic;
             const validJsonString = micString.replace(/(\w+):/g, '"$1":');
             micObject = JSON.parse(validJsonString);
-            console.log('mic req from app', micObject['talk_dur']);
         }
         var update = {
             mic: {
