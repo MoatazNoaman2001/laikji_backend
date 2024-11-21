@@ -1124,8 +1124,8 @@ module.exports = (io) => {
                             if (timeLeft <= 0) {
                                 //console.log('stop timer from interval');
                                 for (const speakerId of roomInfo.speakers) {
-                                    clearUserTimers(speakerId);
-                                    releaseMic(speakerId);
+                                    clearUserTimers(speakerId, roomInfo);
+                                    releaseMic(speakerId, roomInfo);
                                     console.log(
                                         `Cleared timer and released mic for user ${speakerId}`,
                                     );
