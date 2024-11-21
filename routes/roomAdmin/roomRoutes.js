@@ -61,6 +61,7 @@ const getRoomInfo = async (room) => {
             direction: room.welcome.direction,
             color: room.welcome.color,
         },
+        mic: room.mic,
         startDate: room.startDate,
         endDate: room.endDate,
         subscribeDays: Math.round((room.endDate - room.startDate) / (1000 * 60 * 60 * 24)),
