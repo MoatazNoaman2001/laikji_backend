@@ -482,11 +482,11 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         if (req.file && req.file.filename) {
             helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
-        console.log('update req from app ' + JSON.stringify(req.body, null, 2));
-        console.log('mic req from app ' + JSON.stringify(req.body.mic, null, 2));
+        console.log('update req from app ' + JSON.stringify(req.body.talk_dur, null, 2));
+        console.log('mic req from app ' + JSON.stringify(req.body.mic.talk_dur, null, 2));
         var update = {
             mic: {
-                mic_permission: req.body.mic.mic_permission ?? room.mic.mic_permission,
+                mic_permission: req.body.mic_permission ?? room.mic.mic_permission,
                 talk_dur: req.body.mic.talk_dur ?? room.mic.talk_dur,
                 mic_setting: req.body.mic.mic_setting ?? room.mic.mic_setting,
                 shared_mic_capacity:
