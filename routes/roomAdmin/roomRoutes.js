@@ -484,7 +484,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         }
         console.log('update req from app ' + req.body.mic);
         const micObject = req.body.mic;
-        console.log('mic req from app ' + micObject);
+        console.log('mic req from app ' + micObject['talk_dur']);
 
         var update = {
             mic: {
