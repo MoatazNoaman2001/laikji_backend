@@ -1659,26 +1659,22 @@ module.exports = (io) => {
             await removeUserFromWaiting(xroomId, xuser);
 
             if (!xuser || !xroomId) return;
-
-            const roomInfo = getRoomData(xroomId);
-            if (roomInfo.speakers.has(xuser._id.toString())) {
-                roomInfo.speakers.delete(xuser._id.toString());
-                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-            }
-            micQueue = micQueue.filter((id) => id !== xuser._id.toString());
-            io.to(xroomId).emit('mic-queue-update', micQueue);
-            if (allMutedList.includes(xuser._id.toString())) {
-                allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
-                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
-            }
-            // roomInfo.holdMic.delete(xuser._id.toString());
-
             // Clear the timer if it exists
-            if (xuser.speakTimer) {
+            if (roomInfo.speakers.has(xuser._id.toString())) {
                 clearUserTimers(xuser._id.toString());
                 releaseMic(xuser._id.toString());
 
                 xuser.speakTimer = null;
+            }
+            //  const roomInfo = getRoomData(xroomId);
+            if (micQueue.includes(xuser._id.toString())) {
+                micQueue = micQueue.filter((id) => id !== xuser._id.toString());
+                io.to(xroomId).emit('mic-queue-update', micQueue);
+            }
+
+            if (allMutedList.includes(xuser._id.toString())) {
+                allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
+                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
             }
 
             // // Close all WebRTC stuff
