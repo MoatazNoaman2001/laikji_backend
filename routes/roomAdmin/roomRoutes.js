@@ -483,7 +483,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
         console.log('update req from app ' + JSON.stringify(req.body.mic['talk_dur'], null, 2));
-        const micObject = JSON.parse(body.req.mic);
+        const micObject = JSON.parse(req.body.mic);
         console.log('mic req from app ' + micObject);
 
         var update = {
