@@ -55,7 +55,7 @@ const getRoomInfo = async (room) => {
         inside_style: room.inside_style,
         lock_status: room.lock_status,
         lock_msg: room.lock_msg,
-        
+
         welcome: {
             img: room.welcome.img ? helpers.simg(room.welcome.img) : '',
             text: room.welcome.text,
@@ -73,7 +73,6 @@ const getRoomInfo = async (room) => {
         admin_count: room.admin_count,
         member_count: room.member_count,
         colors: await getAppUsersColors(),
-        mic: room.mic,
     };
 };
 
