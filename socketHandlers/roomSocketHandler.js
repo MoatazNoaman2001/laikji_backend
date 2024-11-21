@@ -1507,9 +1507,10 @@ module.exports = (io) => {
         };
         const releaseMic = (userId) => {
             try {
-                roomInfo.speakers.delete(userId);
-
-                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                const updatedSpeakers = Array.from(roomInfo.speakers).filter(
+                    (speaker) => speaker !== userId,
+                );
+                io.to(xroomId).emit('update-speakers', updatedSpeakers);
                 // notify room that the speaker's time has been ended
                 io.to(xroomId).emit('speaker-ended', userId);
 
