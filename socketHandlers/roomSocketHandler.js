@@ -1446,7 +1446,6 @@ module.exports = (io) => {
                             userId: userId,
                             timeLeft: "Time's up",
                         });
-
                         clearUserTimers(userId);
                         releaseMic(userId);
                     }, timeLeft * 1000);
@@ -1458,9 +1457,12 @@ module.exports = (io) => {
                             timeLeft: timeLeft / 1000,
                         });
                         if (timeLeft <= 0) {
-                            clearUserTimers(userId);
-                            releaseMic(userId);
-                            console.log(`Cleared timer and released mic for user ${userId}`);
+                            //console.log('stop timer from interval');
+                            for (const speakerId of roomInfo.speakers) {
+                                clearUserTimers(speakerId);
+                                releaseMic(speakerId);
+                                console.log(`Cleared timer and released mic for user ${speakerId}`);
+                            }
                         }
                     }, 1000);
                     userTimers.set(userId, { timer, interval, timeLeft });
@@ -1505,17 +1507,15 @@ module.exports = (io) => {
         };
         const releaseMic = (userId) => {
             try {
-                if (roomInfo.speakers.has(userId)) {
-                    roomInfo.speakers.delete(userId);
+                roomInfo.speakers.delete(userId);
 
-                    io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                    // notify room that the speaker's time has been ended
-                    io.to(xroomId).emit('speaker-ended', userId);
+                io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                // notify room that the speaker's time has been ended
+                io.to(xroomId).emit('speaker-ended', userId);
 
-                    // currentSpeaker = null;
-                    console.log('Mic released. Attempting to assign to next user.');
-                    assignMic();
-                }
+                // currentSpeaker = null;
+                console.log('Mic released. Attempting to assign to next user.');
+                assignMic();
             } catch (err) {
                 console.log('error from release mic ' + err.toString());
             }
