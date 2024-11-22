@@ -1405,7 +1405,7 @@ module.exports = (io) => {
         }
         const getUserTimeLeft = (userType) => {
             console.log('type is ' + userType);
-            room = getRoomData(room._id);
+            // room = getRoomData(room._id);
 
             const talk_dur = room.mic.talk_dur;
             switch (userType) {
