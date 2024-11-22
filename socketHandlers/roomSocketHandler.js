@@ -1418,8 +1418,8 @@ module.exports = (io) => {
                     return convertToMilliseconds(talk_dur[3]);
                 case enums.userTypes.master:
                     return convertToMilliseconds(talk_dur[4]);
-                // case enums.userTypes.mastermain:
-                //     return convertToMilliseconds(talk_dur[4]);
+                case enums.userTypes.mastermain:
+                    return convertToMilliseconds(talk_dur[4]);
                 case enums.userTypes.chatmanager:
                     return convertToMilliseconds(talk_dur[4]);
                 case enums.userTypes.root:
