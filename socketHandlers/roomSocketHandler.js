@@ -48,6 +48,7 @@ const {
 var micQueue = []; // Queue to hold mic requests
 var allMutedList = []; // list for users whom muted all participarates
 let currentSpeaker = null; // Tracks the current user who has the mic
+let currentSession = null; // Tracks the current stream session
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let userTimers = new Map();
 
@@ -1106,13 +1107,18 @@ module.exports = (io) => {
                     const user = await getUserById(data.userId, xroomId);
                     console.log('speakers length' + Array.from(roomInfo.speakers).length);
                     if (Array.from(roomInfo.speakers).length === 0) {
+                        currentSession = user._id.toString();
                         assignSpeaker(user._id.toString(), user);
                     } else {
                         if (roomInfo.speakers.has(user._id.toString())) {
-                            clearUserTimers(user._id.toString());
                             releaseMic(user._id.toString());
+                            if (Array.from(roomInfo.speakers).length <= 0) {
+                                clearUserTimers();
+                                console.log(
+                                    `Cleared timer and released mic for user ${user._id.toString()}`,
+                                );
+                            }
 
-                            console.log('User found in speakers some', roomInfo.speakers);
                             console.log('after delete user id', roomInfo.speakers);
 
                             console.log(`User ${user._id.toString()} has declined the mic.`);
@@ -1358,20 +1364,6 @@ module.exports = (io) => {
                 }
             });
 
-            const startSharedTimer = (userId, currentSpeaker) => {
-                console.log('start shared timer');
-                //clearUserTimers(userId);
-                for (let [key, value] of userTimers.entries()) {
-                    if (key === currentSpeaker) {
-                        console.log('key === currentSpeaker');
-                        const timer = value.timer;
-                        const interval = value.interval;
-
-                        userTimers.set(userId, { timer, interval });
-                    }
-                }
-            };
-
             // end test mic features
 
             xclient.on('mute-all', async () => {
@@ -1412,7 +1404,7 @@ module.exports = (io) => {
             }
         }
         const getUserTimeLeft = (userType) => {
-            console.log('room is ' + room.mic);
+            console.log('type is ' + userType);
 
             const talk_dur = room.mic.talk_dur;
             switch (userType) {
@@ -1426,27 +1418,27 @@ module.exports = (io) => {
                     return convertToMilliseconds(talk_dur[3]);
                 case enums.userTypes.master:
                     return convertToMilliseconds(talk_dur[4]);
+                // case enums.userTypes.mastermain:
+                //     return convertToMilliseconds(talk_dur[4]);
+                case enums.userTypes.chatmanager:
+                    return convertToMilliseconds(talk_dur[4]);
+                case enums.userTypes.root:
+                    return convertToMilliseconds(talk_dur[4]);
+
                 default:
                     return 0;
             }
         };
-        const clearUserTimers = (userId) => {
+        const clearUserTimers = () => {
             console.log('clear timer started');
             const updatedTimers = new Map();
             for (let [key, value] of userTimers.entries()) {
-                if (key != userId) {
+                if (key != currentSession) {
                     updatedTimers.set(key, value);
                 } else {
-                    console.log('Clearing timers for userId:', userId);
+                    console.log('Clearing timers for session:', currentSession);
                     clearTimeout(value.timer);
                     clearInterval(value.interval);
-                    const updatedSpeakers = Array.from(roomInfo.speakers).filter(
-                        (speaker) => speaker !== userId,
-                    );
-
-                    if (updatedSpeakers.length > 0) {
-                        startSpeakerTimer(updatedSpeakers[0], value.timeLeft);
-                    }
                 }
             }
             userTimers = updatedTimers;
@@ -1459,36 +1451,37 @@ module.exports = (io) => {
                     console.log(
                         `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
                     );
-                    clearUserTimers(userId);
+                    clearUserTimers();
                     console.log(
                         `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
                     );
                     const timer = setTimeout(() => {
                         console.log(`Time's up for user ${userId}`);
                         io.to(xroomId).emit('speaker-time-update', {
-                            userId: userId,
+                            userId: Array.from(roomInfo.speakers)[0],
                             timeLeft: "Time's up",
                         });
-                        clearUserTimers(userId);
+                        clearUserTimers();
                         releaseMic(userId);
                     }, timeLeft * 1000);
                     // Emit time updates every second
                     const interval = setInterval(() => {
                         timeLeft -= 1000;
                         io.to(xroomId).emit('speaker-time-update', {
-                            userId: userId,
+                            userId: Array.from(roomInfo.speakers)[0],
                             timeLeft: timeLeft / 1000,
                         });
                         if (timeLeft <= 0) {
-                            //console.log('stop timer from interval');
-                            for (const speakerId of roomInfo.speakers) {
-                                clearUserTimers(speakerId);
-                                releaseMic(speakerId);
-                                console.log(`Cleared timer and released mic for user ${speakerId}`);
+                            releaseMic(userId);
+
+                            if (Array.from(roomInfo.speakers).length <= 0) {
+                                clearUserTimers();
+                                console.log(`Cleared timer and released mic for user ${userId}`);
                             }
                         }
                     }, 1000);
-                    userTimers.set(userId, { timer, interval, timeLeft });
+                    currentSession = userId;
+                    userTimers.set(currentSession, { timer, interval, timeLeft });
 
                     console.log(
                         `Timer for user ${userId} is active. ` +
@@ -1499,7 +1492,8 @@ module.exports = (io) => {
                         userId: userId,
                         timeLeft: 'You have an open mic',
                     });
-                    userTimers.set(userId, 'open mic');
+                    currentSession = userId;
+                    userTimers.set(currentSession, 'open mic');
                 }
             } catch (err) {
                 console.log('error from start speaker timer ' + err.toString());
@@ -1508,14 +1502,12 @@ module.exports = (io) => {
 
         const releaseMic = (userId) => {
             try {
-                if (roomInfo.speakers.length !== 0) {
+                if (roomInfo.speakers.has(userId)) {
                     roomInfo.speakers.delete(userId);
 
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-                    // notify room that the speaker's time has been ended
                     io.to(xroomId).emit('speaker-ended', userId);
 
-                    // currentSpeaker = null;
                     console.log('Mic released. Attempting to assign to next user.');
                     assignMic();
                 }
@@ -1577,7 +1569,6 @@ module.exports = (io) => {
 
         const assignSpeaker = async (speakerId, speaker) => {
             try {
-                //currentSpeaker = speakerId;
                 roomInfo.speakers.add(speakerId);
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
