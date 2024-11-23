@@ -1407,7 +1407,7 @@ module.exports = (io) => {
         const getUserTimeLeft = async (userType) => {
             console.log('user type ' + userType);
             await roomModel.findById(xroomId).then((val) => {
-                console.log('new room ' + val.mic);
+                console.log('new room ' + val.mic.talk_dur);
                 const talk_dur = val.mic.talk_dur;
                 switch (userType) {
                     case enums.userTypes.guest:
