@@ -1375,7 +1375,7 @@ module.exports = (io) => {
             // end test mic features
             xclient.on('update-room', (data) => {
                 console.log('update room ' + JSON.stringify(data, null, 2));
-                room = data.room;
+                room = data;
             });
             xclient.on('mute-all', async () => {
                 try {
