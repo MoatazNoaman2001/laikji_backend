@@ -38,18 +38,13 @@ const moment = require('moment/moment');
 const { getNowDateTime } = require('../helpers/tools');
 const registeredUserModal = require('../models/registeredUserModal');
 const roomUsersModel = require('../models/roomUsersModel');
-const {
-    createWebRtcTransport,
-    createProducer,
-    createConsumer,
-    getRoomData,
-} = require('../helpers/mediasoupHelpers');
+const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var micQueue = []; // Queue to hold mic requests
 var allMutedList = []; // list for users whom muted all participarates
 let currentSpeaker = null; // Tracks the current user who has the mic
 let micAssigning = false; // Flag to prevent concurrent mic assignments
-let userTimers = new Map();
+let activeTimers = new Map();
 
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -489,8 +484,7 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
-            // xuser = await updateUser({ enterDate: getNowDateTime(true), ...xuser }, xuser._id, xroomId);
-            // return micQueue, speakersQueue at another event
+
             xclient.emit('started', {
                 ok: true,
                 user: xuser,
@@ -503,7 +497,22 @@ module.exports = (io) => {
                 micQueue: micQueue,
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
+            //   xclient.emit('started', {
+            //       ok: true,
+            //       user: xuser,
+            //       member: member,
+            //       users: users_in_room,
+            //       private_chats: private_chats,
+            //       waiting_users: users_in_waiting,
+            //   });
 
+            //   xclient.emit('room-state', {
+            //       'muted-list': allMutedList,
+            //       micQueue: micQueue,
+            //       speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
+            //       openedTime: room.opened_time,
+            //       room: await public_room(room),
+            //   });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -1381,13 +1390,6 @@ module.exports = (io) => {
                     console.log('error from mute all ' + err.toString());
                 }
             });
-
-            xclient.emit('mic-state', {
-                speakers: Array.from(roomInfo.speakers),
-                micQueue: micQueue,
-                holdMic: Array.from(roomInfo.holdMic),
-                openedTime: room.opened_time,
-            });
         };
 
         function convertToMilliseconds(time) {
@@ -1432,7 +1434,7 @@ module.exports = (io) => {
         const clearUserTimers = (userId) => {
             console.log('clear timer started');
             const updatedTimers = new Map();
-            for (let [key, value] of userTimers.entries()) {
+            for (let [key, value] of activeTimers.entries()) {
                 if (key != userId) {
                     updatedTimers.set(key, value);
                 } else {
@@ -1441,8 +1443,8 @@ module.exports = (io) => {
                     clearInterval(value.interval);
                 }
             }
-            userTimers = updatedTimers;
-            console.log('UserTimers after deletion:', userTimers);
+            activeTimers = updatedTimers;
+            console.log('activeTimers after deletion:', activeTimers);
         };
 
         const startSpeakerTimer = (userId, timeLeft) => {
@@ -1483,18 +1485,18 @@ module.exports = (io) => {
                             }
                         }
                     }, 1000);
-                    userTimers.set(userId, { timer, interval, timeLeft });
+                    activeTimers.set(userId, { timer, interval });
 
                     console.log(
                         `Timer for user ${userId} is active. ` +
-                            JSON.stringify(userTimers, null, 2),
+                            JSON.stringify(activeTimers, null, 2),
                     );
                 } else {
                     io.to(xroomId).emit('speaker-time-update', {
                         userId: userId,
                         timeLeft: 'You have an open mic',
                     });
-                    userTimers.set(userId, 'open mic');
+                    activeTimers.set(userId, 'open mic');
                 }
             } catch (err) {
                 console.log('error from start speaker timer ' + err.toString());
@@ -1519,7 +1521,7 @@ module.exports = (io) => {
 
         const assignMic = async () => {
             try {
-                if (micAssigning /*|| currentSpeaker*/) {
+                if (micAssigning) {
                     console.log('Mic is currently in use or being assigned. Please wait.');
                     return;
                 }
@@ -1653,7 +1655,9 @@ module.exports = (io) => {
             if (!xuser || !xroomId) return;
             // Clear the timer if it exists
             if (roomInfo.speakers.has(xuser._id.toString())) {
-                clearUserTimers(xuser._id.toString());
+                if (Array.from(roomInfo.speakers).length <= 0) {
+                    clearUserTimers(xuser._id.toString());
+                }
                 releaseMic(xuser._id.toString());
 
                 xuser.speakTimer = null;
