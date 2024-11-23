@@ -1327,9 +1327,10 @@ module.exports = (io) => {
 
                     const { userId } = data;
                     const speaker = await getUserById(userId, xroomId);
+                    const newRoom = await roomModel.findById(xroomId);
 
                     if (speaker) {
-                        const timeLeft = getUserTimeLeft(speaker.type);
+                        const timeLeft = getUserTimeLeft(speaker.type, newRoom);
                         startSpeakerTimer(userId, timeLeft);
                     }
                 } catch (err) {
@@ -1407,9 +1408,9 @@ module.exports = (io) => {
                 return time * 1000;
             }
         }
-        const getUserTimeLeft = (userType) => {
+        const getUserTimeLeft = (userType, xroom) => {
             console.log('user type ' + userType);
-            const talk_dur = room.mic.talk_dur;
+            const talk_dur = xroom.mic.talk_dur;
             switch (userType) {
                 case enums.userTypes.guest:
                     return convertToMilliseconds(talk_dur[0]);
@@ -1583,8 +1584,9 @@ module.exports = (io) => {
                 }
                 console.log(`Mic assigned to user: ${speakerId}`);
                 await updateUser(speaker, speaker._id, xroomId);
+                const newRoom = await roomModel.findById(xroomId);
 
-                const timeLeft = getUserTimeLeft(speaker.type);
+                const timeLeft = getUserTimeLeft(speaker.type, newRoom);
                 startSpeakerTimer(speakerId, timeLeft);
             } catch (err) {
                 console.log('error from assign speaker ' + err.toString());
