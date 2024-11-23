@@ -1326,8 +1326,9 @@ module.exports = (io) => {
                         return; // Ensure only admins can renew time
 
                     const { userId } = data;
+                    const speaker = await getUserById(userId, xroomId);
 
-                    startSpeakerTimer(userId);
+                    startSpeakerTimer(userId, speaker);
                 } catch (err) {
                     console.log('error from renew mic time' + err.toString());
                 }
@@ -1447,9 +1448,8 @@ module.exports = (io) => {
             console.log('activeTimers after deletion:', activeTimers);
         };
 
-        const startSpeakerTimer = async (userId) => {
+        const startSpeakerTimer = (userId, speaker) => {
             try {
-                const speaker = await getUserById(userId, xroomId);
                 if (speaker) {
                     const timeLeft = getUserTimeLeft(speaker.type);
 
@@ -1588,7 +1588,7 @@ module.exports = (io) => {
                 console.log(`Mic assigned to user: ${speakerId}`);
                 await updateUser(speaker, speaker._id, xroomId);
 
-                startSpeakerTimer(speakerId);
+                startSpeakerTimer(speakerId, speaker);
             } catch (err) {
                 console.log('error from assign speaker ' + err.toString());
             }
