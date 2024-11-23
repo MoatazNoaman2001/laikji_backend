@@ -1404,7 +1404,8 @@ module.exports = (io) => {
                 return time * 1000;
             }
         }
-        const getUserTimeLeft = async (userType) => {
+        const getUserTimeLeft = (userType) => {
+            console.log('user type ' + userType);
             const talk_dur = room.mic.talk_dur;
             switch (userType) {
                 case enums.userTypes.guest:
