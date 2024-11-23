@@ -1373,7 +1373,10 @@ module.exports = (io) => {
             });
 
             // end test mic features
-
+            xclient.on('update-room', (data) => {
+                console.log('update room ' + JSON.stringify(data, null, 2));
+                room = data.room;
+            });
             xclient.on('mute-all', async () => {
                 try {
                     console.log('all muted list started', xuser.name);

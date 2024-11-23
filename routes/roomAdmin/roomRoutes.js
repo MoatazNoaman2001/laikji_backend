@@ -538,26 +538,9 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         let room_after_update = await roomModel.findOne({
             _id: new ObjectId(room._id),
         });
-        // console.log(room_after_update, 'what happended');
-        const roomInfo = getRoomData(room._id.toString());
-
-        // const usersInRoom = await getUsersInRoom(room._id);
-
-        // for (const user of usersInRoom) {
-        //     roomInfo.listeners.add(user._id.toString());
-        //     roomInfo.holdMic.add(user._id.toString());
-
-        //     await updateUser(user, user._id, room._id);
-
-        // }
 
         global.io.to(room._id.toString()).emit('room-state', {
             room: await helpers.public_room(room_after_update),
-        });
-
-        global.io.emit(room._id, {
-            type: 'room-update',
-            data: await helpers.public_room(room_after_update),
         });
 
         await helpers.notifyRoomChanged(room._id, false, true);
