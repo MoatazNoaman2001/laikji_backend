@@ -1404,7 +1404,8 @@ module.exports = (io) => {
                 return time * 1000;
             }
         }
-        const getUserTimeLeft = (userType) => {
+        const getUserTimeLeft = async (userType) => {
+            const room = await public_room(room);
             const talk_dur = room.mic.talk_dur;
             switch (userType) {
                 case enums.userTypes.guest:
