@@ -45,7 +45,7 @@ var allMutedList = []; // list for users whom muted all participarates
 let currentSpeaker = null; // Tracks the current user who has the mic
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
-
+let currentSession = null;
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -1115,13 +1115,13 @@ module.exports = (io) => {
                     const user = await getUserById(data.userId, xroomId);
                     console.log('speakers length' + Array.from(roomInfo.speakers).length);
                     if (Array.from(roomInfo.speakers).length === 0) {
-                        currentSession = user._id.toString();
+                        // currentSession = user._id.toString();
                         assignSpeaker(user._id.toString(), user);
                     } else {
                         if (roomInfo.speakers.has(user._id.toString())) {
                             releaseMic(user._id.toString());
                             if (Array.from(roomInfo.speakers).length <= 0) {
-                                clearUserTimers(user._id.toString());
+                                clearUserTimers();
                                 console.log(
                                     `Cleared timer and released mic for user ${user._id.toString()}`,
                                 );
@@ -1405,9 +1405,6 @@ module.exports = (io) => {
             }
         }
         const getUserTimeLeft = (userType) => {
-            console.log('type is ' + userType);
-            // room = getRoomData(room._id);
-
             const talk_dur = room.mic.talk_dur;
             switch (userType) {
                 case enums.userTypes.guest:
@@ -1431,18 +1428,19 @@ module.exports = (io) => {
                     return 0;
             }
         };
-        const clearUserTimers = (userId) => {
+        const clearUserTimers = () => {
             console.log('clear timer started');
             const updatedTimers = new Map();
             for (let [key, value] of activeTimers.entries()) {
-                if (key != userId) {
+                if (key != currentSession) {
                     updatedTimers.set(key, value);
                 } else {
-                    console.log('Clearing timers for session:', userId);
+                    console.log('Clearing timers for session:', currentSession);
                     clearTimeout(value.timer);
                     clearInterval(value.interval);
                 }
             }
+            currentSession = null;
             activeTimers = updatedTimers;
             console.log('activeTimers after deletion:', activeTimers);
         };
@@ -1450,10 +1448,9 @@ module.exports = (io) => {
         const startSpeakerTimer = (userId, timeLeft) => {
             try {
                 if (timeLeft > 0) {
-                    console.log(
-                        `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
-                    );
-                    clearUserTimers(userId); /////////////
+                    clearUserTimers(); /////////////
+                    currentSession = userId;
+
                     console.log(
                         `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
                     );
@@ -1466,7 +1463,7 @@ module.exports = (io) => {
                         releaseMic(userId);
 
                         if (Array.from(roomInfo.speakers).length <= 0) {
-                            clearUserTimers(userId);
+                            clearUserTimers();
                         }
                     }, timeLeft * 1000);
                     // Emit time updates every second
@@ -1478,9 +1475,8 @@ module.exports = (io) => {
                         });
                         if (timeLeft <= 0) {
                             releaseMic(userId);
-
                             if (Array.from(roomInfo.speakers).length <= 0) {
-                                clearUserTimers(userId);
+                                clearUserTimers();
                                 console.log(`Cleared timer and released mic for user ${userId}`);
                             }
                         }
@@ -1656,7 +1652,7 @@ module.exports = (io) => {
             // Clear the timer if it exists
             if (roomInfo.speakers.has(xuser._id.toString())) {
                 if (Array.from(roomInfo.speakers).length <= 0) {
-                    clearUserTimers(xuser._id.toString());
+                    clearUserTimers();
                 }
                 releaseMic(xuser._id.toString());
 

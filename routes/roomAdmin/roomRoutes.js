@@ -551,8 +551,15 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
 
         // }
 
-        global.io.to(room._id.toString()).emit('started', {
-            room: await helpers.public_room(room_after_update),
+        global.io.to(room._id.toString()).emit('room-state', {
+            speakers: Array.from(roomInfo.speakers),
+            listeners: Array.from(roomInfo.listeners),
+            // holdMic: Array.from(roomInfo.holdMic),
+            // openedTime: room_after_update.opened_time,
+            // maxSpeakers: room_after_update.max_speakers_count,
+            // maxSpeakerTime: room_after_update.max_speaker_time,
+            // updateTime: room_after_update.update_time,
+            mic: room_after_update.mic,
         });
 
         global.io.emit(room._id, {
