@@ -559,7 +559,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             // maxSpeakers: room_after_update.max_speakers_count,
             // maxSpeakerTime: room_after_update.max_speaker_time,
             // updateTime: room_after_update.update_time,
-            mic: room_after_update.mic,
+            mic: await helpers.public_room(room_after_update),
         });
 
         global.io.emit(room._id, {
