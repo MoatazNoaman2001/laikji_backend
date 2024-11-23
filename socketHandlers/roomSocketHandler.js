@@ -1404,9 +1404,10 @@ module.exports = (io) => {
                 return time * 1000;
             }
         }
-        const getUserTimeLeft = (userType) => {
+        const getUserTimeLeft = async (userType) => {
             console.log('user type ' + userType);
-            const talk_dur = room.mic.talk_dur;
+            var newRoom = await roomModel.findById(xclient.handshake.query.roomId);
+            const talk_dur = newRoom.mic.talk_dur;
             switch (userType) {
                 case enums.userTypes.guest:
                     return convertToMilliseconds(talk_dur[0]);
