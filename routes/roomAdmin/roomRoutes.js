@@ -539,8 +539,9 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             _id: new ObjectId(room._id),
         });
 
-        global.io.to(room._id.toString()).emit('room-state', {
-            room: await helpers.public_room(room_after_update),
+        global.io.emit(room._id, {
+            type: 'room-update',
+            data: await helpers.public_room(room_after_update),
         });
 
         await helpers.notifyRoomChanged(room._id, false, true);
