@@ -1346,16 +1346,16 @@ module.exports = (io) => {
                     const userToShareWith = await getUserById(userId, xroomId);
 
                     if (userToShareWith) {
-                        xuser.can_use_mic = false;
-                        await updateUser(xuser, xuser._id, xroomId);
-                        io.to(xuser.socketId).emit('mic-disabled', {
-                            message: 'You have shared your mic.',
-                        });
-                        userToShareWith.can_use_mic = true;
-                        await updateUser(userToShareWith, userToShareWith._id, xroomId);
-                        io.to(userToShareWith.socketId).emit('mic-enabled', {
-                            message: 'Your mic has been enabled temporarily.',
-                        });
+                        // xuser.can_use_mic = false;
+                        // await updateUser(xuser, xuser._id, xroomId);
+                        // io.to(xuser.socketId).emit('mic-disabled', {
+                        //     message: 'You have shared your mic.',
+                        // });
+                        // userToShareWith.can_use_mic = true;
+                        // await updateUser(userToShareWith, userToShareWith._id, xroomId);
+                        // io.to(userToShareWith.socketId).emit('mic-enabled', {
+                        //     message: 'Your mic has been enabled temporarily.',
+                        // });
                         if (micQueue.includes(userToShareWith._id.toString())) {
                             micQueue = micQueue.filter(
                                 (id) => id !== userToShareWith._id.toString(),
