@@ -1471,7 +1471,6 @@ module.exports = (io) => {
             clearActiveTimers();
             if (time > 0) {
                 const timer = setTimeout(() => {
-                    console.log(`Time's up for user ${userId}`);
                     io.to(xroomId).emit('speaker-time-update', {
                         userId: Array.from(roomInfo.speakers)[0],
                         time: "Time's up",
