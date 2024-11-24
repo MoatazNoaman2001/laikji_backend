@@ -46,6 +46,7 @@ let currentSpeaker = null; // Tracks the current user who has the mic
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
 let currentSession = null;
+let currentSessiontimeLeft = null;
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -1120,13 +1121,9 @@ module.exports = (io) => {
                     } else {
                         if (roomInfo.speakers.has(user._id.toString())) {
                             releaseMic(user._id.toString());
-                            if (Array.from(roomInfo.speakers).length <= 0) {
-                                clearUserTimers();
-                                console.log(
-                                    `Cleared timer and released mic for user ${user._id.toString()}`,
-                                );
+                            if (Array.from(roomInfo.speakers).length == 0) {
+                                clearActiveTimers();
                             }
-
                             console.log('after delete user id', roomInfo.speakers);
 
                             console.log(`User ${user._id.toString()} has declined the mic.`);
@@ -1331,7 +1328,9 @@ module.exports = (io) => {
 
                     if (speaker) {
                         const timeLeft = getUserTimeLeft(speaker.type, newRoom);
-                        startSpeakerTimer(userId, timeLeft);
+                        currentSession = userId;
+                        startInterval(timeLeft);
+                        // startSpeakerTimer(userId, timeLeft);
                     }
                 } catch (err) {
                     console.log('error from renew mic time' + err.toString());
@@ -1341,32 +1340,38 @@ module.exports = (io) => {
             // Add mic sharing feature
             xclient.on('share-mic', async (data) => {
                 try {
-                    if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
+                    //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
                     let { userId } = data;
                     const userToShareWith = await getUserById(userId, xroomId);
 
                     if (userToShareWith) {
+                        xuser.can_use_mic = false;
+                        await updateUser(xuser, xuser._id, xroomId);
+                        io.to(xuser.socketId).emit('mic-disabled', {
+                            message: 'You have shared your mic.',
+                        });
+                        userToShareWith.can_use_mic = true;
+                        await updateUser(userToShareWith, userToShareWith._id, xroomId);
+                        io.to(userToShareWith.socketId).emit('mic-enabled', {
+                            message: 'Your mic has been enabled temporarily.',
+                        });
                         if (micQueue.includes(userToShareWith._id.toString())) {
                             micQueue = micQueue.filter(
                                 (id) => id !== userToShareWith._id.toString(),
                             );
                             io.to(xroomId).emit('mic-queue-update', micQueue);
-                            userToShareWith.can_use_mic = true;
-                            await updateUser(userToShareWith, userToShareWith._id, xroomId);
-                            io.to(userToShareWith.socketId).emit('mic-enabled', {
-                                message: 'Your mic has been enabled temporarily.',
-                            });
+
                             if (!roomInfo.speakers.has(userToShareWith._id.toString())) {
                                 roomInfo.speakers.add(userToShareWith._id.toString());
                                 io.to(xroomId).emit(
                                     'update-speakers',
                                     Array.from(roomInfo.speakers),
                                 );
-                                //  startSharedTimer(userToShareWith._id, xuser._id.toString());
                             }
                         }
-                        // Retrieve the timer of the current speaker
+                    } else {
+                        console.log('error from share mi');
                     }
                 } catch (err) {
                     console.log('error from share mic ' + err.toString());
@@ -1374,10 +1379,7 @@ module.exports = (io) => {
             });
 
             // end test mic features
-            xclient.on('update-room', (data) => {
-                console.log('update room ' + JSON.stringify(data, null, 2));
-                room = data.room;
-            });
+
             xclient.on('mute-all', async () => {
                 try {
                     console.log('all muted list started', xuser.name);
@@ -1434,7 +1436,22 @@ module.exports = (io) => {
                     return 0;
             }
         };
-        const clearUserTimers = () => {
+        const clearUserTimers = (userId) => {
+            console.log('clear timer started');
+            const updatedTimers = new Map();
+            for (let [key, value] of activeTimers.entries()) {
+                if (key != userId) {
+                    updatedTimers.set(key, value);
+                } else {
+                    console.log('Clearing timers for session:', userId);
+                    clearTimeout(value.timer);
+                    clearInterval(value.interval);
+                }
+            }
+            activeTimers = updatedTimers;
+            console.log('activeTimers after deletion:', activeTimers);
+        };
+        const clearActiveTimers = () => {
             console.log('clear timer started');
             const updatedTimers = new Map();
             for (let [key, value] of activeTimers.entries()) {
@@ -1446,62 +1463,50 @@ module.exports = (io) => {
                     clearInterval(value.interval);
                 }
             }
-            currentSession = null;
             activeTimers = updatedTimers;
+            currentSession = null;
             console.log('activeTimers after deletion:', activeTimers);
         };
-
-        const startSpeakerTimer = (userId, timeLeft) => {
-            try {
-                if (timeLeft > 0) {
-                    clearUserTimers(); /////////////
-                    currentSession = userId;
-
-                    console.log(
-                        `Starting timer for user ${userId}. Time left: ${timeLeft} seconds.`,
-                    );
-                    const timer = setTimeout(() => {
-                        console.log(`Time's up for user ${userId}`);
-                        io.to(xroomId).emit('speaker-time-update', {
-                            userId: Array.from(roomInfo.speakers)[0],
-                            timeLeft: "Time's up",
-                        });
-                        releaseMic(userId);
-
-                        if (Array.from(roomInfo.speakers).length <= 0) {
-                            clearUserTimers();
-                        }
-                    }, timeLeft * 1000);
-                    // Emit time updates every second
-                    const interval = setInterval(() => {
-                        timeLeft -= 1000;
-                        io.to(xroomId).emit('speaker-time-update', {
-                            userId: Array.from(roomInfo.speakers)[0],
-                            timeLeft: timeLeft / 1000,
-                        });
-                        if (timeLeft <= 0) {
-                            releaseMic(userId);
-                            if (Array.from(roomInfo.speakers).length <= 0) {
-                                clearUserTimers();
-                                console.log(`Cleared timer and released mic for user ${userId}`);
-                            }
-                        }
-                    }, 1000);
-                    activeTimers.set(userId, { timer, interval });
-
-                    console.log(
-                        `Timer for user ${userId} is active. ` +
-                            JSON.stringify(activeTimers, null, 2),
-                    );
-                } else {
+        const startInterval = (time) => {
+            clearActiveTimers();
+            if (time > 0) {
+                const timer = setTimeout(() => {
+                    console.log(`Time's up for user ${userId}`);
                     io.to(xroomId).emit('speaker-time-update', {
-                        userId: userId,
-                        timeLeft: 'You have an open mic',
+                        userId: Array.from(roomInfo.speakers)[0],
+                        time: "Time's up",
                     });
-                    activeTimers.set(userId, 'open mic');
-                }
-            } catch (err) {
-                console.log('error from start speaker timer ' + err.toString());
+                    clearActiveTimers();
+                    for (const speakerId of Array.from(roomInfo.speakers)) {
+                        releaseMic(speakerId);
+                    }
+                }, time * 1000);
+                // Emit time updates every second
+                const interval = setInterval(() => {
+                    time -= 1000;
+                    currentSessiontimeLeft = time;
+                    //  console.log('cuurent session time left : ' + currentSessiontimeLeft);
+                    io.to(xroomId).emit('speaker-time-update', {
+                        userId: Array.from(roomInfo.speakers)[0],
+                        timeLeft: time / 1000,
+                    });
+                    if (time <= 0) {
+                        clearActiveTimers();
+                        for (const speakerId of Array.from(roomInfo.speakers)) {
+                            releaseMic(speakerId);
+                        }
+                    }
+                }, 1000);
+                activeTimers.set(currentSession, { timer, interval });
+                //     console.log(
+                //         `Timer for user ${userId} is active. ` + JSON.stringify(activeTimers, null, 2),
+                //     );
+            } else if (time == 0o0) {
+                io.to(xroomId).emit('speaker-time-update', {
+                    userId: Array.from(roomInfo.speakers)[0],
+                    timeLeft: 'You have an open mic',
+                });
+                activeTimers.set(currentSession, 'open mic');
             }
         };
 
@@ -1587,7 +1592,9 @@ module.exports = (io) => {
                 const newRoom = await roomModel.findById(xroomId);
 
                 const timeLeft = getUserTimeLeft(speaker.type, newRoom);
-                startSpeakerTimer(speakerId, timeLeft);
+                currentSession = speakerId;
+                startInterval(timeLeft);
+                // startSpeakerTimer(speakerId, timeLeft);
             } catch (err) {
                 console.log('error from assign speaker ' + err.toString());
             }
@@ -1657,14 +1664,15 @@ module.exports = (io) => {
 
             if (!xuser || !xroomId) return;
             // Clear the timer if it exists
-            if (roomInfo.speakers.has(xuser._id.toString())) {
-                if (Array.from(roomInfo.speakers).length <= 0) {
-                    clearUserTimers();
-                }
-                releaseMic(xuser._id.toString());
-
-                xuser.speakTimer = null;
+            releaseMic(xuser._id.toString());
+            if (Array.from(roomInfo.speakers).length == 0) {
+                clearActiveTimers();
             }
+            // if (Array.from(roomInfo.speakers).length == 0) {
+            //     clearActiveTimers();
+            //     //clearUserTimers(xuser._id.toString());
+            //     xuser.speakTimer = null;
+            // }
             //  const roomInfo = getRoomData(xroomId);
             if (micQueue.includes(xuser._id.toString())) {
                 micQueue = micQueue.filter((id) => id !== xuser._id.toString());
