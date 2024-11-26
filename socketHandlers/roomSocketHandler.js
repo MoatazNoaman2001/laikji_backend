@@ -1328,9 +1328,7 @@ module.exports = (io) => {
 
                     if (speaker) {
                         const timeLeft = getUserTimeLeft(speaker.type, newRoom);
-                        currentSession = userId;
                         startInterval(timeLeft);
-                        // startSpeakerTimer(userId, timeLeft);
                     }
                 } catch (err) {
                     console.log('error from renew mic time' + err.toString());
@@ -1436,21 +1434,7 @@ module.exports = (io) => {
                     return 0;
             }
         };
-        const clearUserTimers = (userId) => {
-            console.log('clear timer started');
-            const updatedTimers = new Map();
-            for (let [key, value] of activeTimers.entries()) {
-                if (key != userId) {
-                    updatedTimers.set(key, value);
-                } else {
-                    console.log('Clearing timers for session:', userId);
-                    clearTimeout(value.timer);
-                    clearInterval(value.interval);
-                }
-            }
-            activeTimers = updatedTimers;
-            console.log('activeTimers after deletion:', activeTimers);
-        };
+
         const clearActiveTimers = () => {
             console.log('clear timer started');
             const updatedTimers = new Map();
@@ -1471,6 +1455,7 @@ module.exports = (io) => {
             clearActiveTimers();
             if (time > 0) {
                 const timer = setTimeout(() => {
+                    console.log(`Time's up for user`);
                     io.to(xroomId).emit('speaker-time-update', {
                         userId: Array.from(roomInfo.speakers)[0],
                         time: "Time's up",
@@ -1483,7 +1468,6 @@ module.exports = (io) => {
                 // Emit time updates every second
                 const interval = setInterval(() => {
                     time -= 1000;
-                    currentSessiontimeLeft = time;
                     //  console.log('cuurent session time left : ' + currentSessiontimeLeft);
                     io.to(xroomId).emit('speaker-time-update', {
                         userId: Array.from(roomInfo.speakers)[0],
@@ -1497,9 +1481,6 @@ module.exports = (io) => {
                     }
                 }, 1000);
                 activeTimers.set(currentSession, { timer, interval });
-                //     console.log(
-                //         `Timer for user ${userId} is active. ` + JSON.stringify(activeTimers, null, 2),
-                //     );
             } else if (time == 0o0) {
                 io.to(xroomId).emit('speaker-time-update', {
                     userId: Array.from(roomInfo.speakers)[0],
