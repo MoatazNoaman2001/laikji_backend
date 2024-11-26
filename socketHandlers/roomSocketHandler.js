@@ -1118,10 +1118,10 @@ module.exports = (io) => {
                     console.log('permission is ' + newRoom.mic.mic_permission);
                     if (user) {
                         if (
-                            newRoom.mic.mic_permission === 0 ||
-                            (newRoom.mic.mic_permission === 1 &&
-                                user.type !== enums.userTypes.guest) ||
+                            newRoom.mic.mic_permission === 1 ||
                             (newRoom.mic.mic_permission === 2 &&
+                                user.type !== enums.userTypes.guest) ||
+                            (newRoom.mic.mic_permission === 3 &&
                                 user.type === enums.userTypes.root) ||
                             user.type === enums.userTypes.chatmanager ||
                             user.type === enums.userTypes.master ||
