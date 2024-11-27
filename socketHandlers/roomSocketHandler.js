@@ -1095,13 +1095,10 @@ module.exports = (io) => {
             // Function to handle mic request
             xclient.on('request-mic', async (data) => {
                 try {
-                    console.log(
-                        `Mic request received from user ${xuser._id}. Current speaker: ${currentSpeaker}`,
-                    );
+                    console.log(`Mic request received from user ${xuser._id}`);
                     // if (!xuser) return;
                     const user = await getUserById(data.userId, xroomId);
                     const newRoom = await roomModel.findById(xroomId);
-                    console.log('permission is ' + newRoom.mic.mic_permission);
                     if (user) {
                         if (
                             newRoom.mic.mic_permission !== 0 &&
@@ -1143,9 +1140,9 @@ module.exports = (io) => {
                                     return;
                                 }
                             }
+                            console.log('speakers on mic are: ' + Array.from(roomInfo.speakers));
                         }
                     } else {
-                        console.log('not allowed to use mic');
                         if (newRoom.mic.mic_permission === 2) {
                             io.to(user.socketId).emit('alert-msg', {
                                 msg_en: `mic is allowed only to this room's members and admins`,
