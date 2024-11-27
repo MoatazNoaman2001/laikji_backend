@@ -1354,7 +1354,7 @@ module.exports = (io) => {
                             addAdminLog(
                                 xuser,
                                 xroomId,
-                                `قام بتجديد وقت التكلم لـ ${speaker.name}`,
+                                `قام بتحديث وقت التكلم لـ ${speaker.name}`,
                                 `has renewed mic time for ${speaker.name}`,
                             );
                         }
@@ -1398,7 +1398,7 @@ module.exports = (io) => {
                                 addAdminLog(
                                     xuser,
                                     xroomId,
-                                    `قام بمشاركة المايك مع  ${userToShareWith.name}`,
+                                    `قام بعمل تحدث مشترك مع  ${userToShareWith.name}`,
                                     `has shared mic with ${userToShareWith.name}`,
                                 );
                             }
