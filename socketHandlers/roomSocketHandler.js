@@ -1534,9 +1534,12 @@ module.exports = (io) => {
         const releaseMic = (userId) => {
             try {
                 if (roomInfo.speakers.has(userId)) {
+                    // const user = await getUserById(userId, xroomId);
+
                     roomInfo.speakers.delete(userId);
 
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+                    io.to(xuser.socketId).emit('mic-off');
                     io.to(xroomId).emit('speaker-ended', userId);
 
                     console.log('Mic released. Attempting to assign to next user.');
