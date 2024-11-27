@@ -499,22 +499,7 @@ module.exports = (io) => {
                 micQueue: micQueue,
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
-            //   xclient.emit('started', {
-            //       ok: true,
-            //       user: xuser,
-            //       member: member,
-            //       users: users_in_room,
-            //       private_chats: private_chats,
-            //       waiting_users: users_in_waiting,
-            //   });
-
-            //   xclient.emit('room-state', {
-            //       'muted-list': allMutedList,
-            //       micQueue: micQueue,
-            //       speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
-            //       openedTime: room.opened_time,
-            //       room: await public_room(room),
-            //   });
+            console.log('mute list is ' + allMutedList);
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -1162,17 +1147,17 @@ module.exports = (io) => {
                     } else {
                         console.log('not allowed to use mic');
                         if (newRoom.mic.mic_permission === 2) {
-                            io.to(user.socketId).emit('new-alert', {
+                            io.to(user.socketId).emit('alert-msg', {
                                 msg_en: `mic is allowed only to this room's members and admins`,
                                 msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
                             });
                         } else if (newRoom.mic.mic_permission === 3) {
-                            io.to(user.socketId).emit('new-alert', {
+                            io.to(user.socketId).emit('alert-msg', {
                                 msg_en: `mic is allowed only to this room's admins`,
                                 msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
                             });
                         } else if (newRoom.mic.mic_permission === 0) {
-                            io.to(user.socketId).emit('new-alert', {
+                            io.to(user.socketId).emit('alert-msg', {
                                 msg_en: 'mic is not allowed in this room',
                                 msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
                             });
