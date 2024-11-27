@@ -1682,7 +1682,7 @@ module.exports = (io) => {
 
             if (allMutedList.includes(xuser._id.toString())) {
                 allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
-                //io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
             }
 
             // // Close all WebRTC stuff
