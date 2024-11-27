@@ -1161,6 +1161,22 @@ module.exports = (io) => {
                         }
                     } else {
                         console.log('not allowed to use mic');
+                        if (newRoom.mic.mic_permission === 2) {
+                            io.to(xuser.socketId).emit('new-alert', {
+                                msg_en: `mic is allowed only to this room's members and admins`,
+                                msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
+                            });
+                        } else if (newRoom.mic.mic_permission === 3) {
+                            io.to(xuser.socketId).emit('new-alert', {
+                                msg_en: `mic is allowed only to this room's admins`,
+                                msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
+                            });
+                        } else if (newRoom.mic.mic_permission === 0) {
+                            io.to(xuser.socketId).emit('new-alert', {
+                                msg_en: 'mic is not allowed in this room',
+                                msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
+                            });
+                        }
                     }
                 } catch (err) {
                     console.log('error from request mic ' + err.toString());
@@ -1355,6 +1371,10 @@ module.exports = (io) => {
                             startInterval(timeLeft);
                         }
                     } else {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: 'renew time is not allowed in this room',
+                            msg_ar: 'تجديد الوقت غير مسموح في هذه الغرفة',
+                        });
                         console.log('not allowed to renew mic time');
                     }
                 } catch (err) {
@@ -1392,6 +1412,10 @@ module.exports = (io) => {
                             console.log('error from share mi');
                         }
                     } else {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: 'share mic is not allowed in this room',
+                            msg_ar: 'مشاركة المايك غير مسموح في هذه الغرفة',
+                        });
                         console.log('not allowed to share mic');
                     }
                 } catch (err) {
