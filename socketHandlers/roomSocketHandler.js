@@ -1351,6 +1351,12 @@ module.exports = (io) => {
                         if (speaker) {
                             const timeLeft = getUserTimeLeft(speaker.type, newRoom);
                             startInterval(timeLeft);
+                            addAdminLog(
+                                xuser,
+                                xroomId,
+                                `قام بتجديد وقت التكلم لـ ${speaker.name}`,
+                                `has renewed mic time for ${speaker.name}`,
+                            );
                         }
                     } else {
                         io.to(xuser.socketId).emit('new-alert', {
@@ -1389,6 +1395,12 @@ module.exports = (io) => {
                                         Array.from(roomInfo.speakers),
                                     );
                                 }
+                                addAdminLog(
+                                    xuser,
+                                    xroomId,
+                                    `قام بمشاركة المايك مع  ${userToShareWith.name}`,
+                                    `has shared mic with ${userToShareWith.name}`,
+                                );
                             }
                         } else {
                             console.log('error from share mi');
