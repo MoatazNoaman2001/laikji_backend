@@ -1501,10 +1501,10 @@ module.exports = (io) => {
                         userId: Array.from(roomInfo.speakers)[0],
                         time: "Time's up",
                     });
-                    clearActiveTimers();
                     for (const speakerId of Array.from(roomInfo.speakers)) {
                         releaseMic(speakerId);
                     }
+                    clearActiveTimers();
                 }, time * 1000);
                 // Emit time updates every second
                 const interval = setInterval(() => {
@@ -1515,10 +1515,10 @@ module.exports = (io) => {
                         timeLeft: time / 1000,
                     });
                     if (time <= 0) {
-                        clearActiveTimers();
                         for (const speakerId of Array.from(roomInfo.speakers)) {
                             releaseMic(speakerId);
                         }
+                        clearActiveTimers();
                     }
                 }, 1000);
                 activeTimers.set(currentSession, { timer, interval });
@@ -1540,7 +1540,7 @@ module.exports = (io) => {
 
                     io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
                     io.to(xuser.socketId).emit('mic-off');
-                    io.to(xroomId).emit('speaker-ended', userId);
+                    //io.to(xroomId).emit('speaker-ended', userId);
 
                     console.log('Mic released. Attempting to assign to next user.');
                     assignMic();
