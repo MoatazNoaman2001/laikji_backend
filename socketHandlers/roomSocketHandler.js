@@ -1651,11 +1651,6 @@ module.exports = (io) => {
         }
 
         ////////////////// DISCONNECT CLIENT /////////////////////////
-        //  xclient.on('disconnect', function () {
-        //      micQueue.pop(xuser._id.toString());
-        //      roomInfo.speakers.pop(xuser._id.toString());
-        //      clearUserTimers(xuser._id.toString());
-        //  });
 
         xclient.on('disconnect', async (data) => {
             console.log(
@@ -1679,12 +1674,7 @@ module.exports = (io) => {
             if (Array.from(roomInfo.speakers).length == 0) {
                 clearActiveTimers();
             }
-            // if (Array.from(roomInfo.speakers).length == 0) {
-            //     clearActiveTimers();
-            //     //clearUserTimers(xuser._id.toString());
-            //     xuser.speakTimer = null;
-            // }
-            //  const roomInfo = getRoomData(xroomId);
+
             if (micQueue.includes(xuser._id.toString())) {
                 micQueue = micQueue.filter((id) => id !== xuser._id.toString());
                 io.to(xroomId).emit('mic-queue-update', micQueue);
@@ -1692,7 +1682,7 @@ module.exports = (io) => {
 
             if (allMutedList.includes(xuser._id.toString())) {
                 allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
-                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                //io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
             }
 
             // // Close all WebRTC stuff
