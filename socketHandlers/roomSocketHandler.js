@@ -1119,6 +1119,8 @@ module.exports = (io) => {
                                 if (roomInfo.speakers.has(user._id.toString())) {
                                     releaseMic(user._id.toString());
                                     if (Array.from(roomInfo.speakers).length == 0) {
+                                        console.log('clear timer from request mic');
+
                                         clearActiveTimers();
                                     }
                                     console.log('after delete user id', roomInfo.speakers);
@@ -1536,6 +1538,7 @@ module.exports = (io) => {
             console.log('activeTimers after deletion:', activeTimers);
         };
         const startInterval = (time) => {
+            console.log('clear timer from start interval *1');
             clearActiveTimers();
             if (time > 0) {
                 const timer = setTimeout(() => {
@@ -1547,6 +1550,8 @@ module.exports = (io) => {
                     for (const speakerId of Array.from(roomInfo.speakers)) {
                         releaseMic(speakerId);
                     }
+                    console.log('clear timer from start interval *2');
+
                     clearActiveTimers();
                 }, time * 1000);
                 // Emit time updates every second
@@ -1561,6 +1566,8 @@ module.exports = (io) => {
                         for (const speakerId of Array.from(roomInfo.speakers)) {
                             releaseMic(speakerId);
                         }
+                        console.log('clear timer from start interval *3');
+
                         clearActiveTimers();
                     }
                 }, 1000);
@@ -1724,6 +1731,8 @@ module.exports = (io) => {
             // Clear the timer if it exists
             releaseMic(xuser._id.toString());
             if (Array.from(roomInfo.speakers).length == 0) {
+                console.log('clear timer from disconnect');
+
                 clearActiveTimers();
             }
 
