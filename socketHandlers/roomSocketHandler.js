@@ -1358,8 +1358,8 @@ module.exports = (io) => {
                         }
                     } else {
                         io.to(xuser.socketId).emit('new-alert', {
-                            msg_en: 'open time is not allowed in this room',
-                            msg_ar: 'اعطاء وقت مفتوح غير مسموح في هذه الغرفة',
+                            msg_en: 'renew time is not allowed in this room',
+                            msg_ar: 'تجديد الوقت غير مسموح في هذه الغرفة',
                         });
                         console.log('not allowed to renew mic time');
                     }
@@ -1396,8 +1396,8 @@ module.exports = (io) => {
                         }
                     } else {
                         io.to(xuser.socketId).emit('new-alert', {
-                            msg_en: 'renew time is not allowed in this room',
-                            msg_ar: 'تجديد الوقت غير مسموح في هذه الغرفة',
+                            msg_en: 'open time is not allowed in this room',
+                            msg_ar: 'اعطاء وقت مفتوح غير مسموح في هذه الغرفة',
                         });
                         console.log('not allowed to give open mic time');
                     }
