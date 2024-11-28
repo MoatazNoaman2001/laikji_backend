@@ -1586,7 +1586,9 @@ module.exports = (io) => {
                     //io.to(xroomId).emit('speaker-ended', userId);
 
                     console.log('Mic released. Attempting to assign to next user.');
-                    assignMic();
+                    if (Array.from(roomInfo.speakers).length === 0) {
+                        assignMic();
+                    }
                 }
             } catch (err) {
                 console.log('error from release mic ' + err.toString());
@@ -1628,11 +1630,7 @@ module.exports = (io) => {
                     const room = await roomModel.findById(xroomId);
                     if (!room) return;
 
-                    if (roomInfo.speakers.length < room.max_speakers_count || room.opened_time) {
-                        await assignSpeaker(nextUserId, nextUser, room);
-                    } else {
-                        socket.emit('error', { message: 'Max speakers limit reached' });
-                    }
+                    await assignSpeaker(nextUserId, nextUser, room);
                 } catch (error) {
                     console.error(`Error in mic assignment: ${error.message}`);
                 } finally {
