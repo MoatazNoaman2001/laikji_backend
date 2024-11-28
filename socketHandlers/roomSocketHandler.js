@@ -1346,8 +1346,6 @@ module.exports = (io) => {
 
                         const { userId } = data;
                         const speaker = await getUserById(userId, xroomId);
-                        const newRoom = await roomModel.findById(xroomId);
-
                         if (speaker) {
                             const timeLeft = getUserTimeLeft(speaker.type, newRoom);
                             startInterval(timeLeft);
@@ -1364,6 +1362,44 @@ module.exports = (io) => {
                             msg_ar: 'تجديد الوقت غير مسموح في هذه الغرفة',
                         });
                         console.log('not allowed to renew mic time');
+                    }
+                } catch (err) {
+                    console.log('error from renew mic time' + err.toString());
+                }
+            });
+            xclient.on('enable-open-mic', async (data) => {
+                try {
+                    const newRoom = await roomModel.findById(xroomId);
+
+                    if (newRoom.mic.mic_setting[2] === false) {
+                        if (
+                            !xuser ||
+                            (xuser.type !== enums.userTypes.root &&
+                                xuser.type !== enums.userTypes.chatmanager &&
+                                xuser.type !== enums.userTypes.master &&
+                                xuser.type !== enums.userTypes.mastermain &&
+                                0)
+                        )
+                            return; // Ensure only admins can renew time
+
+                        const { userId } = data;
+                        const speaker = await getUserById(userId, xroomId);
+
+                        if (speaker) {
+                            startInterval(0o0);
+                            addAdminLog(
+                                xuser,
+                                xroomId,
+                                `قام بإعطاء وقت تحدث مفتوح لـ ${speaker.name}`,
+                                `has gave an open mic time for ${speaker.name}`,
+                            );
+                        }
+                    } else {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: 'renew time is not allowed in this room',
+                            msg_ar: 'تجديد الوقت غير مسموح في هذه الغرفة',
+                        });
+                        console.log('not allowed to give open mic time');
                     }
                 } catch (err) {
                     console.log('error from renew mic time' + err.toString());
@@ -1624,7 +1660,6 @@ module.exports = (io) => {
                 const timeLeft = getUserTimeLeft(speaker.type, newRoom);
                 currentSession = speakerId;
                 startInterval(timeLeft);
-                // startSpeakerTimer(speakerId, timeLeft);
             } catch (err) {
                 console.log('error from assign speaker ' + err.toString());
             }
