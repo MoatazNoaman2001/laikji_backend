@@ -1418,54 +1418,60 @@ module.exports = (io) => {
             // Add mic sharing feature
             xclient.on('share-mic', async (data) => {
                 try {
-                    if (
-                        Array.from(roomInfo.speakers).length < 2 &&
-                        Array.from(roomInfo.speakers)[0] === xuser._id.toString()
-                    ) {
+                    if (Array.from(roomInfo.speakers)[0] === xuser._id.toString()) {
                         const newRoom = await roomModel.findById(xroomId);
 
                         if (newRoom.mic.mic_setting[3] === true) {
-                            //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
+                            if (
+                                newRoom.mic.shared_mic_capacity <
+                                Array.from(roomInfo.speakers).length
+                            ) {
+                                //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
-                            let { userId } = data;
-                            const userToShareWith = await getUserById(userId, xroomId);
+                                let { userId } = data;
+                                const userToShareWith = await getUserById(userId, xroomId);
 
-                            if (userToShareWith) {
-                                if (
-                                    micQueue[xroomId] &&
-                                    micQueue[xroomId].includes(userToShareWith._id.toString())
-                                ) {
-                                    micQueue[xroomId] = micQueue[xroomId].filter(
-                                        (id) => id !== userToShareWith._id.toString(),
-                                    );
-                                    io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
+                                if (userToShareWith) {
+                                    if (
+                                        micQueue[xroomId] &&
+                                        micQueue[xroomId].includes(userToShareWith._id.toString())
+                                    ) {
+                                        micQueue[xroomId] = micQueue[xroomId].filter(
+                                            (id) => id !== userToShareWith._id.toString(),
+                                        );
+                                        io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
-                                    if (!roomInfo.speakers.has(userToShareWith._id.toString())) {
-                                        roomInfo.speakers.add(userToShareWith._id.toString());
-                                        io.to(xroomId).emit(
-                                            'update-speakers',
-                                            Array.from(roomInfo.speakers),
+                                        if (
+                                            !roomInfo.speakers.has(userToShareWith._id.toString())
+                                        ) {
+                                            roomInfo.speakers.add(userToShareWith._id.toString());
+                                            io.to(xroomId).emit(
+                                                'update-speakers',
+                                                Array.from(roomInfo.speakers),
+                                            );
+                                        }
+                                        addAdminLog(
+                                            xuser,
+                                            xroomId,
+                                            `قام بعمل تحدث مشترك مع  ${userToShareWith.name}`,
+                                            `has shared mic with ${userToShareWith.name}`,
                                         );
                                     }
-                                    addAdminLog(
-                                        xuser,
-                                        xroomId,
-                                        `قام بعمل تحدث مشترك مع  ${userToShareWith.name}`,
-                                        `has shared mic with ${userToShareWith.name}`,
-                                    );
+                                } else {
+                                    console.log('error from share mi');
                                 }
                             } else {
-                                console.log('error from share mi');
+                                io.to(xuser.socketId).emit('new-alert', {
+                                    msg_en: 'share mic capacity has reached the limit',
+                                    msg_ar: 'التحدث على المايك وصل إلى الحد الأقصى',
+                                });
                             }
                         } else {
                             io.to(xuser.socketId).emit('new-alert', {
                                 msg_en: 'share mic is not allowed in this room',
                                 msg_ar: 'مشاركة المايك غير مسموح في هذه الغرفة',
                             });
-                            console.log('not allowed to share mic');
                         }
-                    } else {
-                        console.log('allowed only for 2 speakers');
                     }
                 } catch (err) {
                     console.log('error from share mic ' + err.toString());
