@@ -1342,7 +1342,7 @@ module.exports = (io) => {
                 try {
                     const newRoom = await roomModel.findById(xroomId);
 
-                    if (newRoom.mic.mic_setting[1] === false) {
+                    if (newRoom.mic.mic_setting[1] === true) {
                         if (
                             !xuser ||
                             (xuser.type !== enums.userTypes.root &&
@@ -1380,7 +1380,7 @@ module.exports = (io) => {
                 try {
                     const newRoom = await roomModel.findById(xroomId);
 
-                    if (newRoom.mic.mic_setting[2] === false) {
+                    if (newRoom.mic.mic_setting[2] === true) {
                         if (
                             !xuser ||
                             (xuser.type !== enums.userTypes.root &&
@@ -1424,7 +1424,7 @@ module.exports = (io) => {
                     ) {
                         const newRoom = await roomModel.findById(xroomId);
 
-                        if (newRoom.mic.mic_setting[3] === false) {
+                        if (newRoom.mic.mic_setting[3] === true) {
                             //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
                             let { userId } = data;
