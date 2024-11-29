@@ -1562,9 +1562,9 @@ module.exports = (io) => {
                         for (const speakerId of Array.from(roomInfo.speakers)) {
                             releaseMic(speakerId);
                         }
+                        console.log('clear timer from start interval *3');
+                        clearActiveTimers();
                     }
-                    console.log('clear timer from start interval *3');
-                    clearActiveTimers();
                 }, 1000);
                 activeTimers.set(currentSession, { timer, interval });
             } else if (time == 0o0) {
