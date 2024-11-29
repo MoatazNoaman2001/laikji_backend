@@ -1423,8 +1423,8 @@ module.exports = (io) => {
 
                         if (newRoom.mic.mic_setting[3] === true) {
                             if (
-                                newRoom.mic.shared_mic_capacity <
-                                Array.from(roomInfo.speakers).length
+                                Array.from(roomInfo.speakers).length <
+                                newRoom.mic.shared_mic_capacity
                             ) {
                                 //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
@@ -1463,7 +1463,7 @@ module.exports = (io) => {
                             } else {
                                 io.to(xuser.socketId).emit('new-alert', {
                                     msg_en: 'share mic capacity has reached the limit',
-                                    msg_ar: 'التحدث على المايك وصل إلى الحد الأقصى',
+                                    msg_ar: 'التحدث المشترك وصل إلى الحد الأقصى',
                                 });
                             }
                         } else {
