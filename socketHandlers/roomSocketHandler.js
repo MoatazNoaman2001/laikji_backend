@@ -1563,8 +1563,9 @@ module.exports = (io) => {
                             releaseMic(speakerId);
                         }
                         console.log('clear timer from start interval *3');
-
-                        clearActiveTimers();
+                        if (currentSession === xroomId) {
+                            clearActiveTimers();
+                        }
                     }
                 }, 1000);
                 activeTimers.set(currentSession, { timer, interval });
