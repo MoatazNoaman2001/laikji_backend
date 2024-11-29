@@ -1153,17 +1153,17 @@ module.exports = (io) => {
                         }
                     } else {
                         if (newRoom.mic.mic_permission === 2) {
-                            io.to(user.socketId).emit('alert-msg', {
+                            io.to(xuser.socketId).emit('alert-msg', {
                                 msg_en: `mic is allowed only to this room's members and admins`,
                                 msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
                             });
                         } else if (newRoom.mic.mic_permission === 3) {
-                            io.to(user.socketId).emit('alert-msg', {
+                            io.to(xuser.socketId).emit('alert-msg', {
                                 msg_en: `mic is allowed only to this room's admins`,
                                 msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
                             });
                         } else if (newRoom.mic.mic_permission === 0) {
-                            io.to(user.socketId).emit('alert-msg', {
+                            io.to(xuser.socketId).emit('alert-msg', {
                                 msg_en: 'mic is not allowed in this room',
                                 msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
                             });
@@ -1342,7 +1342,7 @@ module.exports = (io) => {
                 try {
                     const newRoom = await roomModel.findById(xroomId);
 
-                    if (newRoom.mic.mic_setting[1] === false) {
+                    if (newRoom.mic.mic_setting[1] === true) {
                         if (
                             !xuser ||
                             (xuser.type !== enums.userTypes.root &&
@@ -1380,7 +1380,7 @@ module.exports = (io) => {
                 try {
                     const newRoom = await roomModel.findById(xroomId);
 
-                    if (newRoom.mic.mic_setting[2] === false) {
+                    if (newRoom.mic.mic_setting[2] === true) {
                         if (
                             !xuser ||
                             (xuser.type !== enums.userTypes.root &&
@@ -1424,7 +1424,7 @@ module.exports = (io) => {
                     ) {
                         const newRoom = await roomModel.findById(xroomId);
 
-                        if (newRoom.mic.mic_setting[3] === false) {
+                        if (newRoom.mic.mic_setting[3] === true) {
                             //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
 
                             let { userId } = data;
