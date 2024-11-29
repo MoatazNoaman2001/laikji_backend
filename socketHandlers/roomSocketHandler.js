@@ -43,11 +43,9 @@ const e = require('express');
 
 var micQueue = []; // Queue to hold mic requests
 var allMutedList = []; // list for users whom muted all participarates
-let currentSpeaker = null; // Tracks the current user who has the mic
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
 let currentSession = null;
-let currentSessiontimeLeft = null;
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -1525,9 +1523,7 @@ module.exports = (io) => {
             console.log('clear timer started');
             const updatedTimers = new Map();
             for (let [key, value] of activeTimers.entries()) {
-                if (key != currentSession) {
-                    updatedTimers.set(key, value);
-                } else {
+                if (key === xroomId) {
                     console.log('Clearing timers for session:', currentSession);
                     clearTimeout(value.timer);
                     clearInterval(value.interval);
@@ -1663,7 +1659,7 @@ module.exports = (io) => {
                 await updateUser(speaker, speaker._id, xroomId);
 
                 const timeLeft = getUserTimeLeft(speaker.type, newRoom);
-                currentSession = speakerId;
+                currentSession = xroomId;
                 startInterval(timeLeft);
             } catch (err) {
                 console.log('error from assign speaker ' + err.toString());
