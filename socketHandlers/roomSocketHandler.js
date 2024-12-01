@@ -1676,7 +1676,7 @@ module.exports = (io) => {
 
         const assignSpeaker = async (speakerId, speaker, newRoom) => {
             try {
-                if (speaker.status === enums.statusTypes.out) {
+                if (speaker.status == enums.statusTypes.out) {
                     return;
                 }
                 roomInfo.speakers.add(speakerId);
