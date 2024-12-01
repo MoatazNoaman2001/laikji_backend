@@ -1649,6 +1649,7 @@ module.exports = (io) => {
                     );
 
                     const nextUser = await getUserById(nextUserId, xroomId);
+                    console.log('status is' + nextUser.status);
                     if (
                         !nextUser ||
                         roomInfo.speakers.has(nextUserId) ||
