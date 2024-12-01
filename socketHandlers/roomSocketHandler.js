@@ -1462,7 +1462,7 @@ module.exports = (io) => {
                                 }
                             } else {
                                 io.to(xuser.socketId).emit('new-alert', {
-                                    msg_en: 'share mic capacity has reached the limit',
+                                    msg_en: 'shared mic capacity has reached the limit',
                                     msg_ar: 'التحدث المشترك وصل إلى الحد الأقصى',
                                 });
                             }
@@ -1649,7 +1649,11 @@ module.exports = (io) => {
                     );
 
                     const nextUser = await getUserById(nextUserId, xroomId);
-                    if (!nextUser || roomInfo.speakers.has(nextUserId)) {
+                    if (
+                        !nextUser ||
+                        roomInfo.speakers.has(nextUserId) ||
+                        nextUser.status === enums.statusTypes.phone
+                    ) {
                         console.log(
                             ` User ${nextUserId} is already a speaker or not found. Skipping...`,
                         );
