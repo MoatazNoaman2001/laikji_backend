@@ -1653,7 +1653,7 @@ module.exports = (io) => {
                     if (
                         !nextUser ||
                         roomInfo.speakers.has(nextUserId) ||
-                        nextUser.status === enums.statusTypes.phone
+                        nextUser.status === enums.statusTypes.out
                     ) {
                         console.log(
                             ` User ${nextUserId} is already a speaker or not found. Skipping...`,
