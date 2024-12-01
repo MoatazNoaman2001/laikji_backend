@@ -1651,7 +1651,7 @@ module.exports = (io) => {
                     const nextUser = await getUserById(nextUserId, xroomId);
                     console.log('status is' + nextUser.status);
                     if (!nextUser || roomInfo.speakers.has(nextUserId)) {
-                        if (nextUser.status === enums.statusTypes.out) {
+                        if (nextUser.status === 11) {
                             console.log(
                                 ` User ${nextUserId} is already a speaker or not found. Skipping...`,
                             );
