@@ -1651,14 +1651,12 @@ module.exports = (io) => {
                     const nextUser = await getUserById(nextUserId, xroomId);
                     console.log('status is' + nextUser.status);
                     if (!nextUser || roomInfo.speakers.has(nextUserId)) {
-                        if (nextUser.status === 11) {
-                            console.log(
-                                ` User ${nextUserId} is already a speaker or not found. Skipping...`,
-                            );
-                            micAssigning = false;
-                            await assignMic(); // Recursively try the next user
-                            return;
-                        }
+                        console.log(
+                            ` User ${nextUserId} is already a speaker or not found. Skipping...`,
+                        );
+                        micAssigning = false;
+                        await assignMic(); // Recursively try the next user
+                        return;
                     }
 
                     const room = await roomModel.findById(xroomId);
@@ -1678,6 +1676,9 @@ module.exports = (io) => {
 
         const assignSpeaker = async (speakerId, speaker, newRoom) => {
             try {
+                if (speaker.status === enums.statusTypes.out) {
+                    return;
+                }
                 roomInfo.speakers.add(speakerId);
                 io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
