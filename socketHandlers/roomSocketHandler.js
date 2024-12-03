@@ -1089,7 +1089,7 @@ module.exports = (io) => {
                 }
             });
             ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
-            // localhost:9500?name=test2&roomId=66f80aa1f67b8fe03bca0637&key=02218e5d-0128-40a8-a315-4d7cfc0f9f50
+            // 185.203.118.57:9600?name=MASTER&rp=1234&roomId=673e4fb4de7fccf2cd63c380&key=02218e5d-0128-40a8-a315-4d7cfc0f9f50
 
             // Function to handle mic request
             xclient.on('request-mic', async (data) => {
@@ -1171,6 +1171,19 @@ module.exports = (io) => {
                     }
                 } catch (err) {
                     console.log('error from request mic ' + err.toString());
+                }
+            });
+
+            // data: link
+            xclient.on('share-youtube-link', (data) => {
+                if (
+                    xuser.type === enums.userTypes.root ||
+                    xuser.type === enums.userTypes.chatmanager ||
+                    xuser.type === enums.userTypes.master ||
+                    xuser.type === enums.userTypes.mastergirl ||
+                    xuser.type === enums.userTypes.mastermain
+                ) {
+                    io.to(xroomId).emit('youtube-link-shared', { link: data.link });
                 }
             });
 
@@ -1407,171 +1420,6 @@ module.exports = (io) => {
                 }
             });
 
-            xclient.on('hold-mic', async (userId) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain)
-                )
-                    return; // Ensure only admins can hold mic
-                roomInfo.holdMic.add(userId);
-                io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
-            });
-
-            //xclient instead of socket
-            xclient.on('release-hold-mic', async (userId) => {
-                if (!xuser || xuser.type !== enums.userTypes.admin) return; // Ensure only admins can release hold mic
-
-                roomInfo.holdMic.delete(userId);
-                io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
-            });
-
-            xclient.on('disable-mic-for-all', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        0)
-                )
-                    return;
-
-                let { usersId, time } = data;
-                time = time * 1000; // 'time' is the duration to mute the mic
-                if (usersId) {
-                    usersId.map(async (userId) => {
-                        const user = await getUserById(userId, xroomId);
-                        console.log(user, 'woooo');
-                        if (user) {
-                            // Disable mic for the user
-                            user.can_use_mic = false;
-                            await updateUser(user, user._id, xroomId);
-                            io.to(user.socketId).emit('mic-disabled', {
-                                message:
-                                    'Your mic has been disabled by an admin for ' +
-                                    time / 1000 +
-                                    ' seconds.',
-                            });
-                            // Re-enable the mic after the specified time
-                            setTimeout(async () => {
-                                user.can_use_mic = true;
-                                await updateUser(user, user._id, xroomId);
-                                io.to(user.socketId).emit('mic-enabled', {
-                                    message:
-                                        'Your mic has been re-enabled after ' +
-                                        time / 1000 +
-                                        ' seconds.',
-                                });
-                            }, time);
-                        }
-                    });
-                }
-            });
-            xclient.on('disable-mic-for-user', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        0)
-                )
-                    return;
-
-                let { userId, time } = data;
-                time = time * 1000; // 'time' is the duration to mute the mic
-                const user = await getUserById(userId, xroomId);
-                console.log(user, 'woooo');
-                if (user) {
-                    user.can_use_mic = false;
-                    await updateUser(user, user._id, xroomId);
-                    io.to(user.socketId).emit('mic-disabled', {
-                        message:
-                            'Your mic has been disabled by an admin for ' +
-                            time / 1000 +
-                            ' seconds.',
-                    });
-                    // Re-enable the mic after the specified time
-                    setTimeout(async () => {
-                        user.can_use_mic = true;
-                        await updateUser(user, user._id, xroomId);
-                        io.to(user.socketId).emit('mic-enabled', {
-                            message:
-                                'Your mic has been re-enabled after ' + time / 1000 + ' seconds.',
-                        });
-                    }, time);
-                }
-            });
-
-            xclient.on('enable-mic-me-only', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain)
-                ) {
-                    return;
-                }
-
-                let { usersId, time } = data;
-
-                time = time * 1000; // Convert time to milliseconds
-
-                if (usersId) {
-                    // Filter out the user's own ID
-                    const filteredUsers = usersId.filter(
-                        (userId) => userId !== xuser._id.toString(),
-                    );
-
-                    filteredUsers.map(async (userId) => {
-                        const user = await getUserById(userId, xroomId);
-                        console.log(user, 'woooo');
-                        if (user) {
-                            user.can_use_mic = false;
-                            await updateUser(user, user._id, xroomId);
-                            io.to(user.socketId).emit('mic-disabled', {
-                                message:
-                                    'Your mic has been disabled by an admin for ' +
-                                    time / 1000 +
-                                    ' seconds.',
-                            });
-
-                            // Re-enable the mic after the specified time
-                            setTimeout(async () => {
-                                user.can_use_mic = true;
-                                await updateUser(user, user._id, xroomId);
-                                io.to(user.socketId).emit('mic-enabled', {
-                                    message:
-                                        'Your mic has been re-enabled after ' +
-                                        time / 1000 +
-                                        ' seconds.',
-                                });
-                            }, time);
-                        }
-                    });
-                }
-            });
-
-            const assignMicWithTimeLimit = async (userId, timeLimit = 60) => {
-                const user = await getUserById(userId, xroomId);
-                // const timeLimit = micTimeLimits[user.type] || 60; // Default to 1 minute
-
-                // Start the timer for the assigned user
-                let timeLeft = timeLimit;
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        roomInfo.speakers.pop(userId);
-                        assignMic(); // Assign mic to the next user
-                    }
-                }, 1000);
-            };
-
             xclient.on('renew-mic-time', async (data) => {
                 try {
                     const newRoom = await roomModel.findById(xroomId);
@@ -1730,6 +1578,171 @@ module.exports = (io) => {
                     console.log('error from mute all ' + err.toString());
                 }
             });
+
+            // xclient.on('disable-mic-for-all', async (data) => {
+            //     if (
+            //         !xuser ||
+            //         (xuser.type !== enums.userTypes.root &&
+            //             xuser.type !== enums.userTypes.chatmanager &&
+            //             xuser.type !== enums.userTypes.master &&
+            //             xuser.type !== enums.userTypes.mastermain &&
+            //             0)
+            //     )
+            //         return;
+
+            //     let { usersId, time } = data;
+            //     time = time * 1000; // 'time' is the duration to mute the mic
+            //     if (usersId) {
+            //         usersId.map(async (userId) => {
+            //             const user = await getUserById(userId, xroomId);
+            //             console.log(user, 'woooo');
+            //             if (user) {
+            //                 // Disable mic for the user
+            //                 user.can_use_mic = false;
+            //                 await updateUser(user, user._id, xroomId);
+            //                 io.to(user.socketId).emit('mic-disabled', {
+            //                     message:
+            //                         'Your mic has been disabled by an admin for ' +
+            //                         time / 1000 +
+            //                         ' seconds.',
+            //                 });
+            //                 // Re-enable the mic after the specified time
+            //                 setTimeout(async () => {
+            //                     user.can_use_mic = true;
+            //                     await updateUser(user, user._id, xroomId);
+            //                     io.to(user.socketId).emit('mic-enabled', {
+            //                         message:
+            //                             'Your mic has been re-enabled after ' +
+            //                             time / 1000 +
+            //                             ' seconds.',
+            //                     });
+            //                 }, time);
+            //             }
+            //         });
+            //     }
+            // });
+            // xclient.on('disable-mic-for-user', async (data) => {
+            //     if (
+            //         !xuser ||
+            //         (xuser.type !== enums.userTypes.root &&
+            //             xuser.type !== enums.userTypes.chatmanager &&
+            //             xuser.type !== enums.userTypes.master &&
+            //             xuser.type !== enums.userTypes.mastermain &&
+            //             0)
+            //     )
+            //         return;
+
+            //     let { userId, time } = data;
+            //     time = time * 1000; // 'time' is the duration to mute the mic
+            //     const user = await getUserById(userId, xroomId);
+            //     console.log(user, 'woooo');
+            //     if (user) {
+            //         user.can_use_mic = false;
+            //         await updateUser(user, user._id, xroomId);
+            //         io.to(user.socketId).emit('mic-disabled', {
+            //             message:
+            //                 'Your mic has been disabled by an admin for ' +
+            //                 time / 1000 +
+            //                 ' seconds.',
+            //         });
+            //         // Re-enable the mic after the specified time
+            //         setTimeout(async () => {
+            //             user.can_use_mic = true;
+            //             await updateUser(user, user._id, xroomId);
+            //             io.to(user.socketId).emit('mic-enabled', {
+            //                 message:
+            //                     'Your mic has been re-enabled after ' + time / 1000 + ' seconds.',
+            //             });
+            //         }, time);
+            //     }
+            // });
+
+            // xclient.on('enable-mic-me-only', async (data) => {
+            //     if (
+            //         !xuser ||
+            //         (xuser.type !== enums.userTypes.root &&
+            //             xuser.type !== enums.userTypes.chatmanager &&
+            //             xuser.type !== enums.userTypes.master &&
+            //             xuser.type !== enums.userTypes.mastermain)
+            //     ) {
+            //         return;
+            //     }
+
+            //     let { usersId, time } = data;
+
+            //     time = time * 1000; // Convert time to milliseconds
+
+            //     if (usersId) {
+            //         // Filter out the user's own ID
+            //         const filteredUsers = usersId.filter(
+            //             (userId) => userId !== xuser._id.toString(),
+            //         );
+
+            //         filteredUsers.map(async (userId) => {
+            //             const user = await getUserById(userId, xroomId);
+            //             console.log(user, 'woooo');
+            //             if (user) {
+            //                 user.can_use_mic = false;
+            //                 await updateUser(user, user._id, xroomId);
+            //                 io.to(user.socketId).emit('mic-disabled', {
+            //                     message:
+            //                         'Your mic has been disabled by an admin for ' +
+            //                         time / 1000 +
+            //                         ' seconds.',
+            //                 });
+
+            //                 // Re-enable the mic after the specified time
+            //                 setTimeout(async () => {
+            //                     user.can_use_mic = true;
+            //                     await updateUser(user, user._id, xroomId);
+            //                     io.to(user.socketId).emit('mic-enabled', {
+            //                         message:
+            //                             'Your mic has been re-enabled after ' +
+            //                             time / 1000 +
+            //                             ' seconds.',
+            //                     });
+            //                 }, time);
+            //             }
+            //         });
+            //     }
+            // });
+
+            // xclient.on('hold-mic', async (userId) => {
+            //     if (
+            //         !xuser ||
+            //         (xuser.type !== enums.userTypes.root &&
+            //             xuser.type !== enums.userTypes.chatmanager &&
+            //             xuser.type !== enums.userTypes.master &&
+            //             xuser.type !== enums.userTypes.mastermain)
+            //     )
+            //         return; // Ensure only admins can hold mic
+            //     roomInfo.holdMic.add(userId);
+            //     io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+            // });
+
+            // //xclient instead of socket
+            // xclient.on('release-hold-mic', async (userId) => {
+            //     if (!xuser || xuser.type !== enums.userTypes.admin) return; // Ensure only admins can release hold mic
+
+            //     roomInfo.holdMic.delete(userId);
+            //     io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
+            // });
+
+            const assignMicWithTimeLimit = async (userId, timeLimit = 60) => {
+                const user = await getUserById(userId, xroomId);
+                // const timeLimit = micTimeLimits[user.type] || 60; // Default to 1 minute
+
+                // Start the timer for the assigned user
+                let timeLeft = timeLimit;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        roomInfo.speakers.pop(userId);
+                        assignMic(); // Assign mic to the next user
+                    }
+                }, 1000);
+            };
         };
 
         function convertToMilliseconds(time) {
