@@ -1176,14 +1176,20 @@ module.exports = (io) => {
 
             // data: link
             xclient.on('share-youtube-link', (data) => {
-                if (
-                    xuser.type === enums.userTypes.root ||
-                    xuser.type === enums.userTypes.chatmanager ||
-                    xuser.type === enums.userTypes.master ||
-                    xuser.type === enums.userTypes.mastergirl ||
-                    xuser.type === enums.userTypes.mastermain
-                ) {
-                    io.to(xroomId).emit('youtube-link-shared', { link: data.link });
+                try {
+                    if (
+                        xuser.type === enums.userTypes.root ||
+                        xuser.type === enums.userTypes.chatmanager ||
+                        xuser.type === enums.userTypes.master ||
+                        xuser.type === enums.userTypes.mastergirl ||
+                        xuser.type === enums.userTypes.mastermain
+                    ) {
+                        console.log('sending youtube link');
+
+                        io.to(xroomId).emit('youtube-link-shared', { link: data.link });
+                    }
+                } catch (err) {
+                    console.log('error from share youtube link ' + err.toString());
                 }
             });
 
