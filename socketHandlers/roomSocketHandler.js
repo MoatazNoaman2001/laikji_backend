@@ -1176,6 +1176,7 @@ module.exports = (io) => {
 
             // data: link
             xclient.on('share-youtube-link', (data) => {
+                console.log("received youtube link: " + data);
                 if (
                     xuser.type === enums.userTypes.root ||
                     xuser.type === enums.userTypes.chatmanager ||
@@ -1183,6 +1184,7 @@ module.exports = (io) => {
                     xuser.type === enums.userTypes.mastergirl ||
                     xuser.type === enums.userTypes.mastermain
                 ) {
+                    console.log("accepted link: " + data);
                     io.to(xroomId).emit('youtube-link-shared', { link: data.link });
                 }
             });
