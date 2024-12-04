@@ -1227,8 +1227,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بسحب المايك من الاسم ${user.name}`,
-                        `${xuser.name} has disabled mic for ${user.name}`,
+                        `قام بسحب المايك من الاسم ${user.name}`,
+                        `has disabled mic for ${user.name}`,
                     );
                 }
             });
@@ -1262,8 +1262,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بسحب المايك من الجميع `,
-                        `${xuser.name} has disabled mic for all`,
+                        `قام بسحب المايك من الجميع `,
+                        `has disabled mic for all`,
                     );
                 }
             });
@@ -1298,8 +1298,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بسحب المايك من الجميع إلا من ${user.name}`,
-                        `${xuser.name} has disabled mic for all except ${user.name}`,
+                        `قام بسحب المايك من الجميع إلا من ${user.name}`,
+                        `has disabled mic for all except ${user.name}`,
                     );
                 }
             });
@@ -1327,8 +1327,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بسحب دور المايك من الاسم ${user.name}`,
-                        `${xuser.name} has removed ${user.name} from mic queue`,
+                        ` قام بسحب دور المايك من الاسم ${user.name}`,
+                        ` has removed ${user.name} from mic queue`,
                     );
                 }
             });
@@ -1355,8 +1355,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بسحب دور المايك من الجميع إلا من الاسم ${user.name}`,
-                        `${xuser.name} has removed all from mic queue except ${user.name}`,
+                        ` قام بسحب دور المايك من الجميع إلا من الاسم ${user.name}`,
+                        ` has removed all from mic queue except ${user.name}`,
                     );
                 }
             });
@@ -1385,8 +1385,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بسحب دور المايك من الجميع`,
-                        `${xuser.name} has removed all from mic queue`,
+                        ` قام بسحب دور المايك من الجميع`,
+                        ` has removed all from mic queue`,
                     );
                 }
             });
@@ -1420,8 +1420,8 @@ module.exports = (io) => {
                     addAdminLog(
                         xuser,
                         xroomId,
-                        `${xuser.name} قام بإعطاء المايك للاسم ${user.name}`,
-                        `${xuser.name} has enabled mic for ${user.name}`,
+                        ` قام بإعطاء المايك للاسم ${user.name}`,
+                        ` has enabled mic for ${user.name}`,
                     );
                 }
             });
