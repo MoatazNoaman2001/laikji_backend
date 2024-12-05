@@ -999,10 +999,10 @@ module.exports = (io) => {
                     .populate(['user1Ref', 'user2Ref']);
 
                 pc = pc[0];
-
+                //const id = mongoose.Types.ObjectId(msg_id.trim());
                 const msg = await privateMessageModel.find({
-                    _id: new ObjectId(msg_id),
-                    chatRef: new ObjectId(pc._id),
+                    _id: msg_id,
+                    chatRef: pc._id,
                 });
 
                 if (msg.length > 0) {
