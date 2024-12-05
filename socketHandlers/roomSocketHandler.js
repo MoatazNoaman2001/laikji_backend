@@ -1450,6 +1450,7 @@ module.exports = (io) => {
             });
 
             xclient.on('renew-mic-time', async (data) => {
+                console.log('permissions ' + xuser.permissions);
                 try {
                     const newRoom = await roomModel.findById(xroomId);
 
