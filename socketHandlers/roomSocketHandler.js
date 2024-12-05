@@ -1208,7 +1208,7 @@ module.exports = (io) => {
                 if (xuser.permissions[10] == 0) {
                     io.to(xuser.socketId).emit('new-alert', {
                         msg_en: `you don't have a permission to do this action`,
-                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
                     });
                     return;
                 }
@@ -1256,7 +1256,7 @@ module.exports = (io) => {
                 if (xuser.permissions[10] == 0) {
                     io.to(xuser.socketId).emit('new-alert', {
                         msg_en: `you don't have a permission to do this action`,
-                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
                     });
                     return;
                 }
@@ -1298,7 +1298,7 @@ module.exports = (io) => {
                 if (xuser.permissions[10] == 0) {
                     io.to(xuser.socketId).emit('new-alert', {
                         msg_en: `you don't have a permission to do this action`,
-                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
                     });
                     return;
                 }
@@ -1450,7 +1450,6 @@ module.exports = (io) => {
             });
 
             xclient.on('renew-mic-time', async (data) => {
-                console.log('permissions ' + xuser.permissions);
                 try {
                     const newRoom = await roomModel.findById(xroomId);
 
@@ -1467,7 +1466,7 @@ module.exports = (io) => {
                         if (xuser.permissions[10] == 0) {
                             io.to(xuser.socketId).emit('new-alert', {
                                 msg_en: `you don't have a permission to do this action`,
-                                msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                                msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
                             });
                             return;
                         }
@@ -1511,7 +1510,7 @@ module.exports = (io) => {
                         if (xuser.permissions[10] == 0) {
                             io.to(xuser.socketId).emit('new-alert', {
                                 msg_en: `you don't have a permission to do this action`,
-                                msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                                msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
                             });
                             return;
                         }
