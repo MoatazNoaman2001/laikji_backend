@@ -1205,6 +1205,13 @@ module.exports = (io) => {
                         0)
                 )
                     return;
+                if (xuser.permissions[10] === 0) {
+                    io.to(xuser.socketId).emit('new-alert', {
+                        msg_en: `you don't have a permission to do this action`,
+                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                    });
+                    return;
+                }
                 const newRoom = await roomModel.findById(xroomId);
 
                 if (newRoom.mic.mic_setting[0] === false) {
@@ -1212,7 +1219,9 @@ module.exports = (io) => {
                         msg_en: 'Disable mic is not allowed in this room',
                         msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
                     });
+                    return;
                 }
+
                 const userId = data.userId;
                 const user = await getUserById(userId, xroomId);
                 if (roomInfo.speakers.has(user._id.toString())) {
@@ -1244,6 +1253,13 @@ module.exports = (io) => {
                         0)
                 )
                     return;
+                if (xuser.permissions[10] === 0) {
+                    io.to(xuser.socketId).emit('new-alert', {
+                        msg_en: `you don't have a permission to do this action`,
+                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                    });
+                    return;
+                }
                 const newRoom = await roomModel.findById(xroomId);
                 if (newRoom.mic.mic_setting[0] === false) {
                     io.to(xuser.socketId).emit('new-alert', {
@@ -1279,6 +1295,13 @@ module.exports = (io) => {
                         0)
                 )
                     return;
+                if (xuser.permissions[10] === 0) {
+                    io.to(xuser.socketId).emit('new-alert', {
+                        msg_en: `you don't have a permission to do this action`,
+                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                    });
+                    return;
+                }
                 const newRoom = await roomModel.findById(xroomId);
                 if (newRoom.mic.mic_setting[0] === false) {
                     io.to(xuser.socketId).emit('new-alert', {
@@ -1440,7 +1463,13 @@ module.exports = (io) => {
                                 0)
                         )
                             return; // Ensure only admins can renew time
-
+                        if (xuser.permissions[10] === 0) {
+                            io.to(xuser.socketId).emit('new-alert', {
+                                msg_en: `you don't have a permission to do this action`,
+                                msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                            });
+                            return;
+                        }
                         const { userId } = data;
                         const speaker = await getUserById(userId, xroomId);
                         if (speaker) {
@@ -1478,7 +1507,13 @@ module.exports = (io) => {
                                 0)
                         )
                             return; // Ensure only admins can renew time
-
+                        if (xuser.permissions[10] === 0) {
+                            io.to(xuser.socketId).emit('new-alert', {
+                                msg_en: `you don't have a permission to do this action`,
+                                msg_ar: 'أنت لا تملك الصلاحية للقيام بهذاالإجراء',
+                            });
+                            return;
+                        }
                         const { userId } = data;
                         const speaker = await getUserById(userId, xroomId);
 
