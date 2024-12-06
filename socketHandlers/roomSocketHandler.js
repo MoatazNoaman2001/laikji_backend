@@ -42,7 +42,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 const e = require('express');
 
 var micQueue = new Map(); // Queue to hold mic requests
-var allMutedList = []; // list for users whom muted all participarates
+var allMutedList = new Map(); // list for users whom muted all participarates
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
 let currentSession = null;
@@ -448,7 +448,7 @@ module.exports = (io) => {
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
         micQueue[xroomId] = [];
-
+        allMutedList[xroomId] = [];
         const continue_to_room = async () => {
             // add user to room
             xclient.join(xroomId);
@@ -494,11 +494,11 @@ module.exports = (io) => {
                 users: users_in_room,
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
-                'muted-list': allMutedList,
+                'muted-list': allMutedList[xroomId],
                 micQueue: micQueue[xroomId],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
-            console.log('mute list is ' + allMutedList);
+            console.log('mute list is ' + allMutedList[xroomId]);
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -1608,12 +1608,14 @@ module.exports = (io) => {
                     console.log('all muted list started', xuser.name);
                     if (!xuser) return;
 
-                    if (!allMutedList.includes(xuser._id.toString())) {
-                        allMutedList.push(xuser._id.toString());
-                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                    if (!allMutedList[xroomId].includes(xuser._id.toString())) {
+                        allMutedList[xroomId].push(xuser._id.toString());
+                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
                     } else {
-                        allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
-                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+                        allMutedList[xroomId] = allMutedList[xroomId].filter(
+                            (id) => id !== xuser._id.toString(),
+                        );
+                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
                     }
                 } catch (err) {
                     console.log('error from mute all ' + err.toString());
@@ -1909,9 +1911,11 @@ module.exports = (io) => {
                 io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
             }
 
-            if (allMutedList.includes(xuser._id.toString())) {
-                allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
-                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
+            if (allMutedList[xroomId].includes(xuser._id.toString())) {
+                allMutedList[xroomId] = allMutedList[xroomId].filter(
+                    (id) => id !== xuser._id.toString(),
+                );
+                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
             }
 
             // // Close all WebRTC stuff
