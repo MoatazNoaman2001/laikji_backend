@@ -1763,15 +1763,8 @@ module.exports = (io) => {
                     }
 
                     const nextUserId = micQueue[xroomId].shift(); // Get the next user from the queue
-                    io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
-
-                    console.log(
-                        `Assigning mic to user: ${nextUserId}. Queue length: ${
-                            Array.from(micQueue[xroomId]).length
-                        }`,
-                    );
-
                     const nextUser = await getUserById(nextUserId, xroomId);
+
                     if (
                         !nextUser ||
                         roomInfo.speakers.has(nextUserId) ||
@@ -1781,15 +1774,21 @@ module.exports = (io) => {
                             ` User ${nextUserId} is already a speaker or not found. Skipping...`,
                         );
                         micAssigning = false;
-
+                        micQueue[xroomId].splice(0, 0, nextUserId);
                         await assignMic(); // Recursively try the next user
                         return;
                     }
+                    io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
                     const room = await roomModel.findById(xroomId);
                     if (!room) return;
 
                     await assignSpeaker(nextUserId, nextUser, room);
+                    console.log(
+                        `Assigning mic to user: ${nextUserId}. Queue length: ${
+                            Array.from(micQueue[xroomId]).length
+                        }`,
+                    );
                 } catch (error) {
                     console.error(`Error in mic assignment: ${error.message}`);
                 } finally {
