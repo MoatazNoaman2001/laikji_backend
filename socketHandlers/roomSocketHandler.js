@@ -1789,9 +1789,7 @@ module.exports = (io) => {
                         );
 
                         // Place nextUserId at index 1 of the queue
-                        if (micQueue[xroomId].length === 0) {
-                            micQueue[xroomId].push(nextUserId); // If the queue is empty, add to the end
-                        } else {
+                        if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         }
 
