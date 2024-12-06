@@ -342,6 +342,8 @@ module.exports = (io) => {
         if (!is_error) {
             next();
         }
+        micQueue[room_id.toString()] = [];
+        allMutedList[room_id.toString()] = [];
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
         var xroomId;
@@ -447,8 +449,7 @@ module.exports = (io) => {
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
-        micQueue[xroomId] = [];
-        allMutedList[xroomId] = [];
+
         const continue_to_room = async () => {
             // add user to room
             xclient.join(xroomId);
