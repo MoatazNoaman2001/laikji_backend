@@ -42,7 +42,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 const e = require('express');
 
 var micQueue = new Map(); // Queue to hold mic requests
-var allMutedList = new Map(); // list for users whom muted all participarates
+var allMutedList = []; // list for users whom muted all participarates
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
 let currentSession = null;
@@ -59,6 +59,7 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         let socket_id = socket.request.connection.socketId;
         socket.handshake.query.icon = '0.png';
+
         // console.log(socket.handshake.query);
         console.log('new client room:', name, 'for room:', room_id, 'IP:', ip, 'KEY:', user_key);
 
@@ -341,14 +342,11 @@ module.exports = (io) => {
         if (!is_error) {
             next();
         }
-
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
         var xroomId;
         var enterDate = null;
         var key = xclient.handshake.query.key;
-        allMutedList[xroomId] = [];
-        micQueue[xroomId] = [];
         console.log('on connection');
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
@@ -449,6 +447,7 @@ module.exports = (io) => {
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
+        micQueue[xroomId] = [];
 
         const continue_to_room = async () => {
             // add user to room
@@ -495,11 +494,11 @@ module.exports = (io) => {
                 users: users_in_room,
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
-                'muted-list': allMutedList[xroomId] ?? [],
-                micQueue: micQueue[xroomId] ?? [],
+                'muted-list': allMutedList,
+                micQueue: micQueue[xroomId],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
-            // console.log('mute list is ' + allMutedList[xroomId]);
+            console.log('mute list is ' + allMutedList);
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -1609,17 +1608,12 @@ module.exports = (io) => {
                     console.log('all muted list started', xuser.name);
                     if (!xuser) return;
 
-                    if (
-                        allMutedList[xroomId] &&
-                        !allMutedList[xroomId].includes(xuser._id.toString())
-                    ) {
-                        allMutedList[xroomId].push(xuser._id.toString());
-                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
+                    if (!allMutedList.includes(xuser._id.toString())) {
+                        allMutedList.push(xuser._id.toString());
+                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
                     } else {
-                        allMutedList[xroomId] = allMutedList[xroomId].filter(
-                            (id) => id !== xuser._id.toString(),
-                        );
-                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
+                        allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
+                        io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
                     }
                 } catch (err) {
                     console.log('error from mute all ' + err.toString());
@@ -1762,7 +1756,7 @@ module.exports = (io) => {
 
                 micAssigning = true; // Lock mic assignment immediately
                 try {
-                    if (micQueue[xroomId] && Array.from(micQueue[xroomId]).length === 0) {
+                    if (Array.from(micQueue[xroomId]).length === 0) {
                         console.log('Mic queue is empty.');
                         micAssigning = false; // Unlock assignment
                         return;
@@ -1795,7 +1789,7 @@ module.exports = (io) => {
                         );
 
                         // Place nextUserId at index 1 of the queue
-                        if (micQueue[xroomId] && micQueue[xroomId].length !== 0) {
+                        if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         }
 
@@ -1915,11 +1909,9 @@ module.exports = (io) => {
                 io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
             }
 
-            if (allMutedList[xroomId] && allMutedList[xroomId].includes(xuser._id.toString())) {
-                allMutedList[xroomId] = allMutedList[xroomId].filter(
-                    (id) => id !== xuser._id.toString(),
-                );
-                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
+            if (allMutedList.includes(xuser._id.toString())) {
+                allMutedList = allMutedList.filter((id) => id !== xuser._id.toString());
+                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList });
             }
 
             // // Close all WebRTC stuff
