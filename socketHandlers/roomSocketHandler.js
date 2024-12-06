@@ -59,7 +59,6 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         let socket_id = socket.request.connection.socketId;
         socket.handshake.query.icon = '0.png';
-
         // console.log(socket.handshake.query);
         console.log('new client room:', name, 'for room:', room_id, 'IP:', ip, 'KEY:', user_key);
 
@@ -348,6 +347,8 @@ module.exports = (io) => {
         var xroomId;
         var enterDate = null;
         var key = xclient.handshake.query.key;
+        allMutedList[xroomId] = [];
+        micQueue[xroomId] = [];
         console.log('on connection');
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
