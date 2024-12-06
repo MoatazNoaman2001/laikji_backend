@@ -1804,7 +1804,7 @@ module.exports = (io) => {
                                     userRef: new ObjectId(nextUserId),
                                     roomRef: new ObjectId(xroomId),
                                 },
-                                { ...nextUser, status: enums.statusTypes.empty },
+                                { status: enums.statusTypes.empty },
                                 { new: true },
                             );
                         }
