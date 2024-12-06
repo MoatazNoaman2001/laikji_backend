@@ -1796,18 +1796,19 @@ module.exports = (io) => {
                         // Place nextUserId at index 1 of the queue
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
-                        } else {
-                            console.log('updating user');
-                            await updateUser({ status: enums.statusTypes.empty.toString() });
-                            await roomUsersModel.findOneAndUpdate(
-                                {
-                                    userRef: new ObjectId(nextUserId),
-                                    roomRef: new ObjectId(xroomId),
-                                },
-                                { status: enums.statusTypes.empty.toString() },
-                                { new: true },
-                            );
                         }
+                        // else {
+                        //     console.log('updating user');
+                        //     await updateUser({ status: enums.statusTypes.empty.toString() });
+                        //     await roomUsersModel.findOneAndUpdate(
+                        //         {
+                        //             userRef: new ObjectId(nextUserId),
+                        //             roomRef: new ObjectId(xroomId),
+                        //         },
+                        //         { status: enums.statusTypes.empty.toString() },
+                        //         { new: true },
+                        //     );
+                        // }
 
                         io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
