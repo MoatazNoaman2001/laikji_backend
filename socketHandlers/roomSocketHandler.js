@@ -1762,24 +1762,41 @@ module.exports = (io) => {
                         return;
                     }
 
-                    const nextUserId = micQueue[xroomId].shift(); // Get the next user from the queue
+                    let nextUserId = micQueue[xroomId].shift(); // Get the next user from the queue
+
                     io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
                     console.log(
-                        `Assigning mic to user: ${nextUserId}. Queue length: ${
+                        `Attempting to assign mic to user: ${nextUserId}. Queue length: ${
                             Array.from(micQueue[xroomId]).length
                         }`,
                     );
 
                     const nextUser = await getUserById(nextUserId, xroomId);
-                    if (
-                        !nextUser ||
-                        roomInfo.speakers.has(nextUserId) ||
-                        nextUser.status == enums.statusTypes.out
-                    ) {
+                    if (!nextUser || roomInfo.speakers.has(nextUserId)) {
                         console.log(
-                            ` User ${nextUserId} is already a speaker or not found. Skipping...`,
+                            `User ${nextUserId} is already a speaker or not found. Skipping...`,
                         );
+                        micAssigning = false;
+
+                        await assignMic(); // Recursively try the next user
+                        return;
+                    }
+
+                    if (nextUser.status === enums.statusTypes.out) {
+                        console.log(
+                            `User ${nextUserId} has status 'out'. Moving to second position in the queue.`,
+                        );
+
+                        // Place nextUserId at index 1 of the queue
+                        if (micQueue[xroomId].length === 0) {
+                            micQueue[xroomId].push(nextUserId); // If the queue is empty, add to the end
+                        } else {
+                            micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
+                        }
+
+                        io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
+
                         micAssigning = false;
 
                         await assignMic(); // Recursively try the next user
@@ -1797,7 +1814,7 @@ module.exports = (io) => {
                     console.log('Mic assignment process completed.');
                 }
             } catch (err) {
-                console.log('error from assign mic ' + err.toString());
+                console.log('Error from assign mic: ' + err.toString());
             }
         };
 
