@@ -342,8 +342,7 @@ module.exports = (io) => {
         if (!is_error) {
             next();
         }
-        micQueue[room_id.toString()] = [];
-        allMutedList[room_id.toString()] = [];
+
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
         var xroomId;
@@ -495,8 +494,8 @@ module.exports = (io) => {
                 users: users_in_room,
                 private_chats: private_chats,
                 waiting_users: users_in_waiting,
-                'muted-list': allMutedList[xroomId],
-                micQueue: micQueue[xroomId],
+                'muted-list': allMutedList[xroomId] ?? [],
+                micQueue: micQueue[xroomId] ?? [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
             console.log('mute list is ' + allMutedList[xroomId]);
