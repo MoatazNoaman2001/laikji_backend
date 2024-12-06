@@ -498,7 +498,7 @@ module.exports = (io) => {
                 micQueue: micQueue[xroomId] ?? [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
-            console.log('mute list is ' + allMutedList[xroomId]);
+            // console.log('mute list is ' + allMutedList[xroomId]);
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -1608,7 +1608,10 @@ module.exports = (io) => {
                     console.log('all muted list started', xuser.name);
                     if (!xuser) return;
 
-                    if (!allMutedList[xroomId].includes(xuser._id.toString())) {
+                    if (
+                        allMutedList[xroomId] &&
+                        !allMutedList[xroomId].includes(xuser._id.toString())
+                    ) {
                         allMutedList[xroomId].push(xuser._id.toString());
                         io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
                     } else {
@@ -1758,7 +1761,7 @@ module.exports = (io) => {
 
                 micAssigning = true; // Lock mic assignment immediately
                 try {
-                    if (Array.from(micQueue[xroomId]).length === 0) {
+                    if (micQueue[xroomId] && Array.from(micQueue[xroomId]).length === 0) {
                         console.log('Mic queue is empty.');
                         micAssigning = false; // Unlock assignment
                         return;
@@ -1791,7 +1794,7 @@ module.exports = (io) => {
                         );
 
                         // Place nextUserId at index 1 of the queue
-                        if (micQueue[xroomId].length !== 0) {
+                        if (micQueue[xroomId] && micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         }
 
@@ -1911,7 +1914,7 @@ module.exports = (io) => {
                 io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
             }
 
-            if (allMutedList[xroomId].includes(xuser._id.toString())) {
+            if (allMutedList[xroomId] && allMutedList[xroomId].includes(xuser._id.toString())) {
                 allMutedList[xroomId] = allMutedList[xroomId].filter(
                     (id) => id !== xuser._id.toString(),
                 );
