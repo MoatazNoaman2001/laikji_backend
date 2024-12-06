@@ -42,7 +42,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 const e = require('express');
 
 var micQueue = new Map(); // Queue to hold mic requests
-var allMutedList = []; // list for users whom muted all participarates
+var allMutedList = new Map(); // list for users whom muted all participarates
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
 let currentSession = null;
@@ -447,8 +447,12 @@ module.exports = (io) => {
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
-        micQueue[xroomId] = [];
-
+        if (!micQueue[xroomId]) {
+            micQueue[xroomId] = [];
+        }
+        if (!allMutedList[xroomId]) {
+            allMutedList[xroomId] = [];
+        }
         const continue_to_room = async () => {
             // add user to room
             xclient.join(xroomId);
