@@ -1797,6 +1797,12 @@ module.exports = (io) => {
                         // Place nextUserId at index 1 of the queue
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
+                        } else {
+                            await updateUser(
+                                { ...nextUser, status: enums.statusTypes.empty },
+                                nextUser._id.toString(),
+                                xroomId,
+                            );
                         }
 
                         io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
