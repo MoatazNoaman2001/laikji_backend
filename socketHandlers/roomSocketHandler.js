@@ -502,7 +502,6 @@ module.exports = (io) => {
                 micQueue: micQueue[xroomId],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
             });
-            console.log('mute list is ' + allMutedList[xroomId]);
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -1799,6 +1798,7 @@ module.exports = (io) => {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         } else {
                             console.log('updating user');
+                            await updateUser({ status: enums.statusTypes.empty.toString() });
                             await roomUsersModel.findOneAndUpdate(
                                 {
                                     userRef: new ObjectId(nextUserId),
@@ -1894,6 +1894,24 @@ module.exports = (io) => {
         }
 
         ////////////////// DISCONNECT CLIENT /////////////////////////
+        xclient.on('reconnect', () => {
+            io.to(xuser.socketId).emit('update-speakers', Array.from(roomInfo.speakers));
+
+            io.to(xuser.socketId).emit('mic-queue-update', micQueue[xroomId]);
+            io.to(xuser.socketId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
+            //     xclient.emit('started', {
+            //     ok: true,
+            //     user: xuser,
+            //     member: member,
+            //     room: await public_room(room),
+            //     users: users_in_room,
+            //     private_chats: private_chats,
+            //     waiting_users: users_in_waiting,
+            //     'muted-list': allMutedList[xroomId],
+            //     micQueue: micQueue[xroomId],
+            //     speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
+            // });
+        });
 
         xclient.on('disconnect', async (data) => {
             console.log(
