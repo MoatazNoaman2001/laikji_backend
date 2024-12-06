@@ -1798,10 +1798,14 @@ module.exports = (io) => {
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         } else {
-                            await updateUser(
+                            console.log('updating user');
+                            await roomUsersModel.findOneAndUpdate(
+                                {
+                                    userRef: new ObjectId(nextUserId),
+                                    roomRef: new ObjectId(xroomId),
+                                },
                                 { ...nextUser, status: enums.statusTypes.empty },
-                                nextUser._id.toString(),
-                                xroomId,
+                                { new: true },
                             );
                         }
 
