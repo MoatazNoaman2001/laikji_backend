@@ -1400,10 +1400,9 @@ module.exports = (io) => {
                         0)
                 )
                     return;
-                if (
-                    micQueue[xroomId] &&
-                    Array.from(micQueue[xroomId]).includes(xuser._id.toString())
-                ) {
+                if (micQueue[xroomId] && Array.from(micQueue[xroomId]).length !== 0) {
+                    for (const id of micQueue[xroomId]) {
+                    }
                     micQueue[xroomId] = micQueue[xroomId].filter(
                         (id) => id === xuser._id.toString(),
                     );
@@ -1796,19 +1795,11 @@ module.exports = (io) => {
                         // Place nextUserId at index 1 of the queue
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
+                        } else {
+                            console.log('updating user');
+                            xuser.status = enums.statusTypes.empty.toString();
+                            xuser = await updateUser(xuser, xuser._id, xroomId);
                         }
-                        // else {
-                        //     console.log('updating user');
-                        //     await updateUser({ status: enums.statusTypes.empty.toString() });
-                        //     await roomUsersModel.findOneAndUpdate(
-                        //         {
-                        //             userRef: new ObjectId(nextUserId),
-                        //             roomRef: new ObjectId(xroomId),
-                        //         },
-                        //         { status: enums.statusTypes.empty.toString() },
-                        //         { new: true },
-                        //     );
-                        // }
 
                         io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
