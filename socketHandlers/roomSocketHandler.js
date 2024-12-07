@@ -749,7 +749,7 @@ module.exports = (io) => {
             xclient.on('change-user', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
-
+                console.log('data type ' + data.type);
                 switch (data.type) {
                     case 'info-change':
                         if (data.user.hasOwnProperty('status')) {
