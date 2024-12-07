@@ -1827,6 +1827,18 @@ module.exports = (io) => {
                             xuser.status = enums.statusTypes.empty.toString();
                             xuser = await updateUser(xuser, xuser._id, xroomId);
                         }
+                        // else {
+                        //     console.log('updating user');
+                        //     await updateUser({ status: enums.statusTypes.empty.toString() });
+                        //     await roomUsersModel.findOneAndUpdate(
+                        //         {
+                        //             userRef: new ObjectId(nextUserId),
+                        //             roomRef: new ObjectId(xroomId),
+                        //         },
+                        //         { status: enums.statusTypes.empty.toString() },
+                        //         { new: true },
+                        //     );
+                        // }
 
                         io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
