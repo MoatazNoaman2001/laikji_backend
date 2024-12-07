@@ -43,6 +43,7 @@ const e = require('express');
 
 var micQueue = new Map(); // Queue to hold mic requests
 var allMutedList = new Map(); // list for users whom muted all participarates
+var mutedSpeakers = new Map(); // list for users whom muted all participarates
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
 let currentSession = null;
@@ -452,6 +453,9 @@ module.exports = (io) => {
         }
         if (!allMutedList[xroomId]) {
             allMutedList[xroomId] = [];
+        }
+        if (!mutedSpeakers[xroomId]) {
+            mutedSpeakers[xroomId] = [];
         }
         const continue_to_room = async () => {
             // add user to room
@@ -1604,7 +1608,27 @@ module.exports = (io) => {
             });
 
             // end test mic features
+            xclient.on('mute-speaker', () => {
+                try {
+                    if (!xuser) return;
 
+                    if (!mutedSpeakers[xroomId].includes(xuser._id.toString())) {
+                        mutedSpeakers[xroomId].push(xuser._id.toString());
+                        io.to(xroomId).emit('speaker-muted', {
+                            mutedSpeakers: mutedSpeakers[xroomId],
+                        });
+                    } else {
+                        mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
+                            (id) => id !== xuser._id.toString(),
+                        );
+                        io.to(xroomId).emit('speaker-muted', {
+                            mutedSpeakers: mutedSpeakers[xroomId],
+                        });
+                    }
+                } catch (err) {
+                    console.log('error from mute speaker ' + err.toString());
+                }
+            });
             xclient.on('mute-all', async () => {
                 try {
                     console.log('all muted list started', xuser.name);
