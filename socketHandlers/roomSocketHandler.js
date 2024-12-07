@@ -1828,6 +1828,12 @@ module.exports = (io) => {
                                 console.log('updating user');
                                 xuser.status = enums.statusTypes.empty.toString();
                                 xuser = await updateUser(xuser, xuser._id, xroomId);
+                                if (xuser.is_visible) {
+                                    io.emit(xroomId, {
+                                        type: data.type,
+                                        data: await public_user(xuser),
+                                    });
+                                }
                             }
                         }
                         // else {
