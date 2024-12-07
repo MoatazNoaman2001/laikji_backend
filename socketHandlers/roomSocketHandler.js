@@ -1608,6 +1608,9 @@ module.exports = (io) => {
             });
 
             // end test mic features
+
+            // mute speaker
+            // no data
             xclient.on('mute-speaker', () => {
                 try {
                     if (!xuser) return;
