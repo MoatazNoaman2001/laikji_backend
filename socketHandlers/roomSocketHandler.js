@@ -1824,7 +1824,6 @@ module.exports = (io) => {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         } else {
                             if (xuser.hasOwnProperty('status')) {
-                                xuser.status = data.user.status;
                                 console.log('change status ' + enums.statusTypes.empty.toString());
                                 console.log('updating user');
                                 xuser.status = enums.statusTypes.empty.toString();
