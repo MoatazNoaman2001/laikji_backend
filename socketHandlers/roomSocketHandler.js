@@ -754,7 +754,7 @@ module.exports = (io) => {
                     case 'info-change':
                         if (data.user.hasOwnProperty('status')) {
                             xuser.status = data.user.status;
-
+                            console.log('change status ' + data.user.status);
                             if (
                                 data.user.status != enums.statusTypes.f1 &&
                                 data.user.status != enums.statusTypes.f2 &&
