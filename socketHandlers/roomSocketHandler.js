@@ -1823,9 +1823,13 @@ module.exports = (io) => {
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         } else {
-                            console.log('updating user');
-                            xuser.status = '0';
-                            xuser = await updateUser(xuser, xuser._id, xroomId);
+                            if (xuser.hasOwnProperty('status')) {
+                                xuser.status = data.user.status;
+                                console.log('change status ' + enums.statusTypes.empty.toString());
+                                console.log('updating user');
+                                xuser.status = enums.statusTypes.empty.toString();
+                                xuser = await updateUser(xuser, xuser._id, xroomId);
+                            }
                         }
                         // else {
                         //     console.log('updating user');
