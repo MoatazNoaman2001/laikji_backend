@@ -1830,7 +1830,7 @@ module.exports = (io) => {
                                 xuser = await updateUser(xuser, xuser._id, xroomId);
                                 if (xuser.is_visible) {
                                     io.emit(xroomId, {
-                                        type: data.type,
+                                        type: 'status',
                                         data: await public_user(xuser),
                                     });
                                 }
