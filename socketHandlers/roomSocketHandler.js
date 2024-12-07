@@ -1824,7 +1824,7 @@ module.exports = (io) => {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         } else {
                             console.log('updating user');
-                            xuser.status = enums.statusTypes.empty.toString();
+                            xuser.status = enums.statusTypes.empty;
                             xuser = await updateUser(xuser, xuser._id, xroomId);
                         }
                         // else {
