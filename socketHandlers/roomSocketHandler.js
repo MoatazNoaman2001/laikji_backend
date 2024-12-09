@@ -753,8 +753,16 @@ module.exports = (io) => {
                 switch (data.type) {
                     case 'info-change':
                         if (data.user.hasOwnProperty('status')) {
-                            xuser.status = data.user.status;
-                            console.log('change status ' + data.user.status);
+                            if (
+                                data.user.status == enums.statusTypes.out &&
+                                !micQueue[xroomId].includes(xuser._id.toString())
+                            ) {
+                                xuser.status = enums.statusTypes.empty.toString();
+                            } else {
+                                xuser.status = data.user.status;
+                                console.log('change status ' + data.user.status);
+                            }
+
                             if (
                                 data.user.status != enums.statusTypes.f1 &&
                                 data.user.status != enums.statusTypes.f2 &&
