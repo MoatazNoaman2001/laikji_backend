@@ -442,7 +442,8 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             },
         });
         if (req.body.mic == true) {
-            global.io.emit(user.socketId, {
+            console.log('stopping....');
+            global.io.emit(room._id, {
                 type: 'stop-mic',
                 data: {
                     userId: req.body.user_id,
