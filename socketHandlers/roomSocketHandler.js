@@ -795,12 +795,7 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('prevent_private_screenshot')) {
                             xuser.prevent_private_screenshot = data.user.prevent_private_screenshot;
                         }
-                        if (
-                            data.user.hasOwnProperty('can_use_mic') &&
-                            data.user.can_use_mic == true
-                        ) {
-                            stopMic(data.user._id.toString());
-                        }
+
                         xuser = await updateUser(xuser, xuser._id, xroomId);
                         break;
 
@@ -813,6 +808,12 @@ module.exports = (io) => {
                         type: data.type,
                         data: await public_user(xuser),
                     });
+                }
+            });
+            xclient.on('command-stop', (data) => {
+                console.log('listen to command stop');
+                if (data.user.can_use_mic == true) {
+                    stopMic(data.user._id.toString());
                 }
             });
 
