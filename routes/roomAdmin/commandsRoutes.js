@@ -441,15 +441,6 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
         });
-        if (req.body.mic == true) {
-            console.log('stopping....');
-            global.io.emit(room._id, {
-                type: 'stop-mic',
-                data: {
-                    userId: req.body.user_id,
-                },
-            });
-        }
 
         let msg_ar = `قام بإيقاف عضو`;
         let msg_en = `has stopped a user`;

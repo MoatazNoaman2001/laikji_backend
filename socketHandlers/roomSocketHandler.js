@@ -795,7 +795,12 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('prevent_private_screenshot')) {
                             xuser.prevent_private_screenshot = data.user.prevent_private_screenshot;
                         }
-
+                        if (
+                            data.user.hasOwnProperty('can_use_mic') &&
+                            data.user.can_use_mic == true
+                        ) {
+                            stopMic(data.user._id.toString());
+                        }
                         xuser = await updateUser(xuser, xuser._id, xroomId);
                         break;
 
@@ -1296,21 +1301,7 @@ module.exports = (io) => {
                     );
                 }
             });
-            xclient.on('stop-mic', (data) => {
-                console.log('listen to stop mic');
-                const userId = data.userId;
-                if (roomInfo.speakers.has(userId)) {
-                    releaseMic(userId);
-                    if (Array.from(roomInfo.speakers).length == 0) {
-                        console.log('clear timer from admin disable mic');
-                        clearActiveTimers();
-                    }
-                } else if (micQueue[xroomId] && Array.from(micQueue[xroomId]).includes(userId)) {
-                    console.log(`User ${userId} is already in the queue.`);
-                    micQueue[xroomId] = micQueue[xroomId].filter((id) => id !== userId);
-                    io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
-                }
-            });
+
             // سحب المايك من الجميع إلا هذا
             xclient.on('disable-mic-but-user', async (data) => {
                 if (
@@ -1888,7 +1879,20 @@ module.exports = (io) => {
                 console.log('error from assign speaker ' + err.toString());
             }
         };
-
+        const stopMic = (userId) => {
+            console.log('listen to stop mic');
+            if (roomInfo.speakers.has(userId)) {
+                releaseMic(userId);
+                if (Array.from(roomInfo.speakers).length == 0) {
+                    console.log('clear timer from admin disable mic');
+                    clearActiveTimers();
+                }
+            } else if (micQueue[xroomId] && Array.from(micQueue[xroomId]).includes(userId)) {
+                console.log(`User ${userId} is already in the queue.`);
+                micQueue[xroomId] = micQueue[xroomId].filter((id) => id !== userId);
+                io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
+            }
+        };
         /////////////// CHECk ROOM LOCK CASES //////////////////
         if (
             room.lock_status == 0 ||
