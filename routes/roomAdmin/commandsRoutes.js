@@ -316,6 +316,7 @@ router.post('/kick', userInRoomMiddleware, async (req, res) => {
 
 router.post('/stop', userInRoomMiddleware, async (req, res) => {
     try {
+        console.log('stop user ' + JSON.stringify(req.body, null, 2));
         let room = req.room;
 
         let user = await getUserById(req.body.user_id, room._id);
@@ -441,12 +442,14 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
         });
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'stop-mic',
-            data: {
-                userId: req.body.user_id,
-            },
-        });
+        if (req.body.mic == true) {
+            global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+                type: 'stop-mic',
+                data: {
+                    userId: req.body.user_id,
+                },
+            });
+        }
 
         let msg_ar = `قام بإيقاف عضو`;
         let msg_en = `has stopped a user`;
