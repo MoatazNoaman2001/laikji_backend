@@ -749,7 +749,6 @@ module.exports = (io) => {
             xclient.on('change-user', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
-                console.log('data type ' + data.type);
                 switch (data.type) {
                     case 'info-change':
                         if (data.user.hasOwnProperty('status')) {
@@ -760,7 +759,6 @@ module.exports = (io) => {
                                 xuser.status = enums.statusTypes.empty.toString();
                             } else {
                                 xuser.status = data.user.status;
-                                console.log('change status ' + data.user.status);
                             }
 
                             if (
@@ -1830,20 +1828,21 @@ module.exports = (io) => {
                         // Place nextUserId at index 1 of the queue
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
-                        } else {
-                            if (xuser.hasOwnProperty('status')) {
-                                console.log('change status ' + enums.statusTypes.empty.toString());
-                                console.log('updating user');
-                                xuser.status = enums.statusTypes.empty.toString();
-                                xuser = await updateUser(xuser, xuser._id, xroomId);
-                                if (xuser.is_visible) {
-                                    io.emit(xroomId, {
-                                        type: 'info-change',
-                                        data: await public_user(xuser),
-                                    });
-                                }
-                            }
                         }
+                        // else {
+                        //     if (xuser.hasOwnProperty('status')) {
+                        //         console.log('change status ' + enums.statusTypes.empty.toString());
+                        //         console.log('updating user');
+                        //         xuser.status = enums.statusTypes.empty.toString();
+                        //         xuser = await updateUser(xuser, xuser._id, xroomId);
+                        //         if (xuser.is_visible) {
+                        //             io.emit(xroomId, {
+                        //                 type: 'info-change',
+                        //                 data: await public_user(xuser),
+                        //             });
+                        //         }
+                        //     }
+                        // }
                         // else {
                         //     console.log('updating user');
                         //     await updateUser({ status: enums.statusTypes.empty.toString() });
