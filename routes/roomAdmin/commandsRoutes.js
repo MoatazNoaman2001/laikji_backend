@@ -442,7 +442,7 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             },
         });
         if (req.body.mic == true) {
-            global.io.emit(req.body.user.socketId, {
+            global.io.emit(user.socketId, {
                 type: 'stop-mic',
                 data: {
                     userId: req.body.user_id,
