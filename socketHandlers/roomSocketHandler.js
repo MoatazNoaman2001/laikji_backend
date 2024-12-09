@@ -1296,6 +1296,20 @@ module.exports = (io) => {
                     );
                 }
             });
+            xclient.on('stop-mic', async (data) => {
+                const userId = data.userId;
+                if (roomInfo.speakers.has(userId)) {
+                    releaseMic(userId);
+                    if (Array.from(roomInfo.speakers).length == 0) {
+                        console.log('clear timer from admin disable mic');
+                        clearActiveTimers();
+                    }
+                } else if (micQueue[xroomId] && Array.from(micQueue[xroomId]).includes(userId)) {
+                    console.log(`User ${userId} is already in the queue.`);
+                    micQueue[xroomId] = micQueue[xroomId].filter((id) => id !== userId);
+                    io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
+                }
+            });
             // سحب المايك من الجميع إلا هذا
             xclient.on('disable-mic-but-user', async (data) => {
                 if (
@@ -1829,32 +1843,6 @@ module.exports = (io) => {
                         if (micQueue[xroomId].length !== 0) {
                             micQueue[xroomId].splice(1, 0, nextUserId); // Insert at index 1
                         }
-                        // else {
-                        //     if (xuser.hasOwnProperty('status')) {
-                        //         console.log('change status ' + enums.statusTypes.empty.toString());
-                        //         console.log('updating user');
-                        //         xuser.status = enums.statusTypes.empty.toString();
-                        //         xuser = await updateUser(xuser, xuser._id, xroomId);
-                        //         if (xuser.is_visible) {
-                        //             io.emit(xroomId, {
-                        //                 type: 'info-change',
-                        //                 data: await public_user(xuser),
-                        //             });
-                        //         }
-                        //     }
-                        // }
-                        // else {
-                        //     console.log('updating user');
-                        //     await updateUser({ status: enums.statusTypes.empty.toString() });
-                        //     await roomUsersModel.findOneAndUpdate(
-                        //         {
-                        //             userRef: new ObjectId(nextUserId),
-                        //             roomRef: new ObjectId(xroomId),
-                        //         },
-                        //         { status: enums.statusTypes.empty.toString() },
-                        //         { new: true },
-                        //     );
-                        // }
 
                         io.to(xroomId).emit('mic-queue-update', micQueue[xroomId]);
 
