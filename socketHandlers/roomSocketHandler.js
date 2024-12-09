@@ -1296,7 +1296,8 @@ module.exports = (io) => {
                     );
                 }
             });
-            xclient.on('stop-mic', async (data) => {
+            xclient.on('stop-mic', (data) => {
+                console.log('listen to stop mic');
                 const userId = data.userId;
                 if (roomInfo.speakers.has(userId)) {
                     releaseMic(userId);

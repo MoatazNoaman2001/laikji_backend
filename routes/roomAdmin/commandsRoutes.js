@@ -316,7 +316,6 @@ router.post('/kick', userInRoomMiddleware, async (req, res) => {
 
 router.post('/stop', userInRoomMiddleware, async (req, res) => {
     try {
-        console.log('stop user ' + JSON.stringify(req.body, null, 2));
         let room = req.room;
 
         let user = await getUserById(req.body.user_id, room._id);
@@ -443,7 +442,7 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             },
         });
         if (req.body.mic == true) {
-            global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+            global.io.emit(req.body.user.socketId, {
                 type: 'stop-mic',
                 data: {
                     userId: req.body.user_id,
