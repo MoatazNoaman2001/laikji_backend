@@ -771,6 +771,13 @@ module.exports = (io) => {
                                 xuser.game_number_color = '255|255|255';
                             }
                         }
+                        if (
+                            data.user.hasOwnProperty('can_use_mic') &&
+                            data.use.can_use_mic == false
+                        ) {
+                            console.log('from room socket');
+                            stopMic(data.user._id.toString());
+                        }
 
                         if (data.user.hasOwnProperty('icon')) xuser.icon = data.user.icon;
 
