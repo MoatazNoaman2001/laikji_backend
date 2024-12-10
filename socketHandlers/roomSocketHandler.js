@@ -773,7 +773,7 @@ module.exports = (io) => {
                         }
                         if (
                             data.user.hasOwnProperty('can_use_mic') &&
-                            data.use.can_use_mic == false
+                            data.user.can_use_mic == false
                         ) {
                             console.log('from room socket');
                             stopMic(data.user._id.toString());
