@@ -745,7 +745,6 @@ module.exports = (io) => {
                     });
                 }
             });
-
             xclient.on('change-user', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
@@ -770,13 +769,6 @@ module.exports = (io) => {
                                 xuser.game_number = '';
                                 xuser.game_number_color = '255|255|255';
                             }
-                        }
-                        if (
-                            data.user.hasOwnProperty('can_use_mic') &&
-                            data.user.can_use_mic == true
-                        ) {
-                            console.log('from room socket');
-                            stopMic(data.user._id.toString());
                         }
 
                         if (data.user.hasOwnProperty('icon')) xuser.icon = data.user.icon;
@@ -818,8 +810,8 @@ module.exports = (io) => {
                 }
             });
             xclient.on('command-stop', (data) => {
-                console.log('listen to command stop');
-                if (data.user.can_use_mic == true) {
+                if (data.user.hasOwnProperty('can_use_mic') && data.user.can_use_mic == true) {
+                    console.log('from room socket');
                     stopMic(data.user._id.toString());
                 }
             });
