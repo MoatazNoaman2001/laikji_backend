@@ -211,9 +211,9 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
 };
 const stopMic = (userId, xroomId, roomInfo) => {
     console.log('listen to stop mic for room ' + xroomId);
+    console.log('condition is true for speakers ' + Array.from(roomInfo.speaker).length);
 
     if (roomInfo.speakers.has(userId)) {
-        console.log('condition is true for speakers ' + Array.from(roomInfo.speaker).length);
         releaseMic(roomInfo, userId, xroomId);
         if (Array.from(roomInfo.speakers).length == 0) {
             console.log('clear timer from admin disable mic');
