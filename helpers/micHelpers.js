@@ -209,9 +209,10 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
         console.log('error from assign speaker ' + err.toString());
     }
 };
-const stopMic = (userId, xroomId, roomInfo) => {
+const stopMic = async (userId, xroomId) => {
     console.log('listen to stop mic for room ' + xroomId);
-    console.log('condition is true for speakers ' + Array.from(roomInfo.speaker).length);
+    const roomInfo = await getRoomData(xroomId);
+    console.log('stop mic ' + JSON.stringify(roomInfo, null, 2));
 
     if (roomInfo.speakers.has(userId)) {
         releaseMic(roomInfo, userId, xroomId);
