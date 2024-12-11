@@ -209,16 +209,16 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
         console.log('error from assign speaker ' + err.toString());
     }
 };
-const stopMic = async (userId, xroomId, roomInfo) => {
+const stopMic = (userId, xroomId, roomInfo) => {
     console.log('listen to stop mic');
-    if (roomInfo.speakers.has(userId)) {
+    if (Array.from(roomInfo.speakers).has(userId)) {
         console.log('condition is true for speakers');
         releaseMic(roomInfo, userId, xroomId);
         if (Array.from(roomInfo.speakers).length == 0) {
             console.log('clear timer from admin disable mic');
             clearActiveTimers(xroomId);
         }
-    } else if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
+    } else if (Array.from(roomInfo.micQueue) && Array.from(roomInfo.micQueue).includes(userId)) {
         console.log('condition is true for mic queue');
 
         console.log(`User ${userId} is already in the queue.`);
