@@ -22,6 +22,7 @@ function getRoomData(roomId) {
         roomData.set(roomId, {
             speakers: new Set(),
             listeners: new Set(),
+            micQueue: new Array(),
             holdMic: new Set(),
         });
     }
