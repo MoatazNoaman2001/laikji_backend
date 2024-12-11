@@ -210,8 +210,8 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
     }
 };
 const stopMic = (userId, xroomId, roomInfo) => {
-    console.log('listen to stop mic');
-    if (Array.from(roomInfo.speakers).includes(userId)) {
+    console.log('listen to stop mic for room ' + xroomId);
+    if (roomInfo.speakers.has(userId)) {
         console.log('condition is true for speakers');
         releaseMic(roomInfo, userId, xroomId);
         if (Array.from(roomInfo.speakers).length == 0) {
