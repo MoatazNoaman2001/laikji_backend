@@ -7,7 +7,6 @@ const entryLogModel = require('../../models/entryLogModel');
 const privateMessageModel = require('../../models/privateMessageModel');
 const privateChatModel = require('../../models/privateChatModel');
 const enums = require('../../helpers/enums');
-const { stopMic } = require('../../socketHandlers/roomSocketHandler');
 const {
     getUserById,
     updateUser,
@@ -19,6 +18,7 @@ const {
 const userModal = require('../../models/userModal');
 const { endJokerInRoom } = require('../../helpers/helpers');
 const { getRoomData } = require('../../helpers/mediasoupHelpers');
+const { stopMic } = require('../../helpers/micHelpers');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.post('/ban', userInRoomMiddleware, async (req, res) => {
