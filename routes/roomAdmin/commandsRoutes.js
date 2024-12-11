@@ -444,7 +444,7 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             },
         });
         if (req.body.mic == true) {
-            const roomInfo = await getRoomData(xroomId);
+            const roomInfo = await getRoomData(room._id);
 
             stopMic(req.body.user_id, room._id, roomInfo);
         }
