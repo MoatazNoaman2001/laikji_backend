@@ -444,7 +444,9 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             },
         });
         if (req.body.mic == true) {
-            stopMic(req.body.user_id, room._id);
+            const roomInfo = await getRoomData(xroomId);
+
+            stopMic(req.body.user_id, room._id, roomInfo);
         }
         let msg_ar = `قام بإيقاف عضو`;
         let msg_en = `has stopped a user`;
