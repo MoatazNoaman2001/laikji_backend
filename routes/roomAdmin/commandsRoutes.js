@@ -443,7 +443,7 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
         });
-        if (req.body.can_use_mic == true) {
+        if (req.body.can_use_mic == false) {
             stopMic(req.body.user_id, room._id);
         }
         let msg_ar = `قام بإيقاف عضو`;

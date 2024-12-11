@@ -97,7 +97,6 @@ const startInterval = async (time, xroomId, roomInfo) => {
         // Emit time updates every second
         const interval = setInterval(() => {
             time -= 1000;
-            console.log('cuurent session time left : ' + currentSession);
             global.io.to(xroomId).emit('speaker-time-update', {
                 userId: Array.from(roomInfo.speakers)[0],
                 timeLeft: time / 1000,
