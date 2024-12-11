@@ -1114,7 +1114,7 @@ module.exports = (io) => {
                     // if (!xuser) return;
                     const user = await getUserById(data.userId, xroomId);
                     const newRoom = await roomModel.findById(xroomId);
-                    if (user) {
+                    if (user && user.can_use_mic) {
                         if (
                             newRoom.mic.mic_permission !== 0 &&
                             (newRoom.mic.mic_permission === 1 ||
