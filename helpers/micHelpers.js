@@ -161,7 +161,7 @@ const assignMic = async (xroomId, roomInfo) => {
                     continue;
                 }
 
-                if (nextUser.status === enums.statusTypes.out) {
+                if (nextUser.status == enums.statusTypes.out) {
                     console.log(
                         `User ${nextUserId} has status 'out'. Moving to second position in the queue.`,
                     );
@@ -173,7 +173,7 @@ const assignMic = async (xroomId, roomInfo) => {
 
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                     processedUsers.add(nextUserId);
-                    await assignMic(); // Skip to the next iteration
+                    continue; // Skip to the next iteration
                 }
 
                 const room = await roomModel.findById(xroomId);
