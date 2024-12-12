@@ -1536,7 +1536,7 @@ module.exports = (io) => {
                         const speaker = await getUserById(userId, xroomId);
                         if (speaker) {
                             const timeLeft = getUserTimeLeft(speaker.type, newRoom);
-                            startInterval(timeLeft);
+                            startInterval(timeLeft, xroomId, roomInfo);
                             addAdminLog(
                                 xuser,
                                 xroomId,
