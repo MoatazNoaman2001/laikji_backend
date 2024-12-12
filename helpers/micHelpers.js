@@ -144,8 +144,7 @@ const assignMic = async (xroomId, roomInfo) => {
                     console.log(
                         'All users in the queue have been processed and skipped. Exiting assignment loop.',
                     );
-                    roomInfo.micQueue = [];
-                    break;
+                    continue;
                 }
 
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
