@@ -1377,6 +1377,7 @@ module.exports = (io) => {
             // سحب من دور المايك
             // data = {userId}
             xclient.on('remove-from-mic-queue', async (data) => {
+                console.log('remove from mic queue');
                 try {
                     if (
                         !xuser ||
