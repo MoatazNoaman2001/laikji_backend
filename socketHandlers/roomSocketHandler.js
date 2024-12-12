@@ -4,7 +4,7 @@ const roomModel = require('../models/roomModel');
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
-const { releaseMic, assignSpeaker, clearActiveTimers } = require('../helpers/micHelpers');
+const { releaseMic, assignSpeaker, clearActiveTimers, get } = require('../helpers/micHelpers');
 const memberModal = require('../models/memberModal');
 const { filterMsg } = require('../helpers/filterHelpers');
 const { getMyPrivateChats, deleteMyChat, ignoredUsers } = require('../helpers/privateChatHelpers');
@@ -1580,7 +1580,7 @@ module.exports = (io) => {
                                         roomInfo.micQueue &&
                                         roomInfo.micQueue.includes(userToShareWith._id.toString())
                                     ) {
-                                        roomInfo.micQueue = roomInfo.micQueue[xroomId].filter(
+                                        roomInfo.micQueue = roomInfo.micQueue.filter(
                                             (id) => id !== userToShareWith._id.toString(),
                                         );
                                         io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
