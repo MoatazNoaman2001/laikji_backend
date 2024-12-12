@@ -132,52 +132,60 @@ const assignMic = async (xroomId, roomInfo) => {
         }
 
         micAssigning = true; // Lock mic assignment immediately
+        const processedUsers = new Set(); // Track users skipped in this cycle
+
         try {
-            if (roomInfo.micQueue.length === 0) {
-                console.log('Mic queue is empty.');
-                micAssigning = false; // Unlock assignment
-                return;
-            }
+            while (roomInfo.micQueue.length > 0) {
+                let nextUserId = roomInfo.micQueue.shift(); // Get the next user from the queue
 
-            let nextUserId = roomInfo.micQueue.shift(); // Get the next user from the queue
-
-            global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-
-            console.log(
-                `Attempting to assign mic to user: ${nextUserId}. Queue length: ${roomInfo.micQueue.length}`,
-            );
-
-            const nextUser = await getUserById(nextUserId, xroomId);
-            if (!nextUser || roomInfo.speakers.has(nextUserId)) {
-                console.log(`User ${nextUserId} is already a speaker or not found. Skipping...`);
-                micAssigning = false;
-
-                await assignMic(xroomId, roomInfo); // Recursively try the next user
-                return;
-            }
-
-            if (nextUser.status == enums.statusTypes.out) {
-                console.log(
-                    `User ${nextUserId} has status 'out'. Moving to second position in the queue.`,
-                );
-
-                // Place nextUserId at index 1 of the queue
-                if (roomInfo.micQueue.length > 0) {
-                    roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                // If the user has already been processed in this cycle, break to prevent an infinite loop
+                if (processedUsers.has(nextUserId)) {
+                    console.log(
+                        'All users in the queue have been processed and skipped. Exiting assignment loop.',
+                    );
+                    break;
                 }
 
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
-                micAssigning = false;
+                console.log(
+                    `Attempting to assign mic to user: ${nextUserId}. Queue length: ${roomInfo.micQueue.length}`,
+                );
 
-                await assignMic(xroomId, roomInfo); // Recursively try the next user
-                return;
+                const nextUser = await getUserById(nextUserId, xroomId);
+                if (!nextUser || roomInfo.speakers.has(nextUserId)) {
+                    console.log(
+                        `User ${nextUserId} is already a speaker or not found. Skipping...`,
+                    );
+                    processedUsers.add(nextUserId);
+                    continue;
+                }
+
+                if (nextUser.status === enums.statusTypes.out) {
+                    console.log(
+                        `User ${nextUserId} has status 'out'. Moving to second position in the queue.`,
+                    );
+
+                    // Place nextUserId at index 1 of the queue
+                    if (roomInfo.micQueue.length !== 0) {
+                        roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                    }
+
+                    global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                    processedUsers.add(nextUserId);
+                    continue; // Skip to the next iteration
+                }
+
+                const room = await roomModel.findById(xroomId);
+                if (!room) return;
+
+                await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
+                break; // Exit loop after successfully assigning the mic
             }
 
-            const room = await roomModel.findById(xroomId);
-            if (!room) return;
-
-            await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
+            if (roomInfo.micQueue.length === 0) {
+                console.log('Mic queue is empty after processing all users.');
+            }
         } catch (error) {
             console.error(`Error in mic assignment: ${error.message}`);
         } finally {
