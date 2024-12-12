@@ -177,7 +177,7 @@ const assignMic = async (xroomId, roomInfo) => {
 
                     micAssigning = false;
                     processedUsers.add(nextUserId);
-                    await assignMic(xroomId, roomInfo);
+                    continue;
                 }
 
                 const room = await roomModel.findById(xroomId);
