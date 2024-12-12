@@ -1580,7 +1580,7 @@ module.exports = (io) => {
                         const speaker = await getUserById(userId, xroomId);
 
                         if (speaker) {
-                            startInterval(0o0);
+                            startInterval(0o0, xroomId, roomInfo);
                             addAdminLog(
                                 xuser,
                                 xroomId,
