@@ -167,7 +167,7 @@ const assignMic = async (xroomId, roomInfo) => {
                     roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                     processedUsers.add(nextUserId);
-                    continue; // Skip to the next iteration, user is removed
+                    await assignMic(xroomId, roomInfo);
                 }
 
                 const room = await roomModel.findById(xroomId);
