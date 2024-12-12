@@ -173,7 +173,7 @@ const assignMic = async (xroomId, roomInfo) => {
 
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                     processedUsers.add(nextUserId);
-                    continue; // Skip to the next iteration
+                    await assignMic(); // Skip to the next iteration
                 }
 
                 const room = await roomModel.findById(xroomId);
