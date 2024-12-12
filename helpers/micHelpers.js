@@ -138,13 +138,14 @@ const assignMic = async (xroomId, roomInfo) => {
         try {
             while (roomInfo.micQueue.length > 0) {
                 let nextUserId = roomInfo.micQueue.shift(); // Get the next user from the queue
-                // If the user has already been processed in this cycle, break to prevent an infinite loop
-                if (processedUsers.has(nextUserId)) {
-                    console.log(
-                        'All users in the queue have been processed and skipped. Exiting assignment loop.',
-                    );
-                    break;
-                }
+
+                // // If the user has already been processed in this cycle, break to prevent an infinite loop
+                // if (processedUsers.has(nextUserId)) {
+                //     console.log(
+                //         'All users in the queue have been processed and skipped. Exiting assignment loop.',
+                //     );
+                //     break;
+                // }
 
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
