@@ -1393,7 +1393,11 @@ module.exports = (io) => {
 
                     if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
                         console.log(`User ${userId} is already in the queue.`);
-                        roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== userId);
+                        var index = roomInfo.micQueue.indexOf(userId);
+                        if (index > -1) {
+                            roomInfo.micQueue.splice(index, 1);
+                        }
+                        //roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== userId);
                         io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                         addAdminLog(
                             xuser,
