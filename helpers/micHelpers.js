@@ -163,7 +163,7 @@ const assignMic = async (xroomId, roomInfo) => {
 
                 if (nextUser.status == enums.statusTypes.out) {
                     console.log(`User ${nextUserId} has status 'out'. Removing from queue.`);
-                    if (roomInfo.micQueue.length > 1) {
+                    if (roomInfo.micQueue.length > 0) {
                         roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
                     }
 
