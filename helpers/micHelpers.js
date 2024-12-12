@@ -177,12 +177,8 @@ const assignMic = async (xroomId, roomInfo) => {
                 }
 
                 const room = await roomModel.findById(xroomId);
-                if (!room) {
-                    console.log('Room not found. Exiting mic assignment.');
-                    break;
-                }
+                if (!room) return;
 
-                // Assign speaker if user is eligible
                 await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
                 break; // Exit loop after successfully assigning the mic
             }
