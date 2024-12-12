@@ -124,20 +124,20 @@ const startInterval = async (time, xroomId, roomInfo) => {
         activeTimers.get(xroomId).set(currentSession, 'open time');
     }
 };
+
 const assignMic = async (xroomId, roomInfo) => {
     try {
+        const processedUsers = new Set(); // Track users skipped in this cycle
+
         if (micAssigning) {
             console.log('Mic is currently in use or being assigned. Please wait.');
             return;
         }
 
         micAssigning = true; // Lock mic assignment immediately
-        const processedUsers = new Set(); // Track users skipped in this cycle
-
         try {
             while (roomInfo.micQueue.length > 0) {
                 let nextUserId = roomInfo.micQueue.shift(); // Get the next user from the queue
-
                 // If the user has already been processed in this cycle, break to prevent an infinite loop
                 if (processedUsers.has(nextUserId)) {
                     console.log(
@@ -155,17 +155,27 @@ const assignMic = async (xroomId, roomInfo) => {
                 const nextUser = await getUserById(nextUserId, xroomId);
                 if (!nextUser || roomInfo.speakers.has(nextUserId)) {
                     console.log(
-                        `User ${nextUserId} is already a speaker or not found. Removing from queue...`,
+                        `User ${nextUserId} is already a speaker or not found. Skipping...`,
                     );
+                    micAssigning = false;
+
                     processedUsers.add(nextUserId);
                     continue; // Remove the user and proceed to the next
                 }
 
                 if (nextUser.status == enums.statusTypes.out) {
-                    console.log(`User ${nextUserId} has status 'out'. Removing from queue.`);
+                    console.log(
+                        ` User ${nextUserId} has status 'out'. Moving to second position in the queue.,`,
+                    );
 
-                    roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                    // Place nextUserId at index 1 of the queue
+                    if (roomInfo.micQueue.length !== 0) {
+                        roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                    }
+
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+
+                    micAssigning = false;
                     processedUsers.add(nextUserId);
                     await assignMic(xroomId, roomInfo);
                 }
@@ -176,7 +186,6 @@ const assignMic = async (xroomId, roomInfo) => {
                     break;
                 }
 
-                // Assign speaker if user is eligible
                 await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
                 break; // Exit loop after successfully assigning the mic
             }
