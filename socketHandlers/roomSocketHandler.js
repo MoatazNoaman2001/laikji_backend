@@ -4,7 +4,13 @@ const roomModel = require('../models/roomModel');
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
-const { releaseMic, assignSpeaker, clearActiveTimers, get } = require('../helpers/micHelpers');
+const {
+    releaseMic,
+    assignSpeaker,
+    clearActiveTimers,
+    getUserTimeLeft,
+    startInterval,
+} = require('../helpers/micHelpers');
 const memberModal = require('../models/memberModal');
 const { filterMsg } = require('../helpers/filterHelpers');
 const { getMyPrivateChats, deleteMyChat, ignoredUsers } = require('../helpers/privateChatHelpers');
@@ -44,7 +50,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 //var micQueue = new Map(); // Queue to hold mic requests
 var allMutedList = new Map(); // list for users whom muted all participarates
 var mutedSpeakers = new Map(); // list for users whom muted all participarates
-
+var youtubeLink = null;
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -503,6 +509,7 @@ module.exports = (io) => {
                 'muted-list': allMutedList[xroomId],
                 micQueue: roomInfo != null ? roomInfo.micQueue : [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
+                link: youtubeLink,
             });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
@@ -1205,10 +1212,16 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain
                     ) {
-                        console.log('sending youtube link');
-
-                        io.to(xroomId).emit('youtube-link-shared', { link: data.link });
+                        if (youtubeLink != null) {
+                            youtubeLink = null;
+                        } else {
+                            console.log('sending youtube link');
+                            youtubeLink = data.link;
+                        }
                     }
+                    io.to(xroomId).emit('youtube-link-shared', {
+                        link: youtubeLink,
+                    });
                 } catch (err) {
                     console.log('error from share youtube link ' + err.toString());
                 }
@@ -1216,257 +1229,285 @@ module.exports = (io) => {
 
             // سحب المايك
             xclient.on('disable-mic', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                if (xuser.permissions[10] == 0) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: `you don't have a permission to do this action`,
-                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
-                    });
-                    return;
-                }
-                const newRoom = await roomModel.findById(xroomId);
-
-                if (newRoom.mic.mic_setting[0] === false) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: 'Disable mic is not allowed in this room',
-                        msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
-                    });
-                    return;
-                }
-
-                const userId = data.userId;
-                const user = await getUserById(userId, xroomId);
-                if (roomInfo.speakers.has(user._id.toString())) {
-                    releaseMic(roomInfo, user._id.toString(), xroomId);
-                    if (Array.from(roomInfo.speakers).length == 0) {
-                        console.log('clear timer from admin disable mic');
-                        clearActiveTimers(xroomId);
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    if (xuser.permissions[10] == 0) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: `you don't have a permission to do this action`,
+                            msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
+                        });
+                        return;
                     }
-                    console.log('after delete user id', roomInfo.speakers);
+                    const newRoom = await roomModel.findById(xroomId);
 
-                    console.log(`User ${user._id.toString()} has declined the mic.`);
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        `قام بسحب المايك من الاسم ${user.name}`,
-                        `has disabled mic for ${user.name}`,
-                    );
+                    if (newRoom.mic.mic_setting[0] === false) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: 'Disable mic is not allowed in this room',
+                            msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
+                        });
+                        return;
+                    }
+
+                    const userId = data.userId;
+                    const user = await getUserById(userId, xroomId);
+                    if (roomInfo.speakers.has(user._id.toString())) {
+                        releaseMic(roomInfo, user._id.toString(), xroomId);
+                        if (Array.from(roomInfo.speakers).length == 0) {
+                            console.log('clear timer from admin disable mic');
+                            clearActiveTimers(xroomId);
+                        }
+                        console.log('after delete user id', roomInfo.speakers);
+
+                        console.log(`User ${user._id.toString()} has declined the mic.`);
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            `قام بسحب المايك من الاسم ${user.name}`,
+                            `has disabled mic for ${user.name}`,
+                        );
+                    }
+                } catch (err) {
+                    console.log('error from disable mic  ' + err.toString());
                 }
             });
             // سحب المايك من الجميع
             xclient.on('disable-mic-for-all', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                if (xuser.permissions[10] == 0) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: `you don't have a permission to do this action`,
-                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
-                    });
-                    return;
-                }
-                const newRoom = await roomModel.findById(xroomId);
-                if (newRoom.mic.mic_setting[0] === false) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: 'Disable mic is not allowed in this room',
-                        msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
-                    });
-                }
-                if (Array.from(roomInfo.speakers).length !== 0) {
-                    for (const speakerId of roomInfo.speakers) {
-                        releaseMic(roomInfo, speakerId, xroomId);
-
-                        clearActiveTimers(xroomId);
-
-                        console.log('after disable mic for all ', roomInfo.speakers);
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    if (xuser.permissions[10] == 0) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: `you don't have a permission to do this action`,
+                            msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
+                        });
+                        return;
                     }
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        `قام بسحب المايك من الجميع `,
-                        `has disabled mic for all`,
-                    );
+                    const newRoom = await roomModel.findById(xroomId);
+                    if (newRoom.mic.mic_setting[0] === false) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: 'Disable mic is not allowed in this room',
+                            msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
+                        });
+                    }
+                    if (Array.from(roomInfo.speakers).length !== 0) {
+                        for (const speakerId of roomInfo.speakers) {
+                            releaseMic(roomInfo, speakerId, xroomId);
+
+                            clearActiveTimers(xroomId);
+
+                            console.log('after disable mic for all ', roomInfo.speakers);
+                        }
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            `قام بسحب المايك من الجميع `,
+                            `has disabled mic for all`,
+                        );
+                    }
+                } catch (err) {
+                    console.log('error from disable mic for all ' + err.toString());
                 }
             });
 
             // سحب المايك من الجميع إلا هذا
             xclient.on('disable-mic-but-user', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                if (xuser.permissions[10] == 0) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: `you don't have a permission to do this action`,
-                        msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
-                    });
-                    return;
-                }
-                const newRoom = await roomModel.findById(xroomId);
-                if (newRoom.mic.mic_setting[0] === false) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: 'Disable mic is not allowed in this room',
-                        msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
-                    });
-                }
-                const userId = data.userId;
-                const user = await getUserById(userId, xroomId);
-                const speakers = Array.from(roomInfo.speakers).filter((id) => id !== userId);
-                if (speakers.length !== 0) {
-                    for (const speakerId of speakers) {
-                        releaseMic(roomInfo, speakerId, xroomId);
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    if (xuser.permissions[10] == 0) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: `you don't have a permission to do this action`,
+                            msg_ar: 'أنت لا تملك الصلاحية للقيام بهذا الإجراء',
+                        });
+                        return;
                     }
-                    console.log('diabled mic for all users ', speakers);
+                    const newRoom = await roomModel.findById(xroomId);
+                    if (newRoom.mic.mic_setting[0] === false) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: 'Disable mic is not allowed in this room',
+                            msg_ar: 'سحب المايك غير مسموح في هذه الغرفة',
+                        });
+                    }
+                    const userId = data.userId;
+                    const user = await getUserById(userId, xroomId);
+                    const speakers = Array.from(roomInfo.speakers).filter((id) => id !== userId);
+                    if (speakers.length !== 0) {
+                        for (const speakerId of speakers) {
+                            releaseMic(roomInfo, speakerId, xroomId);
+                        }
+                        console.log('diabled mic for all users ', speakers);
 
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        `قام بسحب المايك من الجميع إلا من ${user.name}`,
-                        `has disabled mic for all except ${user.name}`,
-                    );
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            `قام بسحب المايك من الجميع إلا من ${user.name}`,
+                            `has disabled mic for all except ${user.name}`,
+                        );
+                    }
+                } catch (err) {
+                    console.log('error from disable mic but user ' + err.toString());
                 }
             });
 
             // سحب من دور المايك
             // data = {userId}
             xclient.on('remove-from-mic-queue', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                const userId = data.userId;
-                const user = await getUserById(userId, xroomId);
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    const userId = data.userId;
+                    const user = await getUserById(userId, xroomId);
 
-                if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
-                    console.log(`User ${userId} is already in the queue.`);
-                    roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== userId);
-                    io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        ` قام بسحب دور المايك من الاسم ${user.name}`,
-                        ` has removed ${user.name} from mic queue`,
-                    );
+                    if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
+                        console.log(`User ${userId} is already in the queue.`);
+                        roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== userId);
+                        io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            ` قام بسحب دور المايك من الاسم ${user.name}`,
+                            ` has removed ${user.name} from mic queue`,
+                        );
+                    }
+                } catch (err) {
+                    console.log('error from remove from mic queue ' + err.toString());
                 }
             });
 
             // سحب الجميع من دور المايك إلا هذ الاسم
             // data = {userId}
             xclient.on('remove-all-from-mic-queue-but-user', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                const userId = data.userId;
-                const user = await getUserById(userId, xroomId);
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    const userId = data.userId;
+                    const user = await getUserById(userId, xroomId);
 
-                if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
-                    roomInfo.micQueue = roomInfo.micQueue.filter((id) => id === userId);
-                    io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        ` قام بسحب دور المايك من الجميع إلا من الاسم ${user.name}`,
-                        ` has removed all from mic queue except ${user.name}`,
-                    );
+                    if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
+                        roomInfo.micQueue = roomInfo.micQueue.filter((id) => id === userId);
+                        io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            ` قام بسحب دور المايك من الجميع إلا من الاسم ${user.name}`,
+                            ` has removed all from mic queue except ${user.name}`,
+                        );
+                    }
+                } catch (err) {
+                    console.log('error from romve all but user from mic queue ' + err.toString());
                 }
             });
 
             // سحب الجميع من دور المايك إلا انا
             // no data
             xclient.on('remove-all-from-mic-queue', async () => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                if (roomInfo.micQueue && roomInfo.micQueue.length !== 0) {
-                    for (const id of roomInfo.micQueue) {
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    if (roomInfo.micQueue && roomInfo.micQueue.length !== 0) {
+                        for (const id of roomInfo.micQueue) {
+                        }
+                        roomInfo.micQueue = roomInfo.micQueue.filter(
+                            (id) => id === xuser._id.toString(),
+                        );
+                        io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            ` قام بسحب دور المايك من الجميع`,
+                            ` has removed all from mic queue`,
+                        );
                     }
-                    roomInfo.micQueue = roomInfo.micQueue.filter(
-                        (id) => id === xuser._id.toString(),
-                    );
-                    io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        ` قام بسحب دور المايك من الجميع`,
-                        ` has removed all from mic queue`,
-                    );
+                } catch (err) {
+                    console.log('error from remove all from mic queue ' + err.toString());
                 }
             });
 
             // اعطاء المايك لهذا الاسم
             // data = {userId}
             xclient.on('enable-mic-for-user', async (data) => {
-                if (
-                    !xuser ||
-                    (xuser.type !== enums.userTypes.root &&
-                        xuser.type !== enums.userTypes.chatmanager &&
-                        xuser.type !== enums.userTypes.master &&
-                        xuser.type !== enums.userTypes.mastermain &&
-                        xuser.type !== enums.userTypes.mastergirl &&
-                        0)
-                )
-                    return;
-                const userId = data.userId;
-                if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
-                    const user = await getUserById(userId, xroomId);
+                try {
+                    if (
+                        !xuser ||
+                        (xuser.type !== enums.userTypes.root &&
+                            xuser.type !== enums.userTypes.chatmanager &&
+                            xuser.type !== enums.userTypes.master &&
+                            xuser.type !== enums.userTypes.mastermain &&
+                            xuser.type !== enums.userTypes.mastergirl &&
+                            0)
+                    )
+                        return;
+                    const userId = data.userId;
+                    if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
+                        const user = await getUserById(userId, xroomId);
 
-                    const newRoom = await roomModel.findById(xroomId);
-                    for (const speakerId of Array.from(roomInfo.speakers)) {
-                        releaseMic(roomInfo, speakerId, xroomId);
-                        console.log('clear timer from start interval *3');
-                        clearActiveTimers(xroomId);
+                        const newRoom = await roomModel.findById(xroomId);
+                        for (const speakerId of Array.from(roomInfo.speakers)) {
+                            releaseMic(roomInfo, speakerId, xroomId);
+                            console.log('clear timer from start interval *3');
+                            clearActiveTimers(xroomId);
+                        }
+                        if (Array.from(roomInfo.speakers).length === 0) {
+                            assignSpeaker(roomInfo, user._id.toString(), user, newRoom, xroomId);
+                        }
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            ` قام بإعطاء المايك للاسم ${user.name}`,
+                            ` has enabled mic for ${user.name}`,
+                        );
                     }
-                    if (Array.from(roomInfo.speakers).length === 0) {
-                        assignSpeaker(roomInfo, user._id.toString(), user, newRoom, xroomId);
-                    }
-                    addAdminLog(
-                        xuser,
-                        xroomId,
-                        ` قام بإعطاء المايك للاسم ${user.name}`,
-                        ` has enabled mic for ${user.name}`,
-                    );
+                } catch (err) {
+                    console.log('error from enable mic for user ' + err.toString());
                 }
             });
 
@@ -1713,18 +1754,6 @@ module.exports = (io) => {
 
             io.to(xuser.socketId).emit('mic-queue-update', roomInfo.micQueue);
             io.to(xuser.socketId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
-            //     xclient.emit('started', {
-            //     ok: true,
-            //     user: xuser,
-            //     member: member,
-            //     room: await public_room(room),
-            //     users: users_in_room,
-            //     private_chats: private_chats,
-            //     waiting_users: users_in_waiting,
-            //     'muted-list': allMutedList[xroomId],
-            //     micQueue: roomInfo.micQueue,
-            //     speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
-            // });
         });
 
         xclient.on('disconnect', async (data) => {

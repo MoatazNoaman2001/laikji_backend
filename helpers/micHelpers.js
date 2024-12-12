@@ -226,4 +226,11 @@ const stopMic = async (userId, xroomId) => {
         global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
     }
 };
-module.exports = { releaseMic, stopMic, clearActiveTimers, assignSpeaker, getUserTimeLeft };
+module.exports = {
+    releaseMic,
+    stopMic,
+    clearActiveTimers,
+    assignSpeaker,
+    getUserTimeLeft,
+    startInterval,
+};
