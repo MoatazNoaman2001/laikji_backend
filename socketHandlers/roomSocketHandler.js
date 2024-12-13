@@ -1212,16 +1212,18 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain
                     ) {
-                        if (youtubeLink != null) {
-                            youtubeLink = null;
+                        if (youtubeLink[xuser._id.toString()] != null) {
+                            youtubeLink[xuser._id.toString()] = null;
                         } else {
-                            console.log('sending youtube link');
-                            const link = helpers.getEmbeddedYouTubeLink(data.link);
-                            youtubeLink = link;
+                            if (Array.from(roomInfo.speaker).has(xuser._id.toString())) {
+                                console.log('sending youtube link');
+                                const link = helpers.getEmbeddedYouTubeLink(data.link);
+                                youtubeLink[xuser._id.toString()] = link;
+                            }
                         }
                     }
                     io.to(xroomId).emit('youtube-link-shared', {
-                        link: youtubeLink,
+                        link: youtubeLink[xuser._id.toString()],
                     });
                 } catch (err) {
                     console.log('error from share youtube link ' + err.toString());
