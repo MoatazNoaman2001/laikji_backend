@@ -1216,7 +1216,8 @@ module.exports = (io) => {
                             youtubeLink = null;
                         } else {
                             console.log('sending youtube link');
-                            youtubeLink = data.link;
+                            const link = helpers.getEmbeddedYouTubeLink(data.link);
+                            youtubeLink = link;
                         }
                     }
                     io.to(xroomId).emit('youtube-link-shared', {

@@ -363,6 +363,28 @@ function num2ip(num) {
     return ip;
 }
 
+function getEmbeddedYouTubeLink(originalUrl) {
+    const urlPattern = /(?:youtube\.com\/.*v=|youtu\.be\/)([^&]+)/;
+    const match = originalUrl.match(urlPattern);
+
+    if (match && match[1]) {
+        const videoId = match[1];
+
+        // Construct the embedded URL with custom parameters
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        const params = new URLSearchParams({
+            rel: '0',
+            modestbranding: '1',
+            autoplay: '1',
+            controls: '1',
+        });
+
+        return `${embedUrl}?${params.toString()}`;
+    } else {
+        throw new Error('Invalid YouTube URL');
+    }
+}
+
 module.exports = {
     generateKey,
     generateToken,
@@ -390,4 +412,5 @@ module.exports = {
     notifyReportChanged,
     endJokerInRoom,
     getJokerInRoom,
+    getEmbeddedYouTubeLink,
 };
