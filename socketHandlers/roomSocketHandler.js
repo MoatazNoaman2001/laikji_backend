@@ -1212,7 +1212,10 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain
                     ) {
-                        if (youtubeLink[xuser._id.toString()] != null) {
+                        if (
+                            youtubeLink[xuser._id.toString()] != null &&
+                            youtubeLink.key === xuser._id.toString()
+                        ) {
                             youtubeLink[xuser._id.toString()] = null;
                         } else {
                             if (Array.from(roomInfo.speaker).has(xuser._id.toString())) {
