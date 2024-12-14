@@ -146,7 +146,7 @@ const assignMic = async (xroomId, roomInfo) => {
                 //     continue;
                 // }
 
-                //  global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                 console.log(
                     `Attempting to assign mic to user: ${nextUserId}. Queue length: ${roomInfo.micQueue.length}`,
@@ -167,17 +167,14 @@ const assignMic = async (xroomId, roomInfo) => {
                     console.log(
                         ` User ${nextUserId} has status 'out'. Moving to second position in the queue.,`,
                     );
-
+                    micAssigning = false;
+                    processedUsers.add(nextUserId);
                     // Place nextUserId at index 1 of the queue
                     if (roomInfo.micQueue.length !== 0) {
-                        //roomInfo.micQueue.unshift(nextUserId); // Inserts 1 at the first index
-
                         roomInfo.micQueue.splice(processedUsers.length, 0, nextUserId); // Insert at index 1
                         global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                     }
 
-                    micAssigning = false;
-                    processedUsers.add(nextUserId);
                     continue;
                 } else {
                     const room = await roomModel.findById(xroomId);
