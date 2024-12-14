@@ -164,10 +164,13 @@ const assignMic = async (xroomId, roomInfo) => {
                     micAssigning = false;
                     processedUsers.add(nextUserId);
                     //  Place nextUserId at index 1 of the queue
-                    if (roomInfo.micQueue.length !== 0) {
+                    if (roomInfo.micQueue.length > processedUsers.length) {
                         roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
-                        global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                    } else if (roomInfo.micQueue.length === processedUsers.length) {
+                        roomInfo.micQueue = [];
                     }
+                    global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+
                     continue;
                 } else {
                     const room = await roomModel.findById(xroomId);
