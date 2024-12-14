@@ -137,7 +137,7 @@ const assignMic = async (xroomId, roomInfo) => {
         micAssigning = true; // Lock mic assignment immediately
         try {
             while (roomInfo.micQueue.length > 0) {
-                let nextUserId = roomInfo.micQueue.shift();
+                let nextUserId = roomInfo.micQueue[processedUsers.length];
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                 console.log(
