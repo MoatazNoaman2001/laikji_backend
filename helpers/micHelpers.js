@@ -140,12 +140,12 @@ const assignMic = async (xroomId, roomInfo) => {
                 let nextUserId = roomInfo.micQueue.shift(); // Get the next user from the queue
 
                 // If the user has already been processed in this cycle, break to prevent an infinite loop
-                if (processedUsers.has(nextUserId)) {
-                    console.log(
-                        'All users in the queue have been processed and skipped. Exiting assignment loop.',
-                    );
-                    continue;
-                }
+                // if (processedUsers.has(nextUserId)) {
+                //     console.log(
+                //         'All users in the queue have been processed and skipped. Exiting assignment loop.',
+                //     );
+                //     continue;
+                // }
 
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
@@ -179,16 +179,16 @@ const assignMic = async (xroomId, roomInfo) => {
                     micAssigning = false;
                     processedUsers.add(nextUserId);
                     continue;
-                }
+                } else {
+                    const room = await roomModel.findById(xroomId);
+                    if (!room) {
+                        console.log('Room not found. Exiting mic assignment.');
+                        break;
+                    }
 
-                const room = await roomModel.findById(xroomId);
-                if (!room) {
-                    console.log('Room not found. Exiting mic assignment.');
-                    break;
+                    await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
+                    break; // Exit loop after successfully assigning the mic
                 }
-
-                await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
-                break; // Exit loop after successfully assigning the mic
             }
 
             if (roomInfo.micQueue.length === 0) {
