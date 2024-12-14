@@ -1629,38 +1629,44 @@ module.exports = (io) => {
 
                                 if (userToShareWith) {
                                     if (
-                                        roomInfo.micQueue.includes(
-                                            userToShareWith._id.toString() &&
-                                                userToShareWith.status != enums.statusTypes.out,
-                                        )
+                                        roomInfo.micQueue.includes(userToShareWith._id.toString())
                                     ) {
-                                        roomInfo.micQueue = roomInfo.micQueue.filter(
-                                            (id) => id !== userToShareWith._id.toString(),
-                                        );
-                                        io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-
-                                        if (
-                                            !roomInfo.speakers.has(userToShareWith._id.toString())
-                                        ) {
-                                            roomInfo.speakers.add(userToShareWith._id.toString());
+                                        if (userToShareWith.status == enums.statusTypes.out) {
+                                            io.to(xuser.socketId).emit('new-alert', {
+                                                msg_en: 'user is not available for shared mic right now',
+                                                msg_ar: 'المستخدم غير متاح الآن للتحدث المشترك',
+                                            });
+                                            console.log('error from share mi');
+                                        } else {
+                                            roomInfo.micQueue = roomInfo.micQueue.filter(
+                                                (id) => id !== userToShareWith._id.toString(),
+                                            );
                                             io.to(xroomId).emit(
-                                                'update-speakers',
-                                                Array.from(roomInfo.speakers),
+                                                'mic-queue-update',
+                                                roomInfo.micQueue,
+                                            );
+
+                                            if (
+                                                !roomInfo.speakers.has(
+                                                    userToShareWith._id.toString(),
+                                                )
+                                            ) {
+                                                roomInfo.speakers.add(
+                                                    userToShareWith._id.toString(),
+                                                );
+                                                io.to(xroomId).emit(
+                                                    'update-speakers',
+                                                    Array.from(roomInfo.speakers),
+                                                );
+                                            }
+                                            addAdminLog(
+                                                xuser,
+                                                xroomId,
+                                                `قام بعمل تحدث مشترك مع  ${userToShareWith.name}`,
+                                                `has shared mic with ${userToShareWith.name}`,
                                             );
                                         }
-                                        addAdminLog(
-                                            xuser,
-                                            xroomId,
-                                            `قام بعمل تحدث مشترك مع  ${userToShareWith.name}`,
-                                            `has shared mic with ${userToShareWith.name}`,
-                                        );
                                     }
-                                } else {
-                                    io.to(xuser.socketId).emit('new-alert', {
-                                        msg_en: 'user is not available for shared mic right now',
-                                        msg_ar: 'المستخدم غير متاح الآن للتحدث المشترك',
-                                    });
-                                    console.log('error from share mi');
                                 }
                             } else {
                                 io.to(xuser.socketId).emit('new-alert', {
