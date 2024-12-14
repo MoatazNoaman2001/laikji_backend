@@ -137,8 +137,7 @@ const assignMic = async (xroomId, roomInfo) => {
         micAssigning = true; // Lock mic assignment immediately
         try {
             while (roomInfo.micQueue.length > 0) {
-                let nextUserId = roomInfo.micQueue[0]; // Get the next user from the queue
-                roomInfo.micQueue.shift();
+                let nextUserId = roomInfo.micQueue.shift();
                 // If the user has already been processed in this cycle, break to prevent an infinite loop
                 // if (processedUsers.has(nextUserId)) {
                 //     console.log(
@@ -171,9 +170,9 @@ const assignMic = async (xroomId, roomInfo) => {
 
                     // Place nextUserId at index 1 of the queue
                     if (roomInfo.micQueue.length !== 0) {
-                        roomInfo.micQueue.unshift(nextUserId); // Inserts 1 at the first index
+                        //roomInfo.micQueue.unshift(nextUserId); // Inserts 1 at the first index
 
-                        //roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                        roomInfo.micQueue.splice(processedUsers.length, 0, nextUserId); // Insert at index 1
                         global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                     }
 
