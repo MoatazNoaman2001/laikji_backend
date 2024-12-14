@@ -137,7 +137,7 @@ const assignMic = async (xroomId, roomInfo) => {
         micAssigning = true; // Lock mic assignment immediately
         try {
             while (roomInfo.micQueue.length > 0) {
-                let nextUserId = roomInfo.micQueue.shift(); // Get the next user from the queue
+                let nextUserId = roomInfo.micQueue[0]; // Get the next user from the queue
 
                 // If the user has already been processed in this cycle, break to prevent an infinite loop
                 // if (processedUsers.has(nextUserId)) {
@@ -147,7 +147,7 @@ const assignMic = async (xroomId, roomInfo) => {
                 //     continue;
                 // }
 
-                global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                //  global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                 console.log(
                     `Attempting to assign mic to user: ${nextUserId}. Queue length: ${roomInfo.micQueue.length}`,
@@ -170,8 +170,13 @@ const assignMic = async (xroomId, roomInfo) => {
                     );
 
                     // Place nextUserId at index 1 of the queue
-                    if (roomInfo.micQueue.length > 0) {
-                        roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                    if (roomInfo.micQueue.length > 1) {
+                        [roomInfo.micQueue[0], roomInfo.micQueue[1]] = [
+                            roomInfo.micQueue[1],
+                            roomInfo.micQueue[0],
+                        ];
+
+                        //roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
                         global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                     }
 
@@ -184,6 +189,8 @@ const assignMic = async (xroomId, roomInfo) => {
                         console.log('Room not found. Exiting mic assignment.');
                         break;
                     }
+                    roomInfo.micQueue = roomInfo.micQueue.shift();
+                    global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                     await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
                     break; // Exit loop after successfully assigning the mic
