@@ -170,15 +170,15 @@ const assignMic = async (xroomId, roomInfo) => {
                     );
 
                     // Place nextUserId at index 1 of the queue
-                    //  if (roomInfo.micQueue.length > 1) {
-                    [roomInfo.micQueue[0], roomInfo.micQueue[1]] = [
-                        roomInfo.micQueue[1],
-                        roomInfo.micQueue[0],
-                    ];
+                    if (roomInfo.micQueue.length !== 0) {
+                        [roomInfo.micQueue[0], roomInfo.micQueue[1]] = [
+                            roomInfo.micQueue[1],
+                            roomInfo.micQueue[0],
+                        ];
 
-                    //roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
-                    global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-                    //  }
+                        //roomInfo.micQueue.splice(1, 0, nextUserId); // Insert at index 1
+                        global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                    }
 
                     micAssigning = false;
                     processedUsers.add(nextUserId);
