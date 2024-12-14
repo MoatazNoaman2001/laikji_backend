@@ -142,10 +142,6 @@ const assignMic = async (xroomId, roomInfo) => {
                 let nextUserId = roomInfo.micQueue.shift();
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
-                // console.log(
-                //     `Attempting to assign mic to user: ${nextUserId}. Queue length: ${roomInfo.micQueue.length}`,
-                // );
-
                 const nextUser = await getUserById(nextUserId, xroomId);
                 if (!nextUser || roomInfo.speakers.has(nextUserId)) {
                     console.log(
@@ -158,25 +154,14 @@ const assignMic = async (xroomId, roomInfo) => {
                 }
 
                 if (nextUser.status == enums.statusTypes.out) {
-                    // // console.log(
-                    // //     ` User ${nextUserId} has status 'out'. Moving to second position in the queue.,`,
-                    // // );
                     micAssigning = false;
                     processedUsers.add(nextUserId);
                     //  Place nextUserId at index 1 of the queue
-                    console.log('micQueue length:', roomInfo.micQueue.length);
-                    console.log('processedUsers size:', processedUsers.size);
 
                     if (roomInfo.micQueue.length + 1 > processedUsers.size) {
-                        console.log(
-                            'Condition met: micQueue length is greater than processedUsers size',
-                        );
                         console.log('added at index ' + processedUsers.size);
                         roomInfo.micQueue.splice(processedUsers.size, 0, nextUserId);
                     } else if (roomInfo.micQueue.length === processedUsers.size) {
-                        console.log(
-                            'Condition met: micQueue length is equal to processedUsers size',
-                        );
                         roomInfo.micQueue = [];
                     }
 

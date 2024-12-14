@@ -758,6 +758,11 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('status')) {
                             if (
                                 data.user.status == enums.statusTypes.out &&
+                                roomInfo.micQueue.includes(xuser._id.toString())
+                            ) {
+                                xuser.status = enums.statusTypes.out.toString();
+                            } else if (
+                                data.user.status == enums.statusTypes.out &&
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
                                 xuser.status = enums.statusTypes.empty.toString();
