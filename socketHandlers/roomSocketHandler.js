@@ -1629,8 +1629,10 @@ module.exports = (io) => {
 
                                 if (userToShareWith) {
                                     if (
-                                        roomInfo.micQueue &&
-                                        roomInfo.micQueue.includes(userToShareWith._id.toString())
+                                        roomInfo.micQueue.includes(
+                                            userToShareWith._id.toString() &&
+                                                userToShareWith.status != enums.statusTypes.out,
+                                        )
                                     ) {
                                         roomInfo.micQueue = roomInfo.micQueue.filter(
                                             (id) => id !== userToShareWith._id.toString(),
@@ -1654,6 +1656,10 @@ module.exports = (io) => {
                                         );
                                     }
                                 } else {
+                                    io.to(xuser.socketId).emit('new-alert', {
+                                        msg_en: 'user is not available for shared mic right now',
+                                        msg_ar: 'المستخدم غير متاح الآن للتحدث المشترك',
+                                    });
                                     console.log('error from share mi');
                                 }
                             } else {
