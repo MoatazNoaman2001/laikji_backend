@@ -137,8 +137,8 @@ const assignMic = async (xroomId, roomInfo) => {
         micAssigning = true; // Lock mic assignment immediately
         try {
             while (roomInfo.micQueue.length > 0) {
-                let nextUserId = roomInfo.micQueue[0];
-                //global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                let nextUserId = roomInfo.micQueue.shift();
+                global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                 console.log(
                     `Attempting to assign mic to user: ${nextUserId}. Queue length: ${roomInfo.micQueue.length}`,
@@ -174,7 +174,7 @@ const assignMic = async (xroomId, roomInfo) => {
                         console.log('Room not found. Exiting mic assignment.');
                         break;
                     }
-                    roomInfo.micQueue = roomInfo.micQueue.shift();
+                    // roomInfo.micQueue = roomInfo.micQueue.shift();
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                     await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
