@@ -164,12 +164,22 @@ const assignMic = async (xroomId, roomInfo) => {
                     micAssigning = false;
                     processedUsers.add(nextUserId);
                     //  Place nextUserId at index 1 of the queue
+                    console.log('micQueue length:', roomInfo.micQueue.length);
+                    console.log('processedUsers size:', processedUsers.size);
+
                     if (roomInfo.micQueue.length > processedUsers.size) {
+                        console.log(
+                            'Condition met: micQueue length is greater than processedUsers size',
+                        );
                         console.log('added at index ' + processedUsers.size);
-                        roomInfo.micQueue.splice(processedUsers.length, 0, nextUserId); // Insert at index 1
-                    } else if (roomInfo.micQueue.length === processedUsers.length) {
+                        roomInfo.micQueue.splice(processedUsers.size, 0, nextUserId);
+                    } else if (roomInfo.micQueue.length === processedUsers.size) {
+                        console.log(
+                            'Condition met: micQueue length is equal to processedUsers size',
+                        );
                         roomInfo.micQueue = [];
                     }
+
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                     continue;
