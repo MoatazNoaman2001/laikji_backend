@@ -167,7 +167,7 @@ const assignMic = async (xroomId, roomInfo) => {
                     console.log('micQueue length:', roomInfo.micQueue.length);
                     console.log('processedUsers size:', processedUsers.size);
 
-                    if (roomInfo.micQueue.length > processedUsers.size) {
+                    if (roomInfo.micQueue.length + 1 > processedUsers.size) {
                         console.log(
                             'Condition met: micQueue length is greater than processedUsers size',
                         );
