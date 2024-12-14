@@ -164,7 +164,7 @@ const assignMic = async (xroomId, roomInfo) => {
                     // Place nextUserId at index 1 of the queue
                     if (roomInfo.micQueue.length > processedUsers.length) {
                         roomInfo.micQueue = roomInfo.micQueue.splice(
-                            processedUsers.length,
+                            processedUsers.length + 1,
                             0,
                             nextUserId,
                         ); // Insert at index 1
