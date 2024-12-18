@@ -674,7 +674,8 @@ module.exports = (io) => {
                         });
                         return;
                     }
-                } else if (room.private_status == 2) {
+                }
+                if (room.private_status == 2) {
                     console.log('user has deleted his messages');
                     if (
                         (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
