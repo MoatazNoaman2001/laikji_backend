@@ -674,6 +674,21 @@ module.exports = (io) => {
                         });
                         return;
                     }
+                } else if (room.private_status == 2) {
+                    console.log('user has deleted his messages');
+                    if (
+                        (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                        (otherUser._id == pc.user2Ref._id.toString() &&
+                            pc.isUser2Deleted &&
+                            xuser.type.toString() === enums.userTypes.guest.toString())
+                    ) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            ok: false,
+                            msg_en: 'Private chat is available for admins only',
+                            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
+                        });
+                        return;
+                    }
                 }
 
                 pc.isUser1Deleted = false;
