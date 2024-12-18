@@ -622,6 +622,7 @@ module.exports = (io) => {
                     pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
 
                 otherUser = await getUserById(otherUser._id, xroomId);
+                const room = await roomModel.findById(xroomId);
 
                 if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
                     io.to(xuser.socketId).emit('new-alert', {
@@ -647,6 +648,29 @@ module.exports = (io) => {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: "This user doesn't receive private chats",
                             msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
+                        });
+                        return;
+                    }
+                }
+
+                if (room.private_status == 3) {
+                    console.log('user has deleted his messages');
+                    if (
+                        (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                        (otherUser._id == pc.user2Ref._id.toString() &&
+                            pc.isUser2Deleted &&
+                            ![
+                                enums.userTypes.mastermain.toString(),
+                                enums.userTypes.chatmanager.toString(),
+                                enums.userTypes.root.toString(),
+                                enums.userTypes.master.toString(),
+                                enums.userTypes.mastergirl.toString(),
+                            ].includes(xuser.type.toString()))
+                    ) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            ok: false,
+                            msg_en: 'Private chat is available for admins only',
+                            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
                         });
                         return;
                     }
@@ -697,7 +721,6 @@ module.exports = (io) => {
                     isRead: false,
                 });
 
-                const room = await roomModel.findById(xroomId);
                 const otherRoom = await roomModel.findById(
                     room.isMeeting ? room.parentRef : room.meetingRef,
                 );
@@ -758,11 +781,6 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('status')) {
                             if (
                                 data.user.status == enums.statusTypes.out &&
-                                roomInfo.micQueue.includes(xuser._id.toString())
-                            ) {
-                                xuser.status = enums.statusTypes.out.toString();
-                            } else if (
-                                data.user.status == enums.statusTypes.out &&
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
                                 xuser.status = enums.statusTypes.empty.toString();
@@ -817,12 +835,6 @@ module.exports = (io) => {
                         type: data.type,
                         data: await public_user(xuser),
                     });
-                }
-            });
-            xclient.on('command-stop', (data) => {
-                if (data.user.hasOwnProperty('can_use_mic') && data.user.can_use_mic == true) {
-                    console.log('from room socket');
-                    stopMic(data.user._id.toString());
                 }
             });
 
@@ -1126,6 +1138,7 @@ module.exports = (io) => {
                     // if (!xuser) return;
                     const user = await getUserById(data.userId, xroomId);
                     const newRoom = await roomModel.findById(xroomId);
+
                     if (user && user.can_use_mic) {
                         if (
                             newRoom.mic.mic_permission !== 0 &&

@@ -178,12 +178,11 @@ const assignMic = async (xroomId, roomInfo) => {
                     global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
                     await assignSpeaker(roomInfo, nextUserId, nextUser, room, xroomId);
-                    break; // Exit loop after successfully assigning the mic
+                    break;
                 }
             }
 
             if (roomInfo.micQueue.length === 0) {
-                //  console.log('Mic queue is empty after processing all users.');
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue); // Emit updated queue
             }
         } catch (error) {
