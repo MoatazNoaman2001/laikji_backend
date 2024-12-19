@@ -622,7 +622,6 @@ module.exports = (io) => {
                     pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
 
                 otherUser = await getUserById(otherUser._id, xroomId);
-                const room = await roomModel.findById(xroomId);
 
                 if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
                     io.to(xuser.socketId).emit('new-alert', {
@@ -736,6 +735,7 @@ module.exports = (io) => {
                     userRef: new ObjectId(xuser._id),
                     isRead: false,
                 });
+                const room = await roomModel.findById(xroomId);
 
                 const otherRoom = await roomModel.findById(
                     room.isMeeting ? room.parentRef : room.meetingRef,
@@ -795,6 +795,7 @@ module.exports = (io) => {
                     });
                 }
             });
+
             xclient.on('change-user', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
