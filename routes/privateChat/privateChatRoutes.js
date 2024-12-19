@@ -217,56 +217,56 @@ router.post('/create', async (req, res) => {
     }
 });
 
-// router.get('/get-msgs/:key', async (req, res) => {
-//     try {
-//         console.log('/get-msgs/:key');
-//         let xuser = await helpers.getUserByToken(req.headers.token);
-
-//         if (xuser) {
-//             let pc = await privateChatModel.find({ key: req.params.key });
-//             if (pc.length > 0) {
-//                 pc = pc[0];
-//                 await privateMessageModel.updateMany(
-//                     {
-//                         chatRef: new ObjectId(pc._id),
-//                         userRef: { $ne: new ObjectId(xuser._id) },
-//                     },
-//                     {
-//                         $set: {
-//                             isRead: true,
-//                         },
-//                     },
-//                     {
-//                         multi: true,
-//                     },
-//                 );
-
-//                 const fieldName =
-//                     pc.user1Ref._id.toString() == xuser._id.toString()
-//                         ? 'isUser1Deleted'
-//                         : 'isUser2Deleted';
-
-//                 const msgs = await privateMessageModel.find({
-//                     chatRef: new ObjectId(pc._id),
-//                     [fieldName]: false,
-//                 });
-
-//                 res.status(200).send({
-//                     ok: true,
-//                     msgs: msgs,
-//                 });
-//             }
-//         }
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).send({
-//             ok: false,
-//             error: e.message,
-//         });
-//     }
-// });
-
 router.get('/get-msgs/:key', async (req, res) => {
+    try {
+        console.log('/get-msgs/:key');
+        let xuser = await helpers.getUserByToken(req.headers.token);
+
+        if (xuser) {
+            let pc = await privateChatModel.find({ key: req.params.key });
+            if (pc.length > 0) {
+                pc = pc[0];
+                await privateMessageModel.updateMany(
+                    {
+                        chatRef: new ObjectId(pc._id),
+                        userRef: { $ne: new ObjectId(xuser._id) },
+                    },
+                    {
+                        $set: {
+                            isRead: true,
+                        },
+                    },
+                    {
+                        multi: true,
+                    },
+                );
+
+                const fieldName =
+                    pc.user1Ref._id.toString() == xuser._id.toString()
+                        ? 'isUser1Deleted'
+                        : 'isUser2Deleted';
+
+                const msgs = await privateMessageModel.find({
+                    chatRef: new ObjectId(pc._id),
+                    [fieldName]: false,
+                });
+
+                res.status(200).send({
+                    ok: true,
+                    msgs: msgs,
+                });
+            }
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+
+router.get('/read-all/:key', async (req, res) => {
     try {
         console.log('/read-all/:key');
         let xuser = await helpers.getUserByToken(req.headers.token);

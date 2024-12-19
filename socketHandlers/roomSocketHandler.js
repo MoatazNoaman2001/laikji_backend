@@ -705,6 +705,7 @@ module.exports = (io) => {
                 };
 
                 if (data.replay) {
+                    console.log('data is replay');
                     body.replay = {
                         type: data.replay.type,
                         msg: data.replay.msg,
