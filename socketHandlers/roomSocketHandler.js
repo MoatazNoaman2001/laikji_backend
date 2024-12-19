@@ -733,7 +733,7 @@ module.exports = (io) => {
 
                 const unReadMsgsCount = await privateMessageModel.countDocuments({
                     chatRef: new ObjectId(pc._id),
-                    userRef: new ObjectId(xuser._id),
+                    userRef: new ObjectId(otherUser._id),
                     isRead: false,
                 });
 
@@ -772,15 +772,15 @@ module.exports = (io) => {
                     });
                 }
 
-                // io.to(xuser.socketId).emit('new-private-msg', {
-                //     chat: {
-                //         ...pc,
-                //         last: msg,
-                //         newMsgs: 0,
-                //     },
-                //     msg: msg,
-                // });
-                // console.log('private message .3');
+                io.to(xuser.socketId).emit('new-private-msg', {
+                    chat: {
+                        ...pc,
+                        last: msg,
+                        newMsgs: 0,
+                    },
+                    msg: msg,
+                });
+                console.log('private message .3');
 
                 if (xuserInOtherRoom) {
                     console.log('private message .4');
