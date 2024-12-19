@@ -622,6 +622,7 @@ module.exports = (io) => {
                     pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
 
                 otherUser = await getUserById(otherUser._id, xroomId);
+                const room = await roomModel.findById(xroomId);
 
                 if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
                     io.to(xuser.socketId).emit('new-alert', {
@@ -647,6 +648,45 @@ module.exports = (io) => {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: "This user doesn't receive private chats",
                             msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
+                        });
+                        return;
+                    }
+                }
+
+                if (room.private_status == 3) {
+                    console.log('user has deleted his messages');
+                    if (
+                        (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                        (otherUser._id == pc.user2Ref._id.toString() &&
+                            pc.isUser2Deleted &&
+                            ![
+                                enums.userTypes.mastermain.toString(),
+                                enums.userTypes.chatmanager.toString(),
+                                enums.userTypes.root.toString(),
+                                enums.userTypes.master.toString(),
+                                enums.userTypes.mastergirl.toString(),
+                            ].includes(xuser.type.toString()))
+                    ) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            ok: false,
+                            msg_en: 'Private chat is available for admins only',
+                            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
+                        });
+                        return;
+                    }
+                }
+                if (room.private_status == 2) {
+                    console.log('user has deleted his messages');
+                    if (
+                        (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                        (otherUser._id == pc.user2Ref._id.toString() &&
+                            pc.isUser2Deleted &&
+                            xuser.type.toString() === enums.userTypes.guest.toString())
+                    ) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            ok: false,
+                            msg_en: 'Private chat is available for admins only',
+                            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
                         });
                         return;
                     }
@@ -697,9 +737,8 @@ module.exports = (io) => {
                     isRead: false,
                 });
 
-                const room = await roomModel.findById(xroomId);
                 const otherRoom = await roomModel.findById(
-                    room.isMeeting ? room.parentRef : room.meetingRef,
+                    room.isMeeting ? room.meetingRef : room.parentRef,
                 );
 
                 let otherUserInOtherRoom = null;
@@ -718,8 +757,11 @@ module.exports = (io) => {
                     },
                     msg: msg,
                 });
+                console.log('private message .1');
 
                 if (otherUserInOtherRoom) {
+                    console.log('private message .2');
+
                     io.to(otherUserInOtherRoom.socketId).emit('new-private-msg', {
                         chat: {
                             ...pc,
@@ -738,8 +780,11 @@ module.exports = (io) => {
                     },
                     msg: msg,
                 });
+                console.log('private message .3');
 
                 if (xuserInOtherRoom) {
+                    console.log('private message .4');
+
                     io.to(xuserInOtherRoom.socketId).emit('new-private-msg', {
                         chat: {
                             ...pc,
