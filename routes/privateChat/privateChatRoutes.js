@@ -219,6 +219,7 @@ router.post('/create', async (req, res) => {
 
 router.get('/get-msgs/:key', async (req, res) => {
     try {
+        console.log('/get-msgs/:key');
         let xuser = await helpers.getUserByToken(req.headers.token);
 
         if (xuser) {
@@ -267,6 +268,7 @@ router.get('/get-msgs/:key', async (req, res) => {
 
 router.get('/read-all/:key', async (req, res) => {
     try {
+        console.log('/read-all/:key');
         let xuser = await helpers.getUserByToken(req.headers.token);
 
         if (xuser) {

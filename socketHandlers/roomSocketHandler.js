@@ -733,7 +733,7 @@ module.exports = (io) => {
 
                 const unReadMsgsCount = await privateMessageModel.countDocuments({
                     chatRef: new ObjectId(pc._id),
-                    userRef: new ObjectId(otherUser._id),
+                    userRef: new ObjectId(xuser._id),
                     isRead: false,
                 });
 
