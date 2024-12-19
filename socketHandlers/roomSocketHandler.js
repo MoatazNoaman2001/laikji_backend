@@ -606,198 +606,195 @@ module.exports = (io) => {
             xclient.on('send-msg-private', async (data) => {
                 if (!xuser) return;
 
-                try {
-                    // Refresh user and fetch chat and room data
-                    xuser = await getUserById(xuser._id, xroomId);
-                    const { key } = data;
+                xuser = await getUserById(xuser._id, xroomId);
 
-                    let privateChat = await privateChatModel
-                        .findOne({ key })
-                        .populate(['user1Ref', 'user2Ref']);
-                    if (!privateChat) return;
+                const key = data.key;
 
-                    let otherUser =
-                        privateChat.user1Ref._id.toString() === xuser._id.toString()
-                            ? privateChat.user2Ref
-                            : privateChat.user1Ref;
+                let pc = await privateChatModel
+                    .find({
+                        key: key,
+                    })
+                    .populate(['user1Ref', 'user2Ref']);
 
-                    otherUser = await getUserById(otherUser._id, xroomId);
-                    const room = await roomModel.findById(xroomId);
+                pc = pc[0];
 
-                    // Check private chat permissions for both users
-                    if (!validatePrivateChatPermissions(xuser, otherUser)) {
-                        return;
-                    }
+                let otherUser =
+                    pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
 
-                    // Check room-specific private chat rules
-                    if (!validateRoomPrivateChatRules(room, xuser, otherUser, privateChat)) {
-                        return;
-                    }
-
-                    // Reset delete flags for the private chat
-                    privateChat.isUser1Deleted = false;
-                    privateChat.isUser2Deleted = false;
-                    await privateChat.save();
-
-                    // Create and save the new private message
-                    const messageBody = createMessageBody(data, xuser, xroomId);
-                    const newMessage = new privateMessageModel({
-                        chatRef: privateChat._id,
-                        userRef: xuser._id,
-                        body: messageBody,
-                    });
-                    await newMessage.save();
-
-                    // Fetch updated users and private chat data
-                    const updatedPrivateChat = await prepareChatForEmit(privateChat, xroomId);
-                    const unReadMessagesCount = await privateMessageModel.countDocuments({
-                        chatRef: privateChat._id,
-                        userRef: xuser._id,
-                        isRead: false,
-                    });
-
-                    // Notify the other user and optionally in other rooms
-                    await emitPrivateMessage(io, {
-                        xuser,
-                        otherUser,
-                        privateChat: updatedPrivateChat,
-                        newMessage,
-                        unReadMessagesCount,
-                        room,
-                    });
-
-                    console.log('private message handled successfully');
-                } catch (error) {
-                    console.error('Error in handling private message:', error);
-                }
-            });
-
-            /**
-             * Validates private chat permissions for both users.
-             */
-            function validatePrivateChatPermissions(xuser, otherUser) {
-                if (!xuser.can_private_chat || !xuser.server_can_private_chat) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: 'You are banned from using private chats',
-                        msg_ar: 'أنت محظور من أرسال واستقبال الرسائل الخاصة',
-                    });
-                    return false;
-                }
+                otherUser = await getUserById(otherUser._id, xroomId);
+                const room = await roomModel.findById(xroomId);
 
                 if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
                     io.to(xuser.socketId).emit('new-alert', {
                         msg_en: 'This user is banned from using private chats',
                         msg_ar: 'هذا المستخدم محظور من أرسال واستقبال الرسائل الخاصة',
                     });
-                    return false;
+                    return;
                 }
 
-                return true;
-            }
-
-            /**
-             * Validates room-specific private chat rules.
-             */
-            function validateRoomPrivateChatRules(room, xuser, otherUser, privateChat) {
-                const isOtherUserDeleted =
-                    (otherUser._id.toString() === privateChat.user1Ref._id.toString() &&
-                        privateChat.isUser1Deleted) ||
-                    (otherUser._id.toString() === privateChat.user2Ref._id.toString() &&
-                        privateChat.isUser2Deleted);
-
-                if (room.private_status === 3 && isOtherUserDeleted) {
+                if (!xuser.can_private_chat || !xuser.server_can_private_chat) {
                     io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: 'Private chat is available for admins only',
-                        msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
+                        msg_en: 'you are banned from using private chats',
+                        msg_ar: 'أنت محظور من أرسال واستقبال الرسائل الخاصة',
                     });
-                    return false;
+                    return;
                 }
 
-                if (
-                    room.private_status === 2 &&
-                    isOtherUserDeleted &&
-                    xuser.type === enums.userTypes.guest.toString()
-                ) {
-                    io.to(xuser.socketId).emit('new-alert', {
-                        msg_en: 'Private chat is available for admins only',
-                        msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
-                    });
-                    return false;
+                if (otherUser.private_status == 0) {
+                    if (
+                        (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                        (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
+                    ) {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: "This user doesn't receive private chats",
+                            msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
+                        });
+                        return;
+                    }
                 }
 
-                return true;
-            }
+                // if (room.private_status == 3) {
+                //     console.log('user has deleted his messages');
+                //     if (
+                //         (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                //         (otherUser._id == pc.user2Ref._id.toString() &&
+                //             pc.isUser2Deleted &&
+                //             ![
+                //                 enums.userTypes.mastermain.toString(),
+                //                 enums.userTypes.chatmanager.toString(),
+                //                 enums.userTypes.root.toString(),
+                //                 enums.userTypes.master.toString(),
+                //                 enums.userTypes.mastergirl.toString(),
+                //             ].includes(xuser.type.toString()))
+                //     ) {
+                //         io.to(xuser.socketId).emit('new-alert', {
+                //             ok: false,
+                //             msg_en: 'Private chat is available for admins only',
+                //             msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
+                //         });
+                //         return;
+                //     }
+                // }
+                // if (room.private_status == 2) {
+                //     console.log('user has deleted his messages');
+                //     if (
+                //         (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+                //         (otherUser._id == pc.user2Ref._id.toString() &&
+                //             pc.isUser2Deleted &&
+                //             xuser.type.toString() === enums.userTypes.guest.toString())
+                //     ) {
+                //         io.to(xuser.socketId).emit('new-alert', {
+                //             ok: false,
+                //             msg_en: 'Private chat is available for admins only',
+                //             msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
+                //         });
+                //         return;
+                //     }
+                // }
 
-            /**
-             * Creates the body of a private message.
-             */
-            function createMessageBody(data, xuser, xroomId) {
-                return {
+                pc.isUser1Deleted = false;
+                pc.isUser2Deleted = false;
+                pc.save();
+
+                let body = {
                     type: data.type,
                     msg: filterMsg(data.msg, xroomId),
                     style: data.style,
-                    user: public_user(xuser),
-                    replay: data.replay
-                        ? {
-                              type: data.replay.type,
-                              msg: data.replay.msg,
-                              style: data.replay.style,
-                              user: data.replay.user,
-                          }
-                        : null,
+                    user: await public_user(xuser),
+                    replay: null,
                 };
-            }
 
-            /**
-             * Prepares private chat data for emitting to clients.
-             */
-            async function prepareChatForEmit(privateChat, xroomId) {
-                let updatedChat = { ...privateChat._doc };
-                updatedChat.user1Ref = await public_user(
-                    await getUserById(updatedChat.user1Ref._id, xroomId),
-                );
-                updatedChat.user2Ref = await public_user(
-                    await getUserById(updatedChat.user2Ref._id, xroomId),
-                );
-                return updatedChat;
-            }
+                if (data.replay) {
+                    body.replay = {
+                        type: data.replay.type,
+                        msg: data.replay.msg,
+                        style: data.replay.style,
+                        user: data.replay.user,
+                    };
+                }
 
-            /**
-             * Emits private message events to users.
-             */
-            async function emitPrivateMessage(
-                io,
-                { xuser, otherUser, privateChat, newMessage, unReadMessagesCount, room },
-            ) {
+                const msg = new privateMessageModel({
+                    chatRef: pc._id,
+                    userRef: xuser._id,
+                    body: body,
+                });
+
+                await msg.save();
+
+                pc = { ...pc._doc };
+
+                let u1 = await getUserById(pc.user1Ref._id, xroomId);
+                let u2 = await getUserById(pc.user2Ref._id, xroomId);
+                pc = { ...JSON.parse(JSON.stringify(pc)) };
+                u1 = await public_user(u1);
+                u2 = await public_user(u2);
+                pc.user1Ref = u1;
+                pc.user2Ref = u2;
+
+                const unReadMsgsCount = await privateMessageModel.countDocuments({
+                    chatRef: new ObjectId(pc._id),
+                    userRef: new ObjectId(xuser._id),
+                    isRead: false,
+                });
+
                 const otherRoom = await roomModel.findById(
                     room.isMeeting ? room.parentRef : room.meetingRef,
                 );
-                const otherUserInOtherRoom = otherRoom
-                    ? await getUserById(otherUser._id, otherRoom._id)
-                    : null;
-                const xuserInOtherRoom = otherRoom
-                    ? await getUserById(xuser._id, otherRoom._id)
-                    : null;
 
-                const payload = {
+                let otherUserInOtherRoom = null;
+                let xuserInOtherRoom = null;
+
+                if (otherRoom) {
+                    otherUserInOtherRoom = await getUserById(otherUser._id, otherRoom._id);
+                    xuserInOtherRoom = await getUserById(xuser._id, otherRoom._id);
+                }
+
+                io.to(otherUser.socketId).emit('new-private-msg', {
                     chat: {
-                        ...privateChat,
-                        last: newMessage,
-                        newMsgs: unReadMessagesCount,
+                        ...pc,
+                        last: msg,
+                        newMsgs: unReadMsgsCount,
                     },
-                    msg: newMessage,
-                };
+                    msg: msg,
+                });
+                console.log('private message .1');
 
-                io.to(otherUser.socketId).emit('new-private-msg', payload);
-                if (otherUserInOtherRoom)
-                    io.to(otherUserInOtherRoom.socketId).emit('new-private-msg', payload);
+                if (otherUserInOtherRoom) {
+                    console.log('private message .2');
 
-                payload.chat.newMsgs = 0;
-                io.to(xuser.socketId).emit('new-private-msg', payload);
-                if (xuserInOtherRoom)
-                    io.to(xuserInOtherRoom.socketId).emit('new-private-msg', payload);
-            }
+                    io.to(otherUserInOtherRoom.socketId).emit('new-private-msg', {
+                        chat: {
+                            ...pc,
+                            last: msg,
+                            newMsgs: unReadMsgsCount,
+                        },
+                        msg: msg,
+                    });
+                }
 
+                io.to(xuser.socketId).emit('new-private-msg', {
+                    chat: {
+                        ...pc,
+                        last: msg,
+                        newMsgs: 0,
+                    },
+                    msg: msg,
+                });
+                console.log('private message .3');
+
+                if (xuserInOtherRoom) {
+                    console.log('private message .4');
+
+                    io.to(xuserInOtherRoom.socketId).emit('new-private-msg', {
+                        chat: {
+                            ...pc,
+                            last: msg,
+                            newMsgs: 0,
+                        },
+                        msg: msg,
+                    });
+                }
+            });
             xclient.on('change-user', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
