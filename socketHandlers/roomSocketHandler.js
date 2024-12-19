@@ -757,8 +757,11 @@ module.exports = (io) => {
                     },
                     msg: msg,
                 });
+                console.log('private message .1');
 
                 if (otherUserInOtherRoom) {
+                    console.log('private message .2');
+
                     io.to(otherUserInOtherRoom.socketId).emit('new-private-msg', {
                         chat: {
                             ...pc,
@@ -777,8 +780,11 @@ module.exports = (io) => {
                     },
                     msg: msg,
                 });
+                console.log('private message .3');
 
                 if (xuserInOtherRoom) {
+                    console.log('private message .4');
+
                     io.to(xuserInOtherRoom.socketId).emit('new-private-msg', {
                         chat: {
                             ...pc,
