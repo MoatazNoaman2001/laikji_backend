@@ -55,7 +55,7 @@ router.get('/info', async (req, res) => {
         });
 
         if (!req.user.is_spy) {
-            users_of_mem.forEach(async user_of_mem => {
+            users_of_mem.forEach(async (user_of_mem) => {
                 if (user_of_mem && user_of_mem._id.toString() != req.user._id.toString()) {
                     if (old_viewed.length == 0) {
                         item.views++;
@@ -160,7 +160,7 @@ router.get('/like', async (req, res) => {
 
             let users_of_mem = await getUserOfMember(member._id, req.room._id);
 
-            users_of_mem.forEach(async user_of_mem => {
+            users_of_mem.forEach(async (user_of_mem) => {
                 if (user_of_mem && user_of_mem.socketId) {
                     global.io.to(user_of_mem.socketId).emit(req.room._id, {
                         type: 'like-msg',
@@ -210,9 +210,8 @@ router.post('/report', async (req, res) => {
 router.post('/upload-img', img_uploader.single('img'), async (req, res) => {
     try {
         let member = req.member;
-
         if (!member.accept_photos) {
-            res.status(200).send({
+            return res.status(200).send({
                 ok: false,
                 msg: {
                     ar: 'هذا الملف لا يستقبل صور',
@@ -238,7 +237,7 @@ router.post('/upload-img', img_uploader.single('img'), async (req, res) => {
         await item.save();
 
         let users_of_mem = await getUserOfMember(member._id, req.room._id);
-        users_of_mem.forEach(async user_of_mem => {
+        users_of_mem.forEach(async (user_of_mem) => {
             console.log(user_of_mem.socketId, user_of_mem.username);
             if (user_of_mem && user_of_mem.socketId) {
                 global.io.to(user_of_mem.socketId).emit(req.room._id, {
@@ -283,7 +282,7 @@ router.post('/comment', async (req, res) => {
         await item.save();
 
         let users_of_mem = await getUserOfMember(member._id, req.room._id);
-        users_of_mem.forEach(async user_of_mem => {
+        users_of_mem.forEach(async (user_of_mem) => {
             if (user_of_mem && user_of_mem.socketId) {
                 global.io.to(user_of_mem.socketId).emit(req.room._id, {
                     type: 'new-comment',
@@ -331,7 +330,7 @@ router.post('/comment/:photo_id', async (req, res) => {
         await item.save();
 
         let users_of_mem = await getUserOfMember(member._id, req.room._id);
-        users_of_mem.forEach(user_of_mem => {
+        users_of_mem.forEach((user_of_mem) => {
             if (user_of_mem && user_of_mem.socketId) {
                 global.io.to(user_of_mem.socketId).emit(req.room._id, {
                     type: 'new-comment',
@@ -419,7 +418,7 @@ router.get('/comments/:photo_id', async (req, res) => {
                 });
             }),
         );
-        users_of_mem.forEach(async user_of_mem => {
+        users_of_mem.forEach(async (user_of_mem) => {
             if (user_of_mem && user_of_mem._id.toString() == req.user._id.toString()) {
                 await memberPhotoModel.findByIdAndUpdate(req.params.photo_id, {
                     has_new_comments: false,
