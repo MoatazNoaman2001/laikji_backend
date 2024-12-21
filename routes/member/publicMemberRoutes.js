@@ -131,7 +131,7 @@ router.get('/like', async (req, res) => {
 
         const old_query = {
             memberRef: new ObjectId(item._id),
-            key: req.user.ip,
+            key: req.user.ip.toString(),
         };
 
         const old = await likeModel.find(old_query);
@@ -146,7 +146,7 @@ router.get('/like', async (req, res) => {
             item.save();
             const like = new likeModel({
                 memberRef: new ObjectId(item._id),
-                key: req.user.ip,
+                key: req.user.ip.toString(),
             });
             like.save();
 
