@@ -135,16 +135,7 @@ router.get('/like', async (req, res) => {
 
         const old = await likeModel.find(old_query);
 
-        if (old.length > 0) {
-            // await likeModel.find(old_query).remove();
-            // item.likes--;
-            // item.likes = item.likes < 0 ? 0: item.likes;
-            // item.save();
-            res.status(200).send({
-                ok: true,
-                liked: false,
-            });
-        } else {
+        if (old.length === 0) {
             item.likes++;
 
             let likes_level = Math.ceil(item.likes / 50);
@@ -180,6 +171,15 @@ router.get('/like', async (req, res) => {
             res.status(200).send({
                 ok: true,
                 liked: true,
+            });
+        } else {
+            // await likeModel.find(old_query).remove();
+            // item.likes--;
+            // item.likes = item.likes < 0 ? 0: item.likes;
+            // item.save();
+            res.status(200).send({
+                ok: true,
+                liked: false,
             });
         }
     } catch (e) {
