@@ -146,7 +146,7 @@ router.get('/like', async (req, res) => {
             item.save();
             const like = new likeModel({
                 memberRef: new ObjectId(item._id),
-                key: req.user.key,
+                key: req.user.ip,
             });
             like.save();
 
