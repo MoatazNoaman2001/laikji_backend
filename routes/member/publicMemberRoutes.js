@@ -83,7 +83,7 @@ router.get('/info', async (req, res) => {
 
         const old_liked = await likeModel.find({
             memberRef: new ObjectId(item._id),
-            key: req.user.key,
+            key: req.user.ip.toString(),
         });
 
         item = JSON.parse(JSON.stringify(item));
