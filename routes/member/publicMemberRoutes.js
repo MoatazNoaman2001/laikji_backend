@@ -126,8 +126,11 @@ router.get('/info', async (req, res) => {
 
 router.get('/like', async (req, res) => {
     try {
+        console.log('like req ' + JSON.stringify(req.body, null, 2));
         let member = req.member;
         const item = await memberModal.findById(member._id).select('-password');
+        console.log('member req ' + JSON.stringify(item, null, 2));
+
         const old_query = {
             memberRef: new ObjectId(item._id),
             key: req.user.key,
