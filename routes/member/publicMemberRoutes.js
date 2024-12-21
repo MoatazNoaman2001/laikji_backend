@@ -126,15 +126,12 @@ router.get('/info', async (req, res) => {
 
 router.get('/like', async (req, res) => {
     try {
-        console.log('like req ' + JSON.stringify(req.member, null, 2));
-        console.log('user req ' + JSON.stringify(req.user, null, 2));
-
         let member = req.member;
         const item = await memberModal.findById(member._id).select('-password');
 
         const old_query = {
             memberRef: new ObjectId(item._id),
-            key: req.user.key,
+            key: req.user.ip,
         };
 
         const old = await likeModel.find(old_query);
