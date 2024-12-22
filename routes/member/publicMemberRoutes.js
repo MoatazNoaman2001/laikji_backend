@@ -83,7 +83,7 @@ router.get('/info', async (req, res) => {
 
         const old_liked = await likeModel.find({
             memberRef: new ObjectId(item._id),
-            key: req.user.ip.toString(),
+            key: req.user.key,
         });
 
         item = JSON.parse(JSON.stringify(item));
@@ -131,7 +131,7 @@ router.get('/like', async (req, res) => {
 
         const old_query = {
             memberRef: new ObjectId(item._id),
-            key: req.user.ip.toString(),
+            key: req.user.key,
         };
 
         const old = await likeModel.find(old_query);
@@ -146,7 +146,7 @@ router.get('/like', async (req, res) => {
             item.save();
             const like = new likeModel({
                 memberRef: new ObjectId(item._id),
-                key: req.user.ip.toString(),
+                key: req.user.key,
             });
             like.save();
 
