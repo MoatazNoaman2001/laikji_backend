@@ -37,7 +37,7 @@ router.get('/info', async (req, res) => {
         let item = await memberModal.findById(member._id).select('-password');
 
         let users_of_mem = await getUserOfMember(member._id, req.room._id);
-
+        console.log('users of member ' + users_of_mem.length);
         const photos = await memberPhotoModel.find({
             memberRef: new ObjectId(item._id),
             is_approved: true,
@@ -99,8 +99,9 @@ router.get('/info', async (req, res) => {
         item.comments_count = await commentModel.count({
             memberRef: new ObjectId(item._id),
         });
-
-        item.flag = item.showCountry ? users_of_mem[users_of_mem.length - 1].flag : '';
+        const lastItem = users_of_mem.slice(-1);
+        console.log('last item is ' + JSON.stringify(lastItem, null, 2));
+        item.flag = item.showCountry ? lastItem.flag : '';
 
         item.login_time = intToString(item.login_time);
         item.mic_time = intToString(item.mic_time);

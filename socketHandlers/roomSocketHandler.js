@@ -47,9 +47,8 @@ const registeredUserModal = require('../models/registeredUserModal');
 const roomUsersModel = require('../models/roomUsersModel');
 const { getRoomData } = require('../helpers/mediasoupHelpers');
 
-//var micQueue = new Map(); // Queue to hold mic requests
 var allMutedList = new Map(); // list for users whom muted all participarates
-var mutedSpeakers = new Map(); // list for users whom muted all participarates
+var mutedSpeakers = new Map();
 var youtubeLink = null;
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -62,7 +61,6 @@ module.exports = (io) => {
         let fp = socket.handshake.query.fp;
         let mp = socket.handshake.query.mp;
         let inv = socket.handshake.query.inv;
-        let socket_id = socket.request.connection.socketId;
         socket.handshake.query.icon = '0.png';
 
         // console.log(socket.handshake.query);
@@ -452,9 +450,7 @@ module.exports = (io) => {
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
-        // if (!roomInfo.micQueue) {
-        //     micQueue[xroomId] = [];
-        // }
+
         if (!allMutedList[xroomId]) {
             allMutedList[xroomId] = [];
         }
@@ -780,7 +776,7 @@ module.exports = (io) => {
                     },
                     msg: msg,
                 });
-                console.log('private message .3');
+                console.log('private message .3 ' + msg);
 
                 if (xuserInOtherRoom) {
                     console.log('private message .4');
