@@ -5,7 +5,6 @@ const router = express.Router();
 router.get('/terms', async (req, res) => {
     const settings = await getSettings();
     try {
-        console.log('terms: ' + settings.terms);
         res.status(200).send({
             ok: true,
             data:
