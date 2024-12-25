@@ -1196,6 +1196,14 @@ module.exports = (io) => {
                                         console.log('clear timer from request mic');
                                         clearActiveTimers(xroomId);
                                     }
+                                    if (mutedSpeakers[xroomId].includes(xuser._id.toString())) {
+                                        mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
+                                            (id) => id !== xuser._id.toString(),
+                                        );
+                                        io.to(xroomId).emit('speaker-muted', {
+                                            mutedSpeakers: mutedSpeakers[xroomId],
+                                        });
+                                    }
                                     console.log('after delete user id', roomInfo.speakers);
 
                                     console.log(
