@@ -93,6 +93,8 @@ router.get('/entrylogs/clear', async (req, res) => {
 });
 
 router.post('/ban/:key', async (req, res) => {
+    console.log('req params ' + req.params);
+    console.log('req body ' + JSON.stringify(req.body, null, 2));
     try {
         let user = await userModal.findOne({
             key: req.params.key,
