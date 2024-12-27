@@ -1059,6 +1059,59 @@ router.put('/change-meeting-password', async (req, res) => {
     }
 });
 
+router.put('/change-room-password', async (req, res) => {
+    // body: {room_id, code, old_password, new_password}
+
+    try {
+        console.log('change-room-password from outside ' + JSON.stringify(req.body, null, 2));
+
+        const query = {
+            type: enums.fileTypes.mastermain,
+            username: 'MASTER',
+            roomRefs: { $in: [new ObjectId(req.body.room_id)] },
+        };
+        const item = await memberModal.findOne(query);
+        if (item) {
+            let room = await roomModel.findById(req.body.room_id);
+            if (room.code != req.body.code || item.code != req.body.code) {
+                return res.status(200).send({
+                    ok: false,
+                    error_code: 22,
+                    msg_ar: 'الكود خاطئ',
+                    msg_en: 'code is incorrect',
+                });
+            }
+            if (item.password == req.body.old_password) {
+                item.password = req.body.new_password;
+                await item.save();
+
+                if (item.isMain && item.regUserRef) {
+                    await registeredUserModal.findByIdAndUpdate(item.regUserRef, {
+                        password: req.body.new_password ?? xuser.password,
+                    });
+                }
+
+                return res.status(200).send({
+                    ok: true,
+                });
+            }
+
+            return res.status(200).send({
+                ok: false,
+                error_code: 21,
+                msg_ar: 'كلمة السر القديمة خاطئة',
+                msg_en: 'Old password is incorrect',
+            });
+        }
+    } catch (e) {
+        console.error('erro from change room password ' + e);
+        return res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+
 router.post('/:roomId/release-hold-mic', async (req, res) => {
     try {
         const roomId = req.room;
