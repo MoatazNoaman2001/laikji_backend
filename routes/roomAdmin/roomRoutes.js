@@ -1035,13 +1035,14 @@ router.delete('/users', async (req, res) => {
 
 router.put('/change-meeting-password', async (req, res) => {
     try {
-        console.log('change-meeting-password ' + JSON.stringify(req.body, null, 2));
         if (req.user.type != enums.userTypes.mastermain) {
             return res.status(403).send({
                 ok: false,
                 error: 'you are not master',
             });
         }
+        
+        console.log("res: " + req.user.response);
 
         let room = await roomModel.findById(req.body.roomid);
         room.meetingPassword = req.body.password;
