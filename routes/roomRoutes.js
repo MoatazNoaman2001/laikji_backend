@@ -213,6 +213,7 @@ router.put('/change-room-password', async (req, res) => {
 
                 return res.status(200).send({
                     ok: true,
+                    msg_ar: 'تم تغيير رمز الغرفة بنجاح',
                 });
             }
 
