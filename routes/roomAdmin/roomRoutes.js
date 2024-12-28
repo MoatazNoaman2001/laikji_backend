@@ -1041,8 +1041,8 @@ router.put('/change-meeting-password', async (req, res) => {
                 error: 'you are not master',
             });
         }
-        
-        console.log("res: " + req.user.response);
+
+        console.log("res: " + req.body);
 
         let room = await roomModel.findById(req.body.roomid);
         room.meetingPassword = req.body.password;
