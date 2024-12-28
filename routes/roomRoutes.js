@@ -7,6 +7,9 @@ const userModel = require('../models/userModal');
 const { getSettings, hexToXRgb } = require('../helpers/tools');
 const router = express.Router();
 const mediasoup = require('mediasoup');
+const memberModal = require('../models/memberModal');
+const registeredUserModal = require('../models/registeredUserModal');
+var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/all', async (req, res) => {
     var response = [];
@@ -185,9 +188,12 @@ router.put('/change-room-password', async (req, res) => {
             roomRefs: { $in: [new ObjectId(req.body.room_id)] },
         };
         const item = await memberModal.findOne(query);
+
         if (item) {
             let room = await roomModel.findById(req.body.room_id);
-            if (room.code != req.body.code || item.code != req.body.code) {
+            console.log('item ' + JSON.stringify(room, null, 2));
+
+            if (room.code != req.body.code && item.code != req.body.code) {
                 return res.status(403).send({
                     ok: false,
                     error_code: 22,
