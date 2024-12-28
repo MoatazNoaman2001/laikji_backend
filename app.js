@@ -102,9 +102,9 @@ const room_io = socket(server, {
     cors: {
         credentials: true,
     },
-    // reconnection: true, // Enable auto-reconnection
-    // reconnectionAttempts: 5, // Retry up to 5 times
-    // reconnectionDelay: 1000, // Start with a 1-second delay between retries
+    reconnection: true, // Enable auto-reconnection
+    reconnectionAttempts: 5, // Retry up to 5 times
+    reconnectionDelay: 1000, // Start with a 1-second delay between retries
 });
 
 require('./socketHandlers/roomSocketHandler')(room_io);

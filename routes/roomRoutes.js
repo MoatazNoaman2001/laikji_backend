@@ -188,7 +188,7 @@ router.put('/change-room-password', async (req, res) => {
         if (item) {
             let room = await roomModel.findById(req.body.room_id);
             if (room.code != req.body.code || item.code != req.body.code) {
-                return res.status(200).send({
+                return res.status(403).send({
                     ok: false,
                     error_code: 22,
                     msg_ar: 'الكود خاطئ',
@@ -210,7 +210,7 @@ router.put('/change-room-password', async (req, res) => {
                 });
             }
 
-            return res.status(200).send({
+            return res.status(403).send({
                 ok: false,
                 error_code: 21,
                 msg_ar: 'كلمة السر القديمة خاطئة',
