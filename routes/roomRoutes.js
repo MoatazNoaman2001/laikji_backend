@@ -191,7 +191,6 @@ router.put('/change-room-password', async (req, res) => {
 
         if (item) {
             let room = await roomModel.findById(req.body.room_id);
-            console.log('item ' + JSON.stringify(room, null, 2));
 
             if (room.code != req.body.code && item.code != req.body.code) {
                 return res.status(403).send({
@@ -211,10 +210,10 @@ router.put('/change-room-password', async (req, res) => {
                     });
                 }
 
-                global.io.emit(room._id, {
+                global.io.emit(req.body.room_id, {
                     type: 'command-kick',
                     data: {
-                        user_id: item._id.toString(),
+                        user_id: item._id,
                         name: 'MASTER',
                         from: 'سيرفر',
                     },
