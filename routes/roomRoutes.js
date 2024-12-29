@@ -189,6 +189,7 @@ router.put('/change-room-password', async (req, res) => {
             roomRefs: { $in: [new ObjectId(req.body.room_id)] },
         };
         const item = await memberModal.findOne(query);
+        console.log('item ' + JSON.stringify(item, null, 2));
 
         if (item) {
             let room = await roomModel.findById(req.body.room_id);
