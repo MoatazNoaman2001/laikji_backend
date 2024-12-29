@@ -209,14 +209,6 @@ router.put('/change-room-password', async (req, res) => {
                     await registeredUserModal.findByIdAndUpdate(item.regUserRef, {
                         password: req.body.new_password ?? xuser.password,
                     });
-                    global.io.emit(room._id, {
-                        type: 'command-kick',
-                        data: {
-                            user_id: item.regUserRef,
-                            name: 'MASTER',
-                            from: 'سيرفر',
-                        },
-                    });
                 }
                 const user = await getUserById(item._id, room._id);
 
