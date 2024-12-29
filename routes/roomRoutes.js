@@ -214,9 +214,9 @@ router.put('/change-room-password', async (req, res) => {
                 global.io.emit(room._id, {
                     type: 'command-kick',
                     data: {
-                        user_id: "NO_ID",
-                        name: "MASTER",
-                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                        user_id: 'NO_ID',
+                        name: 'MASTER',
+                        from: 'سيرفر',
                     },
                 });
 
