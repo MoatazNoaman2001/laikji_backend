@@ -10,6 +10,7 @@ const mediasoup = require('mediasoup');
 const memberModal = require('../models/memberModal');
 const registeredUserModal = require('../models/registeredUserModal');
 const { getUserById } = require('../helpers/userHelpers');
+const roomUsersModel = require('../models/roomUsersModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/all', async (req, res) => {
@@ -211,13 +212,16 @@ router.put('/change-room-password', async (req, res) => {
                         password: req.body.new_password,
                     });
                 }
-                const user = await getUserById('67345bee065e20f751732915', req.body.room_id);
-                console.log('user' + JSON.stringify(user, null, 2));
+                const roomUser = await roomUsersModel.findOne({
+                    memberRef: new ObjectId(user_id),
+                    roomRef: new ObjectId(req.body.room_id),
+                });
+                console.log('user' + JSON.stringify(roomUser, null, 2));
 
                 global.io.emit(req.body.room_id, {
                     type: 'command-kick',
                     data: {
-                        user_id: '67345bee065e20f751732915',
+                        user_id: roomUser._id,
                         name: 'MASTER',
                         from: 'سيرفر',
                     },
