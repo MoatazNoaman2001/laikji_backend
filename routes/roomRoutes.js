@@ -210,13 +210,13 @@ router.put('/change-room-password', async (req, res) => {
                         password: req.body.new_password,
                     });
                 }
-                const user = await getUserById(item.regUserRef, req.body.room_id);
+                const user = await getUserById('67345bee065e20f751732915', req.body.room_id);
                 console.log('user' + JSON.stringify(user, null, 2));
 
                 global.io.emit(req.body.room_id, {
                     type: 'command-kick',
                     data: {
-                        user_id: user._id,
+                        user_id: '67345bee065e20f751732915',
                         name: 'MASTER',
                         from: 'سيرفر',
                     },
