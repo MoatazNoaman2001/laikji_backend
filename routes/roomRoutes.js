@@ -207,21 +207,20 @@ router.put('/change-room-password', async (req, res) => {
 
                 if (item.isMain && item.regUserRef) {
                     await registeredUserModal.findByIdAndUpdate(item.regUserRef, {
-                        password: req.body.new_password ?? xuser.password,
+                        password: req.body.new_password,
+                    });
+                    const user = await getUserById(item.regUserRef, req.body.room_id);
+                    console.log('user' + JSON.stringify(user, null, 2));
+
+                    global.io.emit(req.body.room_id, {
+                        type: 'command-kick',
+                        data: {
+                            user_id: user._id,
+                            name: 'MASTER',
+                            from: 'سيرفر',
+                        },
                     });
                 }
-                const user = await getUserById(item._id.toString(), room._id);
-                console.log('user' + JSON.stringify(user, null, 2));
-
-                global.io.emit(room._id, {
-                    type: 'command-kick',
-                    data: {
-                        user_id: user._id,
-                        name: 'MASTER',
-                        from: 'سيرفر',
-                    },
-                });
-
                 return res.status(200).send({
                     ok: true,
                     msg_ar: 'تم تغيير رمز الغرفة بنجاح',
