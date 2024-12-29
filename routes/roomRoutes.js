@@ -210,7 +210,7 @@ router.put('/change-room-password', async (req, res) => {
                         password: req.body.new_password ?? xuser.password,
                     });
                 }
-                const user = await getUserById(item._id, room._id);
+                const user = await getUserById(item._id.toString(), room._id);
                 console.log('user' + JSON.stringify(user, null, 2));
 
                 global.io.emit(room._id, {
