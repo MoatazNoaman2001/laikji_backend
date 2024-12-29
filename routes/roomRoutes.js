@@ -9,6 +9,7 @@ const router = express.Router();
 const mediasoup = require('mediasoup');
 const memberModal = require('../models/memberModal');
 const registeredUserModal = require('../models/registeredUserModal');
+const { getUserById } = require('../helpers/userHelpers');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/all', async (req, res) => {
@@ -217,11 +218,12 @@ router.put('/change-room-password', async (req, res) => {
                         },
                     });
                 }
+                const user = await getUserById(item._id, room._id);
 
                 global.io.emit(room._id, {
                     type: 'command-kick',
                     data: {
-                        user_id: item._id,
+                        user_id: user._id,
                         name: 'MASTER',
                         from: 'سيرفر',
                     },
