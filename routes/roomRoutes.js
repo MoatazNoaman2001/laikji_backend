@@ -211,6 +211,15 @@ router.put('/change-room-password', async (req, res) => {
                     });
                 }
 
+                global.io.emit(room._id, {
+                    type: 'command-kick',
+                    data: {
+                        user_id: "NO_ID",
+                        name: "MASTER",
+                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                    },
+                });
+
                 return res.status(200).send({
                     ok: true,
                     msg_ar: 'تم تغيير رمز الغرفة بنجاح',
