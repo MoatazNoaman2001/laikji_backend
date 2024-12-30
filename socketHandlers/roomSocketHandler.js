@@ -302,8 +302,7 @@ module.exports = (io) => {
             if (inv && is_invited) {
                 return next();
             }
-
-            console("mp: " + mp + ", room password: " + room.meetingPassword);
+            console.log("mp: " + mp + ", room password: " + room.meetingPassword);
 
             if (!mp || room.meetingPassword != mp) {
                 return next(
