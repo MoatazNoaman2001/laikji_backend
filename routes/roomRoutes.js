@@ -221,11 +221,11 @@ router.put('/change-room-password', async (req, res) => {
                 //         from: 'MASTER',
                 //     },
                 // });
-                if (roomUser.userRef) {
+                if (roomUser) {
                     global.io.emit(req.body.room_id, {
                         type: 'command-kick',
                         data: {
-                            user_id: roomUser.regUserRef,
+                            user_id: roomUser._id,
                             name: 'MASTER',
                             from: 'MASTER',
                         },
