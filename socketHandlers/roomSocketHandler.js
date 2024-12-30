@@ -83,6 +83,8 @@ module.exports = (io) => {
         }
 
         let room = await roomModel.findById(room_id);
+        console.log("room fetched: " + room);
+
         if (!room) {
             return next(
                 new Error(
