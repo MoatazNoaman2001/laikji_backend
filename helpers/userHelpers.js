@@ -13,13 +13,44 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, username, room_id) => {
+const createUser = async (user_key, room_id, member = null, regUser_id = null) => {
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
-            name: username,
         },
         {},
+        {
+            upsert: true,
+            new: true,
+        },
+    );
+
+    const ru = await roomUsersModel.findOneAndUpdate(
+        {
+            userRef: user._id,
+            roomRef: room_id,
+        },
+        {
+            memberRef: member ? member._id : null,
+            regUserRef: regUser_id ? regUser_id : null,
+        },
+        {
+            upsert: true,
+            new: true,
+        },
+    );
+
+    const room = await roomModel.findById(room_id);
+
+    const mru = await roomUsersModel.findOneAndUpdate(
+        {
+            userRef: user._id,
+            roomRef: room.isMeeting ? room.parentRef : room.meetingRef,
+        },
+        {
+            memberRef: member ? member._id : null,
+            regUserRef: regUser_id ? regUser_id : null,
+        },
         {
             upsert: true,
             new: true,
@@ -133,14 +164,11 @@ const getDefaultRegUser = async (
 const getUserById = async (user_id, room_id) => {
     const user = await userModal.findById(user_id);
     if (!user) return false;
-    console.log('getUserById ' + JSON.stringify(user, null, 2));
 
     const roomUser = await roomUsersModel.findOne({
         userRef: new ObjectId(user_id),
-        room_name: user.name,
         roomRef: new ObjectId(room_id),
     });
-    console.log('roomUser ' + JSON.stringify(roomUser, null, 2));
 
     if (!roomUser) return false;
 
@@ -365,7 +393,6 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
 };
 
 const addUserToRoom = (xroomId, xuser) => {
-    console.log('xuser is ' + JSON.stringify(xuser, null, 2));
     if (!global.rooms_users[xroomId]) global.rooms_users[xroomId] = [];
     global.rooms_users[xroomId].push(xuser._id.toString());
 };

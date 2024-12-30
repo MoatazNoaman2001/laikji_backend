@@ -302,14 +302,6 @@ module.exports = (io) => {
             if (inv && is_invited) {
                 return next();
             }
-            console.log(
-                'mp: ' +
-                    mp +
-                    ', room password: ' +
-                    room.meetingPassword +
-                    ', room name: ' +
-                    room.name,
-            );
 
             if (!mp || room.meetingPassword != mp) {
                 return next(
@@ -403,7 +395,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xclient.handshake.query.name, xroomId);
+            xuser = await createUser(key, xroomId, member, regUser_id);
         }
 
         let os = xclient.handshake.query.os;
@@ -602,7 +594,7 @@ module.exports = (io) => {
                     pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
 
                 io.to(otherUser.socketId).emit('new-alert', {
-                    msg_ar: `السيد ${xuser.name} يحاول التقاط الشاش `,
+                    msg_ar: `السيد ${xuser.name} يحاول التقاط الشاشة `,
                     msg_en: `Mr ${xuser.name} try to capture screenShot`,
                 });
             });

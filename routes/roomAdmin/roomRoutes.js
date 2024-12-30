@@ -28,7 +28,6 @@ const { getNowDateTime, hexToXRgb } = require('../../helpers/tools');
 const memberModal = require('../../models/memberModal');
 const registeredUserModal = require('../../models/registeredUserModal');
 const { getRoomData } = require('../../helpers/mediasoupHelpers');
-const { log } = require('console');
 var storage = multer.diskStorage({
     destination: 'public/rooms/',
     filename: function (req, file, cb) {
@@ -1036,6 +1035,7 @@ router.delete('/users', async (req, res) => {
 
 router.put('/change-meeting-password', async (req, res) => {
     try {
+        console.log('change-meeting-password ' + JSON.stringify(req.body, null, 2));
         if (req.user.type != enums.userTypes.mastermain) {
             return res.status(403).send({
                 ok: false,
@@ -1043,15 +1043,9 @@ router.put('/change-meeting-password', async (req, res) => {
             });
         }
 
-        console.log('res: password: ' + req.body.password);
-        console.log('res: roomId: ' + req.body.roomId);
-        await roomModel.findByIdAndUpdate(req.body.roomId, {
-            meetingPassword: req.body.password,
-        });
-        // let room = await roomModel.findById(req.body.roomId);
-        // console.log('room: ' + room);
-        // room.meetingPassword = req.body.password;
-        // await room.save();
+        let room = await roomModel.findById(req.body.roomid);
+        room.meetingPassword = req.body.password;
+        room.save();
 
         return res.status(200).send({
             ok: true,
