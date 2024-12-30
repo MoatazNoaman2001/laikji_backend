@@ -13,10 +13,11 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, room_id) => {
+const createUser = async (user_key, username, room_id) => {
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
+            name: username,
         },
         {},
         {

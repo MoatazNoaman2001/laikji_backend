@@ -403,7 +403,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xroomId, member, regUser_id);
+            xuser = await createUser(key, xclient.handshake.query.name, xroomId);
         }
 
         let os = xclient.handshake.query.os;
