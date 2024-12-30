@@ -178,19 +178,14 @@ router.post('/:room_id/audio', async (req, res) => {
     }
 });
 
-// route: api/room/change-room-password/
 router.put('/change-room-password', async (req, res) => {
-    // body: {room_id, code, old_password, new_password}
     try {
-        console.log('change-room-password from outside ' + JSON.stringify(req.body, null, 2));
-
         const query = {
             type: enums.fileTypes.mastermain,
             username: 'MASTER',
             roomRefs: { $in: [new ObjectId(req.body.room_id)] },
         };
         const item = await memberModal.findOne(query);
-        console.log('item ' + JSON.stringify(item, null, 2));
 
         if (item) {
             let room = await roomModel.findById(req.body.room_id);
@@ -216,16 +211,33 @@ router.put('/change-room-password', async (req, res) => {
                     memberRef: new ObjectId(item._id),
                     roomRef: new ObjectId(req.body.room_id),
                 });
-                console.log('user' + JSON.stringify(roomUser, null, 2));
 
                 global.io.emit(req.body.room_id, {
                     type: 'command-kick',
                     data: {
                         user_id: roomUser.userRef,
                         name: 'MASTER',
-                        from: 'سيرفر',
+                        from: 'MASTER',
                     },
                 });
+                if (roomUser.userRef) {
+                    global.io.emit(req.body.room_id, {
+                        type: 'command-kick',
+                        data: {
+                            user_id: roomUser.regUserRef,
+                            name: 'MASTER',
+                            from: 'MASTER',
+                        },
+                    });
+                    global.io.emit(req.body.room_id, {
+                        type: 'command-kick',
+                        data: {
+                            user_id: roomUser.memberRef,
+                            name: 'MASTER',
+                            from: 'MASTER',
+                        },
+                    });
+                }
                 return res.status(200).send({
                     ok: true,
                     msg_ar: 'تم تغيير رمز الغرفة بنجاح',
