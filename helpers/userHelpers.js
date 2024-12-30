@@ -13,7 +13,7 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, room_id, member = null, regUser_id = null) => {
+const createUser = async (user_key, room_id) => {
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
@@ -132,6 +132,7 @@ const getDefaultRegUser = async (
 const getUserById = async (user_id, room_id) => {
     const user = await userModal.findById(user_id);
     if (!user) return false;
+    console.log('getUserById ' + JSON.stringify(user, null, 2));
 
     const roomUser = await roomUsersModel.findOne({
         userRef: new ObjectId(user_id),
