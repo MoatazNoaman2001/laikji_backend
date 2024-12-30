@@ -137,8 +137,10 @@ const getUserById = async (user_id, room_id) => {
 
     const roomUser = await roomUsersModel.findOne({
         userRef: new ObjectId(user_id),
+        room_name: user.name,
         roomRef: new ObjectId(room_id),
     });
+    console.log('roomUser ' + JSON.stringify(roomUser, null, 2));
 
     if (!roomUser) return false;
 
