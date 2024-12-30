@@ -25,38 +25,6 @@ const createUser = async (user_key, room_id, member = null, regUser_id = null) =
         },
     );
 
-    const ru = await roomUsersModel.findOneAndUpdate(
-        {
-            userRef: user._id,
-            roomRef: room_id,
-        },
-        {
-            memberRef: member ? member._id : null,
-            regUserRef: regUser_id ? regUser_id : null,
-        },
-        {
-            upsert: true,
-            new: true,
-        },
-    );
-
-    const room = await roomModel.findById(room_id);
-
-    const mru = await roomUsersModel.findOneAndUpdate(
-        {
-            userRef: user._id,
-            roomRef: room.isMeeting ? room.parentRef : room.meetingRef,
-        },
-        {
-            memberRef: member ? member._id : null,
-            regUserRef: regUser_id ? regUser_id : null,
-        },
-        {
-            upsert: true,
-            new: true,
-        },
-    );
-
     let u = await getUserById(user._id, room_id);
     return u;
 };

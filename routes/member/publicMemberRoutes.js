@@ -100,7 +100,6 @@ router.get('/info', async (req, res) => {
             memberRef: new ObjectId(item._id),
         });
         const lastItem = users_of_mem.slice(-1);
-        console.log('last item is ' + JSON.stringify(lastItem, null, 2));
         item.flag = item.showCountry ? lastItem.flag : '';
 
         item.login_time = intToString(item.login_time);
