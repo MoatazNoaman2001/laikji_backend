@@ -303,6 +303,8 @@ module.exports = (io) => {
                 return next();
             }
 
+            console("mp: " + mp + ", room password: " + room.meetingPassword);
+
             if (!mp || room.meetingPassword != mp) {
                 return next(
                     new Error(
