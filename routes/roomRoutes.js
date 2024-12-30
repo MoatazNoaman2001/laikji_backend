@@ -208,19 +208,19 @@ router.put('/change-room-password', async (req, res) => {
                     });
                 }
                 const roomUser = await roomUsersModel.findOne({
-                    memberRef: new ObjectId(item._id),
+                    memberRef: new ObjectId(item.regUserRef),
                     roomRef: new ObjectId(req.body.room_id),
                 });
                 console.log('room user is ' + JSON.stringify(roomUser, null, 2));
 
-                global.io.emit(req.body.room_id, {
-                    type: 'command-kick',
-                    data: {
-                        user_id: roomUser.userRef,
-                        name: 'MASTER',
-                        from: 'MASTER',
-                    },
-                });
+                // global.io.emit(req.body.room_id, {
+                //     type: 'command-kick',
+                //     data: {
+                //         user_id: roomUser.userRef,
+                //         name: 'MASTER',
+                //         from: 'MASTER',
+                //     },
+                // });
                 if (roomUser.userRef) {
                     global.io.emit(req.body.room_id, {
                         type: 'command-kick',
@@ -230,14 +230,14 @@ router.put('/change-room-password', async (req, res) => {
                             from: 'MASTER',
                         },
                     });
-                    global.io.emit(req.body.room_id, {
-                        type: 'command-kick',
-                        data: {
-                            user_id: roomUser.memberRef,
-                            name: 'MASTER',
-                            from: 'MASTER',
-                        },
-                    });
+                    // global.io.emit(req.body.room_id, {
+                    //     type: 'command-kick',
+                    //     data: {
+                    //         user_id: roomUser.memberRef,
+                    //         name: 'MASTER',
+                    //         from: 'MASTER',
+                    //     },
+                    // });
                 }
                 return res.status(200).send({
                     ok: true,
