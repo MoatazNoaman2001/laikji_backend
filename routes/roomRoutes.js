@@ -186,7 +186,6 @@ router.put('/change-room-password', async (req, res) => {
             roomRefs: { $in: [new ObjectId(req.body.room_id)] },
         };
         const item = await memberModal.findOne(query);
-        const user = await getUserById(item.userRef, req.body.room_id);
 
         console.log('item is ' + JSON.stringify(item, null, 2));
         if (item) {
@@ -210,7 +209,8 @@ router.put('/change-room-password', async (req, res) => {
                     });
                 }
                 const roomUser = await roomUsersModel.findOne({
-                    userRef: new ObjectId(user._id),
+                    memberRef: new ObjectId(item._id),
+                    regUserRef: new ObjectId(item.regUserRef),
                     roomRef: new ObjectId(req.body.room_id),
                 });
                 console.log('room user is ' + JSON.stringify(roomUser, null, 2));
@@ -227,7 +227,7 @@ router.put('/change-room-password', async (req, res) => {
                     global.io.emit(req.body.room_id, {
                         type: 'command-kick',
                         data: {
-                            user_id: user._id,
+                            user_id: roomUser.userRef,
                             name: 'MASTER',
                             from: 'MASTER',
                         },
