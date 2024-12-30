@@ -83,8 +83,6 @@ module.exports = (io) => {
         }
 
         let room = await roomModel.findById(room_id);
-        console.log("room fetched: " + room);
-
         if (!room) {
             return next(
                 new Error(
@@ -304,7 +302,14 @@ module.exports = (io) => {
             if (inv && is_invited) {
                 return next();
             }
-            console.log("mp: " + mp + ", room password: " + room.meetingPassword + ", room name: " + room.name);
+            console.log(
+                'mp: ' +
+                    mp +
+                    ', room password: ' +
+                    room.meetingPassword +
+                    ', room name: ' +
+                    room.name,
+            );
 
             if (!mp || room.meetingPassword != mp) {
                 return next(

@@ -361,6 +361,7 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
 };
 
 const addUserToRoom = (xroomId, xuser) => {
+    console.log('xuser is ' + JSON.stringify(xuser, null, 2));
     if (!global.rooms_users[xroomId]) global.rooms_users[xroomId] = [];
     global.rooms_users[xroomId].push(xuser._id.toString());
 };
