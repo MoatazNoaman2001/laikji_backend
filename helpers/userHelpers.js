@@ -25,7 +25,7 @@ const createUser = async (user_key, room_id, member = null, regUser_id = null) =
         },
     );
 
-    const ru = await roomUsersModel.findOneAndUpdate(
+    await roomUsersModel.findOneAndUpdate(
         {
             userRef: user._id,
             roomRef: room_id,
@@ -42,7 +42,7 @@ const createUser = async (user_key, room_id, member = null, regUser_id = null) =
 
     const room = await roomModel.findById(room_id);
 
-    const mru = await roomUsersModel.findOneAndUpdate(
+    await roomUsersModel.findOneAndUpdate(
         {
             userRef: user._id,
             roomRef: room.isMeeting ? room.parentRef : room.meetingRef,
@@ -82,6 +82,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'country_code',
         'flag',
         'ip',
+        'device',
         'socketId',
         'token',
         'strong',
@@ -473,17 +474,17 @@ const isRegisteredName = async (name, room_id) => {
     }
 };
 
-const isBanned = async (user_key, room) => {
+const isBanned = async (device, room) => {
     const otherRoomId = room.isMeeting ? room.parentRef : room.meetingRef;
 
     const banned = await bannedModel.findOne({
         $or: [
             {
-                key: user_key,
+                device: device,
                 roomRef: new ObjectId(room._id),
             },
             {
-                key: user_key,
+                device: device,
                 roomRef: new ObjectId(otherRoomId),
             },
         ],
@@ -493,9 +494,10 @@ const isBanned = async (user_key, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (user_key) => {
+const isBannedFromServer = async (device) => {
     const banned = await bannedModel.findOne({
-        key: user_key,
+        device: device,
+
         type: enums.banTypes.server,
     });
 

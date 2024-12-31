@@ -29,6 +29,7 @@ const schema = Schema({
         default: false,
     },
     ip: String,
+    device: String,
     country_code: String,
     flag: String,
     is_typing: {

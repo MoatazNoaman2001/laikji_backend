@@ -255,7 +255,7 @@ module.exports = (io) => {
         const registeredUser = await getRegisteredUser(name, rp, room_id);
         if (registeredUser) {
             if (registeredUser.is_locked === true) {
-                if (registeredUser.locked_key && registeredUser.locked_key != user_key) {
+                if (registeredUser.locked_key && registeredUser.locked_key != device) {
                     return next(
                         new Error(
                             JSON.stringify({
@@ -266,7 +266,7 @@ module.exports = (io) => {
                         ),
                     );
                 }
-                registeredUser.locked_key = user_key;
+                registeredUser.locked_key = device;
                 await registeredUser.save();
             }
 
@@ -317,7 +317,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(user_key, room)) {
+        if (await isBanned(device, room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -396,7 +396,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xroomId);
+            xuser = await createUser(key, xroomId, member, regUser_id);
         }
 
         let os = xclient.handshake.query.os;

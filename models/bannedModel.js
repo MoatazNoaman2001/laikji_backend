@@ -14,7 +14,7 @@ const schema = Schema({
     },
     memberRef: {
         type: Schema.Types.ObjectId,
-        ref: "members",
+        ref: 'members',
     },
     bannerRef: {
         type: Schema.Types.ObjectId,
@@ -24,6 +24,7 @@ const schema = Schema({
     name: String,
     country: String,
     ip: String,
+    device: String,
     key: String,
     until: Date,
     banner_strong: {
