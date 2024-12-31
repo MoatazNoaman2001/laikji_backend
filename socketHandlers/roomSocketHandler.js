@@ -327,7 +327,7 @@ module.exports = (io) => {
                 //         }),
                 //     ),
                 // );
-                io.to(xuser.socketId).emit('new-alert', {
+                io.to(socket.request.connection.socketId).emit('new-alert', {
                     msg_ar: 'كلمة مرور غرفة الاجتماعات خاطئة',
                     msg_en: 'Password is incorrect',
                 });
