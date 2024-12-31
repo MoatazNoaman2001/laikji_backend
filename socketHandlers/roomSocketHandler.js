@@ -64,7 +64,7 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         socket.handshake.query.icon = '0.png';
 
-        // console.log(socket.handshake.query);
+        console.log('socket query ', JSON.stringify(socket.handshake.query, null, 2));
         console.log(
             'new client room:',
             name,
