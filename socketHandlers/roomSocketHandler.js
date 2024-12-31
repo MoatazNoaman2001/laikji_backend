@@ -64,7 +64,6 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         socket.handshake.query.icon = '0.png';
 
-        console.log('socket query ', JSON.stringify(socket.handshake.query, null, 2));
         if (device === undefined) {
             device = user_key;
         }
