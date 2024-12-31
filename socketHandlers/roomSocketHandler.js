@@ -318,6 +318,7 @@ module.exports = (io) => {
             }
 
             if (!mp || room.meetingPassword != mp) {
+                console.log('mp :', mp, 'room mp ', room.meetingPassword);
                 return next(
                     new Error(
                         JSON.stringify({
