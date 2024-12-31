@@ -318,15 +318,19 @@ module.exports = (io) => {
             }
 
             if (!mp || room.meetingPassword != mp) {
-                return next(
-                    new Error(
-                        JSON.stringify({
-                            error_code: 1,
-                            msg_ar: 'كلمة مرور غرفة الاجتماعات خاطئة',
-                            msg_en: 'Password is incorrect',
-                        }),
-                    ),
-                );
+                // return next(
+                //     new Error(
+                //         JSON.stringify({
+                //             error_code: 1,
+                //             msg_ar: 'كلمة مرور غرفة الاجتماعات خاطئة',
+                //             msg_en: 'Password is incorrect',
+                //         }),
+                //     ),
+                // );
+                io.to(xuser.socketId).emit('new-alert', {
+                    msg_ar: 'كلمة مرور غرفة الاجتماعات خاطئة',
+                    msg_en: 'Password is incorrect',
+                });
             }
         }
 
