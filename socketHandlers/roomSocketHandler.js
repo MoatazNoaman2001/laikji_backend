@@ -56,6 +56,7 @@ module.exports = (io) => {
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
         let user_key = socket.handshake.query.key;
+        let device = socket.handshake.query.device;
         let ip = socket.request.connection.remoteAddress;
         let rp = socket.handshake.query.rp;
         let fp = socket.handshake.query.fp;
@@ -123,7 +124,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(user_key)) {
+        if (await isBannedFromServer(device)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -395,7 +396,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xroomId, member, regUser_id);
+            xuser = await createUser(key, xroomId);
         }
 
         let os = xclient.handshake.query.os;
