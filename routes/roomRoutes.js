@@ -7,6 +7,7 @@ const userModel = require('../models/userModal');
 const { getSettings, hexToXRgb } = require('../helpers/tools');
 const router = express.Router();
 const mediasoup = require('mediasoup');
+const memberModal = require('../models/memberModal');
 
 router.get('/all', async (req, res) => {
     var response = [];
@@ -115,6 +116,71 @@ router.get('/all', async (req, res) => {
         });
     } catch (e) {
         res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+
+router.put('/change-room-password', async (req, res) => {
+    try {
+        let room = await roomModel.findById(req.body.room_id);
+        const query = {
+            type: enums.fileTypes.mastermain,
+            isMain: true,
+            username: 'MASTER',
+            roomRefs: { $all: [new ObjectId(room._id), new ObjectId(room.meetingRef)] },
+        };
+        const item = await memberModal.findOne(query);
+        console.log('item is ' + JSON.stringify(item, null, 2));
+        if (item) {
+            if (room.code != req.body.code && item.code != req.body.code) {
+                return res.status(403).send({
+                    ok: false,
+                    error_code: 22,
+                    msg_ar: 'الكود خاطئ',
+                    msg_en: 'code is incorrect',
+                });
+            }
+            if (item.password == req.body.old_password) {
+                item.password = req.body.new_password;
+                await item.save();
+                if (item.regUserRef) {
+                    await registeredUserModal.findByIdAndUpdate(item.regUserRef, {
+                        password: req.body.new_password,
+                    });
+                }
+                const roomUser = await roomUsersModel.findOne({
+                    memberRef: new ObjectId(item._id),
+                    regUserRef: new ObjectId(item.regUserRef),
+                    roomRef: new ObjectId(req.body.room_id),
+                });
+
+                if (roomUser) {
+                    global.io.emit(req.body.room_id, {
+                        type: 'command-kick',
+                        data: {
+                            user_id: roomUser.userRef,
+                            name: 'MASTER',
+                            from: 'MASTER',
+                        },
+                    });
+                }
+                return res.status(200).send({
+                    ok: true,
+                    msg_ar: 'تم تغيير رمز الغرفة بنجاح',
+                });
+            }
+            return res.status(403).send({
+                ok: false,
+                error_code: 21,
+                msg_ar: 'كلمة السر القديمة خاطئة',
+                msg_en: 'Old password is incorrect',
+            });
+        }
+    } catch (e) {
+        console.error('erro from change room password ' + e);
+        return res.status(500).send({
             ok: false,
             error: e.message,
         });
