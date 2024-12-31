@@ -65,7 +65,18 @@ module.exports = (io) => {
         socket.handshake.query.icon = '0.png';
 
         // console.log(socket.handshake.query);
-        console.log('new client room:', name, 'for room:', room_id, 'IP:', ip, 'KEY:', user_key);
+        console.log(
+            'new client room:',
+            name,
+            'for room:',
+            room_id,
+            'IP:',
+            ip,
+            'KEY:',
+            user_key,
+            'DEVICE: ',
+            device,
+        );
 
         if (ip) {
             ip = ip.split(':').pop();
