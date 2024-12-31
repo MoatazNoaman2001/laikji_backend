@@ -9,6 +9,7 @@ const router = express.Router();
 const mediasoup = require('mediasoup');
 const memberModal = require('../models/memberModal');
 const registeredUserModal = require('../models/registeredUserModal');
+const roomUsersModel = require('../models/roomUsersModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/all', async (req, res) => {
