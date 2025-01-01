@@ -66,6 +66,7 @@ const updateUser = async (xuser, user_id, room_id) => {
     const can_update = [
         'showCountry',
         'is_typing',
+        'is_meeting_typing',
         'is_joker',
         'game_number',
         'game_number_color',
@@ -730,6 +731,7 @@ async function public_user(xuser, withMember = true) {
         img: xuser.img,
         img_key: xuser.img_key,
         is_typing: xuser.is_typing,
+        is_meeting_typing: xuser.is_meeting_typing,
         is_locked: xuser.is_locked,
         can_public_chat: xuser.can_public_chat,
         can_private_chat: xuser.can_private_chat,

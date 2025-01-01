@@ -40,6 +40,10 @@ const schema = Schema({
         type: Boolean,
         default: false,
     },
+    is_meeting_typing: {
+        type: Boolean,
+        default: false,
+    },
     token: {
         type: String,
         // select: false,

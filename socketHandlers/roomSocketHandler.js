@@ -447,6 +447,7 @@ module.exports = (io) => {
                 os: xclient.handshake.query.os,
                 img: await getEnterIcon(xclient.handshake.query.img),
                 is_typing: false,
+                is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
                 private_status:
                     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
@@ -857,7 +858,9 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('is_typing')) {
                             xuser.is_typing = data.user.is_typing;
                         }
-
+                        if (data.user.hasOwnProperty('is_meeting_typing')) {
+                            xuser.is_meeting_typing = data.user.is_meeting_typing;
+                        }
                         if (data.user.hasOwnProperty('showCountry')) {
                             xuser.showCountry = data.user.showCountry;
                         }
