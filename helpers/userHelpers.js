@@ -102,6 +102,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'memberRef',
         'room_password',
         'room_name',
+        'isMain',
         'latestRoomRef',
         'os',
         'prevent_private_screenshot',

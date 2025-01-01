@@ -154,8 +154,10 @@ router.put('/change-room-password', async (req, res) => {
                     });
                 }
                 const roomUser = await roomUsersModel.findOne({
-                    memberRef: new ObjectId(item._id),
-                    regUserRef: new ObjectId(item.regUserRef),
+                    // memberRef: new ObjectId(item._id),
+                    // regUserRef: new ObjectId(item.regUserRef),
+                    room_name: 'MASTER',
+                    isMain: true,
                     roomRef: new ObjectId(req.body.room_id),
                 });
 

@@ -22,6 +22,10 @@ const schema = Schema({
     },
     socketId: String,
     room_password: String,
+    isMain: {
+        type: Boolean,
+        default: false,
+    },
     room_name: String,
     os: String,
     showCountry: {
