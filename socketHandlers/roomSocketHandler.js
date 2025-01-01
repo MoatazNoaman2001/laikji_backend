@@ -461,7 +461,7 @@ module.exports = (io) => {
                 room_name: xclient.handshake.query.name,
                 memberRef: member ? member._id : null,
                 latestRoomRef: xroomId,
-                isMain: socket.handshake.query.isMain,
+                isMain: xclient.handshake.query.isMain,
                 ...update,
             },
             xuser._id,
