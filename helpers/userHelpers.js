@@ -103,6 +103,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'invited_to_meeting',
         'invited_by',
         'memberRef',
+        'userRef',
         'room_password',
         'room_name',
         'isMain',
