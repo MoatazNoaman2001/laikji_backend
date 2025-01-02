@@ -470,6 +470,7 @@ module.exports = (io) => {
                 memberRef: member ? member._id : null,
                 latestRoomRef: xroomId,
                 isMain: xclient.handshake.query.isMain,
+                userRef: xuser._id,
                 ...update,
             },
             xuser._id,
