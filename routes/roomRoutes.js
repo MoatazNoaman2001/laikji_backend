@@ -157,7 +157,7 @@ router.put('/change-room-password', async (req, res) => {
                     isMain: true,
                     roomRef: new ObjectId(req.body.room_id),
                 });
-
+                console.log('lat item ', roomUsersList[roomUsersList.length - 1].userRef);
                 if (roomUsersList.length > 0) {
                     const lastItem = roomUsersList[roomUsersList.length - 1];
                     global.io.emit(lastItem.socketId, {
