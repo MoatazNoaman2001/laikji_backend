@@ -414,7 +414,14 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xroomId, member, regUser_id);
+            xuser = await createUser(
+                key,
+                xroomId,
+                xclient.handshake.query.name,
+                xclient.handshake.query.device,
+                member,
+                regUser_id,
+            );
         }
 
         let os = xclient.handshake.query.os;
