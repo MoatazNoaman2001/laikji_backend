@@ -160,7 +160,7 @@ router.put('/change-room-password', async (req, res) => {
                 console.log('lat item ', roomUsersList[roomUsersList.length - 1].userRef);
                 if (roomUsersList.length > 0) {
                     const lastItem = roomUsersList[roomUsersList.length - 1];
-                    global.io.emit(lastItem.socketId, {
+                    global.io.emit(req.body.room_id, {
                         type: 'kick-master',
                         data: {
                             user_id: lastItem.userRef,
