@@ -152,19 +152,18 @@ router.put('/change-room-password', async (req, res) => {
                         password: req.body.new_password,
                     });
                 }
-                const roomUser = await roomUsersModel.findOne({
-                    // memberRef: new ObjectId(item._id),
-                    // regUserRef: new ObjectId(item.regUserRef),
+                const roomUsersList = await roomUsersModel.find({
                     room_name: 'MASTER',
                     isMain: true,
                     roomRef: new ObjectId(req.body.room_id),
                 });
-                console.log('room user is ' + JSON.stringify(roomUser, null, 2));
-                if (roomUser) {
-                    global.io.emit(roomUser.socketId, {
+
+                if (roomUsersList.length > 0) {
+                    const lastItem = roomUsersList[roomUsersList.length - 1];
+                    global.io.emit(lastItem.socketId, {
                         type: 'kick-master',
                         data: {
-                            user_id: roomUser.userRef,
+                            user_id: lastItem.userRef,
                             name: 'MASTER',
                             from: 'MASTER',
                         },
