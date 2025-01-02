@@ -135,7 +135,6 @@ router.put('/change-room-password', async (req, res) => {
             roomRefs: { $all: [new ObjectId(room._id), new ObjectId(room.meetingRef)] },
         };
         const item = await memberModal.findOne(query);
-        console.log('item is ' + JSON.stringify(item, null, 2));
         if (item) {
             if (room.code != req.body.code && item.code != req.body.code) {
                 return res.status(403).send({
@@ -160,7 +159,7 @@ router.put('/change-room-password', async (req, res) => {
                     isMain: true,
                     roomRef: new ObjectId(req.body.room_id),
                 });
-
+                console.log('room user is ' + JSON.stringify(roomUser, null, 2));
                 if (roomUser) {
                     global.io.emit(req.body.room_id, {
                         type: 'kick-master',
