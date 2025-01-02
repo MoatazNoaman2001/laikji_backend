@@ -161,7 +161,7 @@ router.put('/change-room-password', async (req, res) => {
                 });
                 console.log('room user is ' + JSON.stringify(roomUser, null, 2));
                 if (roomUser) {
-                    global.io.emit(req.body.room_id, {
+                    global.io.emit(roomUser.socketId, {
                         type: 'kick-master',
                         data: {
                             user_id: roomUser.userRef,

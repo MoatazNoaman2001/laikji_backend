@@ -24,7 +24,7 @@ const createUser = async (user_key, room_id, member = null, regUser_id = null) =
             new: true,
         },
     );
-
+    console.log('user id is ' + user._id.toString());
     await roomUsersModel.findOneAndUpdate(
         {
             userRef: user._id,
