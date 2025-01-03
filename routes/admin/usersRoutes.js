@@ -11,21 +11,16 @@ const {
     getUserById,
 } = require('../../helpers/userHelpers');
 const userModal = require('../../models/userModal');
-const roomUsersModel = require('../../models/roomUsersModel');
 const roomModel = require('../../models/roomModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/entrylogs', async (req, res) => {
     var response = [];
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
-    var search = req.query.search ? req.query.search : null;
     var room_id = req.query.room_id ? req.query.room_id : null;
     var in_page = 100;
     try {
         let query = {};
-        // if (search) {
-        //     query.name = ''
-        // }
 
         if (room_id) {
             query.roomRef = new ObjectId(room_id);
@@ -42,7 +37,7 @@ router.get('/entrylogs', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.key);
+                const isBanned = await isBannedFromServer(item.device);
                 const res_item = {
                     ...item,
                     isBanned,
@@ -92,12 +87,12 @@ router.get('/entrylogs/clear', async (req, res) => {
     }
 });
 
-router.post('/ban/:key', async (req, res) => {
+router.post('/ban/:device', async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
     console.log('req body ' + JSON.stringify(req.body, null, 2));
     try {
         let user = await userModal.findOne({
-            key: req.params.key,
+            device: req.params.device,
         });
 
         if (!user) {
@@ -117,14 +112,14 @@ router.post('/ban/:key', async (req, res) => {
             until = until.setHours(until.getHours() + parseInt(req.body.time));
         }
 
-        let b = await bannedModel.findOneAndUpdate(
+        await bannedModel.findOneAndUpdate(
             {
-                key: user.key,
+                device: user.device,
                 type: enums.banTypes.server,
             },
             {
                 name: user.name,
-                key: user.key,
+                device: user.device,
                 until: until,
                 country: user.country_code ?? '',
                 ip: user.ip ?? '',
@@ -167,10 +162,10 @@ router.post('/ban/:key', async (req, res) => {
     }
 });
 
-router.get('/unban/:key', async (req, res) => {
+router.get('/unban/:device', async (req, res) => {
     try {
         await bannedModel.deleteMany({
-            key: req.params.key,
+            device: req.params.device,
             type: enums.banTypes.server,
         });
 
@@ -186,7 +181,7 @@ router.get('/unban/:key', async (req, res) => {
     }
 });
 
-router.post('/set-stop/:key', async (req, res) => {
+router.post('/set-stop/:device', async (req, res) => {
     try {
         let until = -1;
 
@@ -212,7 +207,7 @@ router.post('/set-stop/:key', async (req, res) => {
 
         const user = await userModal.findOneAndUpdate(
             {
-                key: req.params.key,
+                device: req.params.device,
             },
             {
                 server_can_public_chat: !req.body.server_can_public_chat,
@@ -238,11 +233,11 @@ router.post('/set-stop/:key', async (req, res) => {
     }
 });
 
-router.get('/unstop/:key', async (req, res) => {
+router.get('/unstop/:device', async (req, res) => {
     try {
         const user = await userModal.findOneAndUpdate(
             {
-                key: req.params.key,
+                device: req.params.device,
             },
             {
                 server_can_public_chat: true,
@@ -269,17 +264,11 @@ router.get('/unstop/:key', async (req, res) => {
 });
 
 router.get('/stoppeds', async (req, res) => {
-    var response = [];
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
-    var search = req.query.search ? req.query.search : null;
     var room_id = req.query.room_id ? req.query.room_id : null;
     var in_page = 10000;
     try {
         let query = {};
-        // if (search) {
-        //     query.name = ''
-        // }
-
         if (room_id) {
             query.roomRef = new ObjectId(room_id);
         }
@@ -328,18 +317,13 @@ router.get('/stoppeds', async (req, res) => {
 });
 
 router.get('/banneds', async (req, res) => {
-    var response = [];
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
-    var search = req.query.search ? req.query.search : null;
     var room_id = req.query.room_id ? req.query.room_id : null;
     var in_page = 30;
     try {
         let query = {
             type: enums.banTypes.server,
         };
-        // if (search) {
-        //     query.name = ''
-        // }
 
         if (room_id) {
             query.roomRef = new ObjectId(room_id);
@@ -381,7 +365,7 @@ router.get('/inroom', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.key);
+                const isBanned = await isBannedFromServer(item.device);
                 const res_item = {
                     ...item,
                     isBanned,
