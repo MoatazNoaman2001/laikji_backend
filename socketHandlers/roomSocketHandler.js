@@ -561,7 +561,7 @@ module.exports = (io) => {
 
 
                 let res = {
-                    key: uuidv4(),
+                    // key: uuidv4(),
                     type: data.type,
                     msg: filterMsg(data.msg, xroomId),
                     style: data.style,
