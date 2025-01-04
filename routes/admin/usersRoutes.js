@@ -96,8 +96,9 @@ router.post('/ban/:device', async (req, res) => {
         });
 
         if (!user) {
-            return res.status(200).send({
-                ok: true,
+            res.status(500).send({
+                ok: false,
+                error: e.message,
             });
         }
 

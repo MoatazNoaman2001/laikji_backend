@@ -17,8 +17,6 @@ const createUser = async (user_key, room_id, name, device, member = null, regUse
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
-            device: device,
-            name: name,
         },
         {},
         {

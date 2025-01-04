@@ -476,6 +476,7 @@ module.exports = (io) => {
             xuser._id,
             xroomId,
         );
+        console.log('xuser device is ' + xuser.device);
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
