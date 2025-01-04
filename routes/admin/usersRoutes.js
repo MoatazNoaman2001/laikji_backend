@@ -98,7 +98,7 @@ router.post('/ban/:device', async (req, res) => {
         if (!user) {
             res.status(500).send({
                 ok: false,
-                error: e.message,
+                error: 'user is not defined',
             });
         }
 
