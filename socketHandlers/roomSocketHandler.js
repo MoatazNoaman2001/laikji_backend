@@ -456,7 +456,7 @@ module.exports = (io) => {
                 is_typing: false,
                 is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
-                device: xclient.handshake.query.device,
+                device: device,
                 private_status:
                     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
                         ? parseInt(xclient.handshake.query.ps)
