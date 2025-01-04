@@ -51,7 +51,7 @@ router.get('/info', async (req, res) => {
 
         const old_viewed = await viewModel.find({
             memberRef: new ObjectId(item._id),
-            key: req.user.key,
+            key: req.user.device,
         });
 
         if (!req.user.is_spy) {
@@ -63,7 +63,7 @@ router.get('/info', async (req, res) => {
 
                         const view = new viewModel({
                             memberRef: new ObjectId(item._id),
-                            key: req.user.key,
+                            key: req.user.device,
                         });
                         await view.save();
                     }
@@ -83,7 +83,7 @@ router.get('/info', async (req, res) => {
 
         const old_liked = await likeModel.find({
             memberRef: new ObjectId(item._id),
-            key: req.user.key,
+            key: req.user.device,
         });
 
         item = JSON.parse(JSON.stringify(item));
@@ -100,7 +100,6 @@ router.get('/info', async (req, res) => {
             memberRef: new ObjectId(item._id),
         });
         const lastItem = users_of_mem.slice(-1);
-        console.log('last item is ' + JSON.stringify(lastItem, null, 2));
         item.flag = item.showCountry ? lastItem.flag : '';
 
         item.login_time = intToString(item.login_time);
@@ -132,7 +131,7 @@ router.get('/like', async (req, res) => {
         console.log('like user is ' + JSON.stringify(req.user, null, 2));
         const old_query = {
             memberRef: new ObjectId(item._id),
-            key: req.user.key,
+            key: req.user.device,
         };
 
         const old = await likeModel.find(old_query);
@@ -147,7 +146,7 @@ router.get('/like', async (req, res) => {
             item.save();
             const like = new likeModel({
                 memberRef: new ObjectId(item._id),
-                key: req.user.key,
+                key: req.user.device,
             });
             like.save();
 

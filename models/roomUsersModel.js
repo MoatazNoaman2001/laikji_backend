@@ -22,6 +22,10 @@ const schema = Schema({
     },
     socketId: String,
     room_password: String,
+    isMain: {
+        type: Boolean,
+        default: false,
+    },
     room_name: String,
     os: String,
     showCountry: {
@@ -29,9 +33,14 @@ const schema = Schema({
         default: false,
     },
     ip: String,
+    device: String,
     country_code: String,
     flag: String,
     is_typing: {
+        type: Boolean,
+        default: false,
+    },
+    is_meeting_typing: {
         type: Boolean,
         default: false,
     },

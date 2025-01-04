@@ -38,7 +38,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
         if (req.user.is_spy) {
             let b = await bannedModel.findOneAndUpdate(
                 {
-                    key: user.key,
+                    device: user.device,
                     type: enums.banTypes.server,
                 },
                 {
@@ -54,7 +54,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
         } else {
             let bb = await bannedModel.findOneAndUpdate(
                 {
-                    key: user.key,
+                    device: user.device,
                     roomRef: room._id,
                 },
                 {
@@ -123,7 +123,7 @@ router.post('/ban-entry', async (req, res) => {
 
         let bb = await bannedModel.findOneAndUpdate(
             {
-                key: entry.key,
+                device: entry.device,
                 roomRef: room._id,
             },
             {

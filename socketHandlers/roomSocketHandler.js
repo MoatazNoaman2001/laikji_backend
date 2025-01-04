@@ -59,6 +59,7 @@ module.exports = (io) => {
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
         let user_key = socket.handshake.query.key;
+        let device = socket.handshake.query.device;
         let ip = socket.request.connection.remoteAddress;
         let rp = socket.handshake.query.rp;
         let fp = socket.handshake.query.fp;
@@ -66,8 +67,21 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         socket.handshake.query.icon = '0.png';
 
-        // console.log(socket.handshake.query);
-        console.log('new client room:', name, 'for room:', room_id, 'IP:', ip, 'KEY:', user_key);
+        if (device === undefined) {
+            device = user_key;
+        }
+        console.log(
+            'new client room:',
+            name,
+            'for room:',
+            room_id,
+            'IP:',
+            ip,
+            'KEY:',
+            user_key,
+            'DEVICE: ',
+            device,
+        );
 
         if (ip) {
             ip = ip.split(':').pop();
@@ -86,8 +100,6 @@ module.exports = (io) => {
         }
 
         let room = await roomModel.findById(room_id);
-        console.log("room fetched: " + room);
-
         if (!room) {
             return next(
                 new Error(
@@ -128,7 +140,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(user_key)) {
+        if (await isBannedFromServer(device)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -259,7 +271,7 @@ module.exports = (io) => {
         const registeredUser = await getRegisteredUser(name, rp, room_id);
         if (registeredUser) {
             if (registeredUser.is_locked === true) {
-                if (registeredUser.locked_key && registeredUser.locked_key != user_key) {
+                if (registeredUser.locked_key && registeredUser.locked_key != device) {
                     return next(
                         new Error(
                             JSON.stringify({
@@ -270,7 +282,7 @@ module.exports = (io) => {
                         ),
                     );
                 }
-                registeredUser.locked_key = user_key;
+                registeredUser.locked_key = device;
                 await registeredUser.save();
             }
 
@@ -307,9 +319,9 @@ module.exports = (io) => {
             if (inv && is_invited) {
                 return next();
             }
-            console.log("mp: " + mp + ", room password: " + room.meetingPassword + ", room name: " + room.name);
 
             if (!mp || room.meetingPassword != mp) {
+                console.log('mp :', mp, 'room mp ', room.meetingPassword);
                 return next(
                     new Error(
                         JSON.stringify({
@@ -319,10 +331,14 @@ module.exports = (io) => {
                         }),
                     ),
                 );
+                // io.to(socket.request.connection.socketId).emit('new-alert', {
+                //     msg_ar: 'كلمة مرور غرفة الاجتماعات خاطئة',
+                //     msg_en: 'Password is incorrect',
+                // });
             }
         }
 
-        if (await isBanned(user_key, room)) {
+        if (await isBanned(device, room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -401,7 +417,14 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xroomId, member, regUser_id);
+            xuser = await createUser(
+                key,
+                xroomId,
+                xclient.handshake.query.name,
+                xclient.handshake.query.device ?? xclient.handshake.query.key,
+                member,
+                regUser_id,
+            );
         }
 
         let os = xclient.handshake.query.os;
@@ -434,7 +457,9 @@ module.exports = (io) => {
                 os: xclient.handshake.query.os,
                 img: await getEnterIcon(xclient.handshake.query.img),
                 is_typing: false,
+                is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
+                device: xclient.handshake.query.device ?? xclient.handshake.query.key,
                 private_status:
                     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
                         ? parseInt(xclient.handshake.query.ps)
@@ -448,11 +473,14 @@ module.exports = (io) => {
                 room_name: xclient.handshake.query.name,
                 memberRef: member ? member._id : null,
                 latestRoomRef: xroomId,
+                isMain: xclient.handshake.query.isMain,
+                userRef: xuser._id,
                 ...update,
             },
             xuser._id,
             xroomId,
         );
+        console.log('xuser device is ' + xuser.device);
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
@@ -601,7 +629,7 @@ module.exports = (io) => {
                     pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
 
                 io.to(otherUser.socketId).emit('new-alert', {
-                    msg_ar: `السيد ${xuser.name} يحاول التقاط الشاش `,
+                    msg_ar: `السيد ${xuser.name} يحاول التقاط الشاشة `,
                     msg_en: `Mr ${xuser.name} try to capture screenShot`,
                 });
             });
@@ -844,7 +872,9 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('is_typing')) {
                             xuser.is_typing = data.user.is_typing;
                         }
-
+                        if (data.user.hasOwnProperty('is_meeting_typing')) {
+                            xuser.is_meeting_typing = data.user.is_meeting_typing;
+                        }
                         if (data.user.hasOwnProperty('showCountry')) {
                             xuser.showCountry = data.user.showCountry;
                         }

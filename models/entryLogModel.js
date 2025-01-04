@@ -28,6 +28,7 @@ const schema = Schema({
     country: String,
     permissions: String,
     ip: String,
+    devcie: String,
     key: String,
     enterDate: Date,
     exitDate: Date,

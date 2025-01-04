@@ -13,7 +13,7 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, room_id, member = null, regUser_id = null) => {
+const createUser = async (user_key, room_id, name, device, member = null, regUser_id = null) => {
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
@@ -24,8 +24,8 @@ const createUser = async (user_key, room_id, member = null, regUser_id = null) =
             new: true,
         },
     );
-
-    const ru = await roomUsersModel.findOneAndUpdate(
+    console.log('user id is ' + user._id.toString());
+    await roomUsersModel.findOneAndUpdate(
         {
             userRef: user._id,
             roomRef: room_id,
@@ -42,7 +42,7 @@ const createUser = async (user_key, room_id, member = null, regUser_id = null) =
 
     const room = await roomModel.findById(room_id);
 
-    const mru = await roomUsersModel.findOneAndUpdate(
+    await roomUsersModel.findOneAndUpdate(
         {
             userRef: user._id,
             roomRef: room.isMeeting ? room.parentRef : room.meetingRef,
@@ -66,6 +66,7 @@ const updateUser = async (xuser, user_id, room_id) => {
     const can_update = [
         'showCountry',
         'is_typing',
+        'is_meeting_typing',
         'is_joker',
         'game_number',
         'game_number_color',
@@ -82,6 +83,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'country_code',
         'flag',
         'ip',
+        'device',
         'socketId',
         'token',
         'strong',
@@ -99,8 +101,10 @@ const updateUser = async (xuser, user_id, room_id) => {
         'invited_to_meeting',
         'invited_by',
         'memberRef',
+        'userRef',
         'room_password',
         'room_name',
+        'isMain',
         'latestRoomRef',
         'os',
         'prevent_private_screenshot',
@@ -473,17 +477,17 @@ const isRegisteredName = async (name, room_id) => {
     }
 };
 
-const isBanned = async (user_key, room) => {
+const isBanned = async (device, room) => {
     const otherRoomId = room.isMeeting ? room.parentRef : room.meetingRef;
 
     const banned = await bannedModel.findOne({
         $or: [
             {
-                key: user_key,
+                device: device,
                 roomRef: new ObjectId(room._id),
             },
             {
-                key: user_key,
+                device: device,
                 roomRef: new ObjectId(otherRoomId),
             },
         ],
@@ -493,12 +497,13 @@ const isBanned = async (user_key, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (user_key) => {
+const isBannedFromServer = async (device) => {
     const banned = await bannedModel.findOne({
-        key: user_key,
+        device: device,
+
         type: enums.banTypes.server,
     });
-
+    console.log('banned ' + JSON.stringify(banned, null, 2));
     if (banned && !banned.until) {
         return true;
     }
@@ -727,6 +732,7 @@ async function public_user(xuser, withMember = true) {
         img: xuser.img,
         img_key: xuser.img_key,
         is_typing: xuser.is_typing,
+        is_meeting_typing: xuser.is_meeting_typing,
         is_locked: xuser.is_locked,
         can_public_chat: xuser.can_public_chat,
         can_private_chat: xuser.can_private_chat,
