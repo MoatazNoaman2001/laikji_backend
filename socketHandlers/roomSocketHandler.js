@@ -418,7 +418,7 @@ module.exports = (io) => {
                 key,
                 xroomId,
                 xclient.handshake.query.name,
-                xclient.handshake.query.device,
+                xclient.handshake.query.device ?? xclient.handshake.query.key,
                 member,
                 regUser_id,
             );
@@ -456,7 +456,7 @@ module.exports = (io) => {
                 is_typing: false,
                 is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
-                device: device,
+                device: xclient.handshake.query.device ?? xclient.handshake.query.key,
                 private_status:
                     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
                         ? parseInt(xclient.handshake.query.ps)
