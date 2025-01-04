@@ -560,6 +560,7 @@ module.exports = (io) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
 
+                
                 let res = {
                     key: uuidv4(),
                     type: data.type,
