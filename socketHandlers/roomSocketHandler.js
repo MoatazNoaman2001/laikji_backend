@@ -3,6 +3,7 @@
 const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
+const { v4: uuidv4 } = require('uuid'); 
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -561,7 +562,7 @@ module.exports = (io) => {
 
 
                 let res = {
-                    // key: uuidv4(),
+                    key: uuidv4(),
                     type: data.type,
                     msg: filterMsg(data.msg, xroomId),
                     style: data.style,
