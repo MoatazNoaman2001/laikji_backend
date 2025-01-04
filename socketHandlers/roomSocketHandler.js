@@ -732,6 +732,7 @@ module.exports = (io) => {
                     pc.save();
 
                     let body = {
+                        key: uuidv4(),
                         type: data.type,
                         msg: filterMsg(data.msg, xroomId),
                         style: data.style,
