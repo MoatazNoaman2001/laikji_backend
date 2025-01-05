@@ -725,7 +725,6 @@ module.exports = (io) => {
                     pc.isUser1Deleted = false;
                     pc.isUser2Deleted = false;
                     pc.save();
-                    console.log('user img in send private ', xuser.img_key);
 
                     let body = {
                         key: uuidv4(),
@@ -812,7 +811,7 @@ module.exports = (io) => {
                         },
                         msg: msg,
                     });
-                    console.log('private message .3 ' + msg);
+                    console.log('private message .3 ');
 
                     if (xuserInOtherRoom) {
                         console.log('private message .4');
