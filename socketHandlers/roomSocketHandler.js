@@ -1,9 +1,8 @@
-
 // import { v4 as uuidv4, v6 as uuidv6 } from 'uuid';
 const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
-const { v4: uuidv4 } = require('uuid'); 
+const { v4: uuidv4 } = require('uuid');
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -557,7 +556,6 @@ module.exports = (io) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
 
-
                 let res = {
                     key: uuidv4(),
                     type: data.type,
@@ -727,6 +725,7 @@ module.exports = (io) => {
                     pc.isUser1Deleted = false;
                     pc.isUser2Deleted = false;
                     pc.save();
+                    console.log('user img in send private ', xuser.img_key);
 
                     let body = {
                         key: uuidv4(),
