@@ -93,7 +93,7 @@ router.post('/ban/:device', async (req, res) => {
     try {
         let user = await userModal.findOne({
             device: req.params.device,
-            key: req.body.key,
+            // key: req.body.key,
         });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
 
