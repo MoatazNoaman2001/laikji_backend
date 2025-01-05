@@ -209,6 +209,7 @@ router.post('/set-stop/:device', async (req, res) => {
         const user = await userModal.findOneAndUpdate(
             {
                 device: req.params.device,
+                key: req.body.key,
             },
             {
                 server_can_public_chat: !req.body.server_can_public_chat,
