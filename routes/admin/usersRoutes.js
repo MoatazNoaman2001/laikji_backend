@@ -93,6 +93,7 @@ router.post('/ban/:device', async (req, res) => {
     try {
         let user = await userModal.findOne({
             device: req.params.device,
+            key: req.body.key,
         });
 
         if (!user) {
