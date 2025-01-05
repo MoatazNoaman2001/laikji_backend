@@ -218,6 +218,10 @@ router.post('/set-stop/:device', async (req, res) => {
                 server_stop_until: until == -1 ? null : until,
                 server_stop_time: until ? req.body.time : null,
             },
+            {
+                new: true,
+                sort: { creationDate: -1 },
+            },
         );
 
         await notifyUserChanged(user._id, {}, true);

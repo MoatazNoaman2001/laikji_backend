@@ -64,9 +64,6 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         socket.handshake.query.icon = '0.png';
 
-        if (device === undefined) {
-            device = user_key;
-        }
         console.log(
             'new client room:',
             name,
