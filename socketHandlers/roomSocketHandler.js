@@ -1,6 +1,9 @@
+
+// import { v4 as uuidv4, v6 as uuidv6 } from 'uuid';
 const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
+const { v4: uuidv4 } = require('uuid'); 
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -554,7 +557,9 @@ module.exports = (io) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
 
+
                 let res = {
+                    key: uuidv4(),
                     type: data.type,
                     msg: filterMsg(data.msg, xroomId),
                     style: data.style,
@@ -724,6 +729,7 @@ module.exports = (io) => {
                     pc.save();
 
                     let body = {
+                        key: uuidv4(),
                         type: data.type,
                         msg: filterMsg(data.msg, xroomId),
                         style: data.style,
