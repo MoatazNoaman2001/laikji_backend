@@ -4,7 +4,7 @@ const chatModel = require('../models/chatModel');
 const secretKey = '@catsanddogs';
 const Jimp = require('jimp');
 const fs = require('fs');
-const enums = require('./enums');
+const path = require('path');
 const ShortCrypt = require('short-crypt');
 const roomUsersModel = require('../models/roomUsersModel');
 const {
@@ -292,14 +292,15 @@ function resizeImage(path, inPublic = true, width = 150) {
 }
 
 async function saveMulterFile(file, folder, name = null) {
+    const dest_folder = `public/${folder}`;
     const dest_file =
-        'public/' +
-        folder +
-        '/' +
+        `${dest_folder}/` +
         (name ? name : generateKey(8) + '-' + Date.now()) +
         path.extname(file.originalname);
 
-    await fs.writeFileSync(dest_file, file.buffer); //
+    await fs.promises.mkdir(dest_folder, { recursive: true });
+
+    await fs.promises.writeFile(dest_file, file.buffer);
 
     return dest_file.replace('public/', '');
 }
