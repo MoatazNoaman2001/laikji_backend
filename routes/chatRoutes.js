@@ -65,8 +65,8 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
                 isRead: false,
             });
 
-            console.log(`new image : ${msg}`);
-            
+            console.log(`other user socker id: ${otherUser.socketId}, new image : ${msg}`);
+
 
             global.io.to(otherUser.socketId).emit('new-private-msg', {
                 chat: {
