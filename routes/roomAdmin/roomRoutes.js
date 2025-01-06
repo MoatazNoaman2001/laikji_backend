@@ -544,7 +544,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             data: await helpers.public_room(room_after_update),
         });
 
-        await helpers.notifyRoomChanged(room._id, false, true);
+        await helpers.notifyRoomChanged(room._id, true, true);
 
         addAdminLog(req.user, room._id, `قام بتغيير إعدادات الروم`, `has changed room settings`);
 
