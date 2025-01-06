@@ -5,7 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
-const { public_user } = require('../helpers/userHelpers');
+const { public_user, getUserById } = require('../helpers/userHelpers');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -51,8 +51,8 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
 
             await msg.save();
 
-            const otherUser =
-                pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
+            const otherUser = await getUserById(pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref._id : pc.user1Ref._id);
+                // 
 
             pc = { ...pc._doc };
 
