@@ -572,7 +572,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         await helpers.notifyRoomChanged(room._id, true, false);
         global.home_io.emit('groups_refresh', {});
 
-        await helpers.notifyRoomChanged(room._id, false, true);
+        // await helpers.notifyRoomChanged(room._id, false, true);
 
         addAdminLog(req.user, room._id, `قام بتغيير إعدادات الروم`, `has changed room settings`);
 
