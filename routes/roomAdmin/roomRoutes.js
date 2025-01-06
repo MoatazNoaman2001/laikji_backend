@@ -599,6 +599,30 @@ router.post('/update-icon', img_uploader.single('img'), async (req, res) => {
         var update = {
             icon: req.file && req.file.filename ? 'rooms/' + req.file.filename : room.icon,
         };
+        // Update meeting
+        await roomModel.findOneAndUpdate(
+            { parentRef: new ObjectId(room._id), isMeeting: true },
+            {
+                ...update,
+                parentRef: room._id,
+                isMeeting: true,
+                isGold: false,
+                isSpecial: false,
+                groupRef: '606b8f8844e78f128ecbfac2',
+                description: '',
+                outside_style: {
+                    background: '255|255|255',
+                    font_color: '0|0|0',
+                },
+                inside_style: {
+                    background_1: '61|147|185',
+                    background_2: '72|170|211',
+                    border_1: '72|170|211',
+                    font_color: '255|255|255',
+                },
+                //  meetingPassword: '0000',
+            },
+        );
 
         await roomModel.findOneAndUpdate(
             {
