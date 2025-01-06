@@ -292,30 +292,15 @@ function resizeImage(path, inPublic = true, width = 150) {
 }
 
 async function saveMulterFile(file, folder, name = null) {
-    // const dest_file =
-    //     'public/' +
-    //     folder +
-    //     '/' +
-    //     (name ? name : generateKey(8) + '-' + Date.now()) +
-    //     path.extname(file.originalname);
-
-    // await fs.writeFileSync(dest_file, file.buffer); //
-
-    // return dest_file.replace('public/', '');
-
-    const dest_folder = `public/${folder}`;
     const dest_file =
-        `${dest_folder}/` +
+        'public/' +
+        folder +
+        '/' +
         (name ? name : generateKey(8) + '-' + Date.now()) +
         path.extname(file.originalname);
 
-    // Ensure the destination folder exists
-    await fs.mkdir(dest_folder, { recursive: true });
+    await fs.writeFileSync(dest_file, file.buffer);
 
-    // Write the file to the destination
-    await fs.writeFile(dest_file, file.buffer);
-
-    // Return the relative path
     return dest_file.replace('public/', '');
 }
 
