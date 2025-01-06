@@ -363,7 +363,7 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                     border_1: '72|170|211',
                     font_color: '255|255|255',
                 },
-                meetingPassword: '0000',
+                //  meetingPassword: '0000',
             },
         );
 
