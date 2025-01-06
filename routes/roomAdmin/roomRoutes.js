@@ -569,10 +569,9 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             data: await helpers.public_room(room_after_update),
         });
         // Notify and emit refresh event
-        await helpers.notifyRoomChanged(room._id, true, true);
         global.home_io.emit('groups_refresh', {});
 
-        // await helpers.notifyRoomChanged(room._id, false, true);
+        await helpers.notifyRoomChanged(room._id, false, true);
 
         addAdminLog(req.user, room._id, `قام بتغيير إعدادات الروم`, `has changed room settings`);
 
@@ -607,6 +606,9 @@ router.post('/update-icon', img_uploader.single('img'), async (req, res) => {
             },
             update,
         );
+
+        // Notify and emit refresh event
+        global.home_io.emit('groups_refresh', {});
 
         await helpers.notifyRoomChanged(room._id, false, true);
 
