@@ -291,36 +291,36 @@ function resizeImage(path, inPublic = true, width = 150) {
     });
 }
 
-async function saveMulterFile(file, folder, name = null) {
-    const folderPath = path.join('public', folder);
-
-    // Ensure the folder exists
-    if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath, { recursive: true });
-    }
-
-    const dest_file =
-        folderPath +
-        '/' +
-        (name ? name : helpers.generateKey(8) + '-' + Date.now()) +
-        path.extname(file.originalname);
-
-    await fs.promises.writeFile(dest_file, file.buffer);
-
-    return dest_file.replace('public/', '');
-}
 // async function saveMulterFile(file, folder, name = null) {
+//     const folderPath = path.join('public', folder);
+
+//     // Ensure the folder exists
+//     if (!fs.existsSync(folderPath)) {
+//         fs.mkdirSync(folderPath, { recursive: true });
+//     }
+
 //     const dest_file =
-//         'public/' +
-//         folder +
+//         folderPath +
 //         '/' +
-//         (name ? name : generateKey(8) + '-' + Date.now()) +
+//         (name ? name : helpers.generateKey(8) + '-' + Date.now()) +
 //         path.extname(file.originalname);
 
-//     await fs.writeFileSync(dest_file, file.buffer);
+//     await fs.promises.writeFile(dest_file, file.buffer);
 
 //     return dest_file.replace('public/', '');
 // }
+async function saveMulterFile(file, folder, name = null) {
+    const dest_file =
+        'public/' +
+        folder +
+        '/' +
+        (name ? name : generateKey(8) + '-' + Date.now()) +
+        path.extname(file.originalname);
+
+    await fs.writeFileSync(dest_file, file.buffer);
+
+    return dest_file.replace('public/', '');
+}
 
 function removeFile(path, inPublic = true) {
     const file_path = (inPublic ? 'public/' : '') + path;
