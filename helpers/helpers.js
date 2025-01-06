@@ -299,7 +299,7 @@ async function saveMulterFile(file, folder, name = null) {
         (name ? name : generateKey(8) + '-' + Date.now()) +
         path.extname(file.originalname);
 
-    await fs.writeFileSync(dest_file, file.buffer);
+    await fs.writeFileSync(dest_file, file.buffer); //
 
     return dest_file.replace('public/', '');
 }
