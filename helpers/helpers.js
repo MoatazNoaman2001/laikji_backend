@@ -22,6 +22,9 @@ const roomModel = require('../models/roomModel');
 const groupModel = require('../models/groupModel');
 const reportModel = require('../models/reportModel');
 
+const fs = require('fs');
+const path = require('path');
+
 function generateKey(length = 32) {
     return crypto
         .randomBytes(Math.ceil(length / 2))
@@ -292,15 +295,19 @@ function resizeImage(path, inPublic = true, width = 150) {
 }
 
 async function saveMulterFile(file, folder, name = null) {
+    const dest_folder = `public/${folder}`;
     const dest_file =
-        'public/' +
-        folder +
-        '/' +
+        `${dest_folder}/` +
         (name ? name : generateKey(8) + '-' + Date.now()) +
         path.extname(file.originalname);
 
-    await fs.writeFileSync(dest_file, file.buffer); //
+    // Ensure the destination folder exists
+    await fs.promises.mkdir(dest_folder, { recursive: true });
 
+    // Write the file to the destination
+    await fs.promises.writeFile(dest_file, file.buffer);
+
+    // Return the relative path
     return dest_file.replace('public/', '');
 }
 
