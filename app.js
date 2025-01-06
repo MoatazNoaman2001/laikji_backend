@@ -56,6 +56,7 @@ app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/c
 // Admin Routes
 app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
 app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));
+app.use('/admin/emojis', require('./routes/admin/emojisRoutes'));
 app.use('/admin/rooms', require('./routes/admin/roomsRoutes'));
 app.use('/admin/members', require('./routes/admin/membersRoutes'));
 app.use('/admin/users', require('./routes/admin/usersRoutes'));
