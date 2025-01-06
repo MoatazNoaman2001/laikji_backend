@@ -1,9 +1,8 @@
-
 // import { v4 as uuidv4, v6 as uuidv6 } from 'uuid';
 const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
-const { v4: uuidv4 } = require('uuid'); 
+const { v4: uuidv4 } = require('uuid');
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -67,9 +66,6 @@ module.exports = (io) => {
         let inv = socket.handshake.query.inv;
         socket.handshake.query.icon = '0.png';
 
-        if (device === undefined) {
-            device = user_key;
-        }
         console.log(
             'new client room:',
             name,
@@ -560,7 +556,6 @@ module.exports = (io) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
 
-
                 let res = {
                     key: uuidv4(),
                     type: data.type,
@@ -816,7 +811,7 @@ module.exports = (io) => {
                         },
                         msg: msg,
                     });
-                    console.log('private message .3 ' + msg);
+                    console.log('private message .3 ');
 
                     if (xuserInOtherRoom) {
                         console.log('private message .4');

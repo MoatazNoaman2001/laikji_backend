@@ -5,6 +5,7 @@ const reportModel = require('../models/reportModel');
 const roomModel = require('../models/roomModel');
 const { getUserById } = require('../helpers/userHelpers');
 const { getUserByToken, notifyReportChanged } = require('../helpers/helpers');
+const emojisModel = require('../models/emojisModel');
 const router = express.Router();
 
 router.get('/app-info', async (req, res) => {
@@ -40,6 +41,31 @@ router.get('/enter-icons', async (req, res) => {
                 _id: icon._id,
                 key: icon.key,
                 path: simg(icon.path),
+            });
+        });
+
+        res.status(200).send({
+            ok: true,
+            data: response,
+        });
+    } catch (e) {
+        res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+
+router.get('/emojis', async (req, res) => {
+    try {
+        const emojis = await emojisModel.find({}).sort('order').exec();
+        let response = [];
+        emojis.forEach((emoji) => {
+            response.push({
+                _id: emoji._id,
+                key: emoji.key,
+                category: emoji.category,
+                path: simg(emoji.path),
             });
         });
 

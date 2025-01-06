@@ -93,7 +93,9 @@ router.post('/ban/:device', async (req, res) => {
     try {
         let user = await userModal.findOne({
             device: req.params.device,
+            key: req.body.key,
         });
+        console.log('latest rooms ', JSON.stringify(user, null, 2));
 
         if (!user) {
             res.status(500).send({
@@ -116,6 +118,7 @@ router.post('/ban/:device', async (req, res) => {
         await bannedModel.findOneAndUpdate(
             {
                 device: user.device,
+                key: user.key,
                 type: enums.banTypes.server,
             },
             {
@@ -209,6 +212,7 @@ router.post('/set-stop/:device', async (req, res) => {
         const user = await userModal.findOneAndUpdate(
             {
                 device: req.params.device,
+                key: req.body.key,
             },
             {
                 server_can_public_chat: !req.body.server_can_public_chat,
@@ -217,6 +221,10 @@ router.post('/set-stop/:device', async (req, res) => {
                 server_can_use_camera: !req.body.server_can_use_camera,
                 server_stop_until: until == -1 ? null : until,
                 server_stop_time: until ? req.body.time : null,
+            },
+            {
+                new: true,
+                sort: { creationDate: -1 },
             },
         );
 
