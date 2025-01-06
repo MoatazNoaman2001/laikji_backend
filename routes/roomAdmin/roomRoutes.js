@@ -569,7 +569,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             data: await helpers.public_room(room_after_update),
         });
         // Notify and emit refresh event
-        await helpers.notifyRoomChanged(room._id, true, false);
+        await helpers.notifyRoomChanged(room._id, true, true);
         global.home_io.emit('groups_refresh', {});
 
         // await helpers.notifyRoomChanged(room._id, false, true);

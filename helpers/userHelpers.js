@@ -503,7 +503,6 @@ const isBannedFromServer = async (device) => {
 
         type: enums.banTypes.server,
     });
-    console.log('banned ' + JSON.stringify(banned, null, 2));
     if (banned && !banned.until) {
         return true;
     }
