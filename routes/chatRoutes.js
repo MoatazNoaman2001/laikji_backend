@@ -25,7 +25,6 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
         let img_url = process.env.mediaUrl + 'uploads/' + req.file.filename;
         let chat_id = req.body.chat_id;
         let is_private = req.body.is_private == '1' ? true : false;
-        console.log('chat key is ' + chat_id);
         if (is_private) {
             let pc = await privateChatModel
                 .find({
@@ -101,6 +100,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
             data: img_url,
         });
     } catch (e) {
+        console.log('error from send img ', e.toString());
         res.status(500).send({
             ok: false,
             error: e.message,
