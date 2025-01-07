@@ -637,6 +637,7 @@ module.exports = (io) => {
                     xuser = await getUserById(xuser._id, xroomId);
 
                     const key = data.key;
+                    console.log('data key is ' + key);
 
                     let pc = await privateChatModel
                         .find({

@@ -25,7 +25,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
         let img_url = process.env.mediaUrl + 'uploads/' + req.file.filename;
         let chat_id = req.body.chat_id;
         let is_private = req.body.is_private == '1' ? true : false;
-
+        console.log('chat key is ' + chat_id);
         if (is_private) {
             let pc = await privateChatModel
                 .find({
@@ -51,8 +51,9 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
 
             await msg.save();
 
-            const otherUser = await getUserById(pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref._id : pc.user1Ref._id);
-                // 
+            let otherUser =
+                pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
+            otherUser = await getUserById(otherUser._id, xroomId);
 
             pc = { ...pc._doc };
 
@@ -66,7 +67,6 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
             });
 
             console.log(`other user socker id: ${otherUser.socketId}, new image : ${msg}`);
-
 
             global.io.to(otherUser.socketId).emit('new-private-msg', {
                 chat: {

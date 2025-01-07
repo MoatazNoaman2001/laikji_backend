@@ -528,31 +528,6 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             },
         };
 
-        // Update meeting
-        await roomModel.findOneAndUpdate(
-            { parentRef: new ObjectId(room._id), isMeeting: true },
-            {
-                ...update,
-                parentRef: room._id,
-                isMeeting: true,
-                isGold: false,
-                isSpecial: false,
-                groupRef: '606b8f8844e78f128ecbfac2',
-                description: '',
-                outside_style: {
-                    background: '255|255|255',
-                    font_color: '0|0|0',
-                },
-                inside_style: {
-                    background_1: '61|147|185',
-                    background_2: '72|170|211',
-                    border_1: '72|170|211',
-                    font_color: '255|255|255',
-                },
-                //  meetingPassword: '0000',
-            },
-        );
-
         await roomModel.findOneAndUpdate(
             {
                 _id: new ObjectId(room._id),
@@ -568,8 +543,6 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             type: 'room-update',
             data: await helpers.public_room(room_after_update),
         });
-        // Notify and emit refresh event
-        global.home_io.emit('groups_refresh', {});
 
         await helpers.notifyRoomChanged(room._id, false, true);
 
