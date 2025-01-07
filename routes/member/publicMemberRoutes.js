@@ -99,7 +99,8 @@ router.get('/info', async (req, res) => {
         item.comments_count = await commentModel.count({
             memberRef: new ObjectId(item._id),
         });
-        item.flag = item.showCountry ? item.flag : '';
+        console.log('item falg ', item.showCountry, item.flag);
+        item.flag = item.showCountry ? process.env.mediaUrl + 'flags/' + item.flag : '';
 
         item.login_time = intToString(item.login_time);
         item.mic_time = intToString(item.mic_time);
