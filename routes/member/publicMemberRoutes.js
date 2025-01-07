@@ -101,6 +101,7 @@ router.get('/info', async (req, res) => {
             memberRef: new ObjectId(item._id),
         });
         const lastItem = users_of_mem.slice(-1);
+        console.log('last member', JSON.stringify(lastItem, null, 2));
 
         const { flag, country_code } = getFlagAndCountryCode(lastItem.ip);
         console.log('item falg ', item.showCountry, flag);
