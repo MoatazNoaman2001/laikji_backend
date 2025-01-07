@@ -99,8 +99,10 @@ router.get('/info', async (req, res) => {
         item.comments_count = await commentModel.count({
             memberRef: new ObjectId(item._id),
         });
-        console.log('item falg ', item.showCountry, item.flag);
-        item.flag = item.showCountry ? process.env.mediaUrl + 'flags/' + item.flag : '';
+        const lastItem = users_of_mem.slice(-1);
+
+        console.log('item falg ', item.showCountry, lastItem.flag);
+        item.flag = item.showCountry ? process.env.mediaUrl + 'flags/' + lastItem.flag : '';
 
         item.login_time = intToString(item.login_time);
         item.mic_time = intToString(item.mic_time);
