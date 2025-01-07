@@ -26,7 +26,7 @@ function generateKey(length = 32) {
     return crypto
         .randomBytes(Math.ceil(length / 2))
         .toString('hex')
-        .slice(0, length);
+        .slice(1, length);
 }
 
 function generateToken(_id) {
