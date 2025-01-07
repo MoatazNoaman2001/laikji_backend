@@ -301,7 +301,7 @@ async function saveMulterFile(file, folder, name = null) {
     const dest_file =
         folderPath +
         '/' +
-        (name ? name : helpers.generateKey(8) + '-' + Date.now()) +
+        (name ? name : 'some-random-file' + '-' + Date.now()) +
         path.extname(file.originalname);
 
     await fs.promises.writeFile(dest_file, file.buffer);
