@@ -23,10 +23,12 @@ const groupModel = require('../models/groupModel');
 const reportModel = require('../models/reportModel');
 
 function generateKey(length = 32) {
-    return crypto
-        .randomBytes(Math.ceil(length / 2))
+    const key = crypto
+        .randomBytes(Math.ceil((length - 1) / 2))
         .toString('hex')
-        .slice(1, length);
+        .slice(0, length - 1);
+
+    return '1' + key;
 }
 
 function generateToken(_id) {
