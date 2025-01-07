@@ -44,7 +44,7 @@ router.post('/', multer().any(), async (req, res) => {
     );
 
     const all = await emojisModel.find({}).sort('order').exec();
-    let order = 0;
+    let order = 1; // Start order from 1
     await Promise.all(
         all.map(async (item) => {
             item.order = order;
