@@ -52,7 +52,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
 
             let otherUser =
                 pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
-            otherUser = await getUserById(otherUser._id, xroomId);
+            otherUser = await getUserById(otherUser._id, pc.roomRef.toString());
 
             pc = { ...pc._doc };
 
