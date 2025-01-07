@@ -11,6 +11,7 @@ const {
     getUserOfMember,
     getMemberRemainingTime,
     getMemberSettings,
+    getFlagAndCountryCode,
 } = require('../../helpers/userHelpers');
 const userModal = require('../../models/userModal');
 const viewModel = require('../../models/viewModel');
@@ -101,8 +102,10 @@ router.get('/info', async (req, res) => {
         });
         const lastItem = users_of_mem.slice(-1);
 
-        console.log('item falg ', item.showCountry, lastItem.flag);
-        item.flag = item.showCountry ? process.env.mediaUrl + 'flags/' + lastItem.flag : '';
+        const { flag, country_code } = getFlagAndCountryCode(lastItem.ip);
+        console.log('item falg ', item.showCountry, flag);
+
+        item.flag = item.showCountry ? process.env.mediaUrl + 'flags/' + flag : '';
 
         item.login_time = intToString(item.login_time);
         item.mic_time = intToString(item.mic_time);
