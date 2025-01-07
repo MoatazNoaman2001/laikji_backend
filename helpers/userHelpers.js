@@ -578,7 +578,7 @@ const getMemberSettings = async (member) => {
         can_status: false, //زر إظهار الحالة.
         can_image_border: false, //زر إطار الصورة.
         can_animated_text: false, //زر إيقاف النص الحالة.
-        can_country: false, //زر إظهار علم الدولة.
+        showCountry: false, //زر إظهار علم الدولة.
         can_flash: false, //زر تشغيل الفلاش.
         can_accept_album: false, //زر لموافقه على استقبال الصور.
         can_background_img: false, //زر إظهار صورة الحالة.
