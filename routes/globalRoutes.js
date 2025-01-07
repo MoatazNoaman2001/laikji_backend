@@ -113,6 +113,7 @@ router.get('/image', async (req, res) => {
 
 router.post('/report', async (req, res) => {
     try {
+        console.log('report body ', JSON.stringify(req.body, null, 2));
         let xuser = await getUserByToken(req.headers.token);
 
         const room = await roomModel.findById(req.body.room_id);
