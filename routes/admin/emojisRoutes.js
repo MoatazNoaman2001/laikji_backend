@@ -8,6 +8,7 @@ const emojisModel = require('../../models/emojisModel');
 router.get('/', async (req, res) => {
     try {
         const response = await emojisModel.find({}).sort('order').exec();
+        console.log('ordering ' + JSON.stringify(response, null, 2));
         res.status(200).send({
             ok: true,
             data: response,
