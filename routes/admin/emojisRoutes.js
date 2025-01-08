@@ -8,7 +8,6 @@ const emojisModel = require('../../models/emojisModel');
 router.get('/', async (req, res) => {
     try {
         const response = await emojisModel.find({}).sort('order').exec();
-        console.log('ordering ' + JSON.stringify(response, null, 2));
         res.status(200).send({
             ok: true,
             data: response,
@@ -45,7 +44,7 @@ router.post('/', multer().any(), async (req, res) => {
     );
 
     const all = await emojisModel.find({}).sort('order').exec();
-    let order = 1; // Start order from 1
+    let order = 1;
     await Promise.all(
         all.map(async (item) => {
             item.order = order;
@@ -60,11 +59,13 @@ router.post('/', multer().any(), async (req, res) => {
 });
 
 router.post('/ordering', multer().any(), async (req, res) => {
+    console.log('ordering ' + JSON.stringify(req.body.orderingData, null, 2));
+
     for (const key in req.body.orderingData) {
         if (Object.hasOwnProperty.call(req.body.orderingData, key)) {
             const order = req.body.orderingData[key];
             const item = await emojisModel.findById(key);
-            item.order = order;
+            item.order = order + 1;
             await item.save();
         }
     }
