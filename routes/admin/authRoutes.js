@@ -4,6 +4,7 @@ const User = require('../../models/managerModel');
 const router = express.Router();
 const helpers = require('../../helpers/managerHelpers');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
