@@ -21,6 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', multer().any(), async (req, res) => {
+    console.log('req is ' + JSON.stringify(req, null, 2));
     await Promise.all(
         req.files.map(async (file) => {
             let key = '';
@@ -37,6 +38,7 @@ router.post('/', multer().any(), async (req, res) => {
                 key: key,
                 path: p,
                 order: 9999999,
+                category: req.body.category,
             });
 
             return await ei.save();
