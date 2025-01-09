@@ -2,7 +2,10 @@
 const express = require('express');
 const User = require('../../models/managerModel');
 const router = express.Router();
-const helpers = require('../../helpers/managerHelpers');
+const {
+    generateVerificationToken,
+    sendVerificationEmail,
+} = require('../../helpers/managerHelpers');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -21,10 +24,10 @@ router.post('/register', async (req, res) => {
         await newUser.save();
 
         // Generate a verification token
-        const token = helpers.generateVerificationToken(newUser._id);
+        const token = generateVerificationToken(newUser._id);
 
         // Send a verification email
-        await helpers.sendVerificationEmail(username, token);
+        await sendVerificationEmail(username, token);
 
         res.status(201).json({
             message: 'الرجاء تأكيد التسجيل باستخدام الرابط المرسل الى البريد المسجل',
