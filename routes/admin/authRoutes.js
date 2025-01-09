@@ -2,6 +2,7 @@
 const express = require('express');
 const User = require('../../models/registeredUserModal');
 const router = express.Router();
+const helpers = require('../../helpers/helpers');
 // const {
 //     generateVerificationToken,
 //     sendVerificationEmail,
