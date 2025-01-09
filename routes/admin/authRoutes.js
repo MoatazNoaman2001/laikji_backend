@@ -1,9 +1,38 @@
 // routes/auth.js
 const express = require('express');
-const User = require('../../models/registeredUserModal');
+const User = require('../../models/managerModel');
 const router = express.Router();
 const helpers = require('../../helpers/helpers');
+const jwt = require('jsonwebtoken');
 
+router.post('/register', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        // Check if the email already exists
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: 'هذا الاسم موجود مسبقا' });
+        }
+
+        // Create a new user
+        const newUser = new User({ username, password });
+        await newUser.save();
+
+        // Generate a verification token
+        const token = helpers.generateVerificationToken(newUser._id);
+
+        // Send a verification email
+        await helpers.sendVerificationEmail(username, token);
+
+        res.status(201).json({
+            message: 'الرجاء تأكيد التسجيل باستخدام الرابط المرسل الى البريد المسجل',
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: ' حدث خطأ ما' + error.toString() });
+    }
+});
 // Login route
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -35,5 +64,37 @@ router.post('/login', async (req, res) => {
 //         res.json({ accessToken: newAccessToken });
 //     });
 // });
+router.get('/verify-email', async (req, res) => {
+    const token = req.query.token;
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        await User.findByIdAndUpdate(userId, { isEmailVerified: true });
+
+        res.send('تم توثيق بريدك بنجاح!');
+    } catch (error) {
+        res.status(400).send('Invalid or expired token.');
+    }
+});
+
+router.post('/reset-password', async (req, res) => {
+    const token = req.body.token;
+    const newPassword = req.body.password;
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        // Hash the new password and update the user record
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+        res.send('Password has been successfully reset.');
+    } catch (error) {
+        res.status(400).send('Invalid or expired token.');
+    }
+});
 
 module.exports = router;

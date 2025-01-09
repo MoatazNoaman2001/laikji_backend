@@ -59,8 +59,6 @@ router.post('/', multer().any(), async (req, res) => {
 });
 
 router.post('/ordering', multer().any(), async (req, res) => {
-    console.log('ordering ' + JSON.stringify(req.body.orderingData, null, 2));
-
     for (const key in req.body.orderingData) {
         if (Object.hasOwnProperty.call(req.body.orderingData, key)) {
             const order = req.body.orderingData[key];

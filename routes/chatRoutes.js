@@ -58,14 +58,14 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
 
             pc.user1Ref = await public_user(pc.user1Ref);
             pc.user2Ref = await public_user(pc.user2Ref);
+            console.log(`userRef1  ${pc.user1Ref}`);
+            console.log(`userRef2  ${pc.user2Ref}`);
 
             const unReadMsgsCount = await privateMessageModel.countDocuments({
                 chatRef: new ObjectId(pc._id),
                 userRef: new ObjectId(xuser._id),
                 isRead: false,
             });
-
-            console.log(`other user socker id: ${otherUser.socketId}, new image : ${msg}`);
 
             global.io.to(otherUser.socketId).emit('new-private-msg', {
                 chat: {

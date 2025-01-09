@@ -10,6 +10,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "bcrypt": "^5.1.1",
         "cors": "^2.8.5",
         "crypto": "^1.0.1",
         "dotenv": "^8.6.0",
@@ -23,6 +24,7 @@
         "moment": "^2.29.4",
         "mongoose": "^5.13.14",
         "multer": "^1.4.4",
+        "nodemailer": "^6.9.16",
         "nodemon": "^2.0.16",
         "peer": "^0.5.3",
         "short-crypt": "^1.0.25",
