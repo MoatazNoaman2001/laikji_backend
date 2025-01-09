@@ -52,12 +52,14 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
 
             let otherUser =
                 pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
-            otherUser = await getUserById(otherUser._id, pc.roomRef.toString());
 
-            pc = { ...pc._doc };
-
-            pc.user1Ref = await public_user(pc.user1Ref);
-            pc.user2Ref = await public_user(pc.user2Ref);
+            let u1 = await getUserById(pc.user1Ref._id, pc.roomRef.toString());
+            let u2 = await getUserById(pc.user2Ref._id, pc.roomRef.toString());
+            pc = { ...JSON.parse(JSON.stringify(pc)) };
+            u1 = await public_user(u1);
+            u2 = await public_user(u2);
+            pc.user1Ref = u1;
+            pc.user2Ref = u2;
             console.log(`userRef1  ${JSON.stringify(pc.user1Ref, null, 2)}`);
             console.log(`userRef2  ${JSON.stringify(pc.user2Ref, null, 2)}`);
 
