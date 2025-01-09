@@ -51,7 +51,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var allMutedList = new Map(); // list for users whom muted all participarates
 var mutedSpeakers = new Map();
-var youtubeLink = null;
+var youtubeLink = {};
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -1301,25 +1301,35 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain
                     ) {
-                        console.log('user id is ', xuser._id.toString());
-                        if (
-                            youtubeLink[xuser._id.toString()] != null &&
-                            youtubeLink.key === xuser._id.toString()
-                        ) {
-                            youtubeLink[xuser._id.toString()] = null;
+                        console.log('User ID:', xuser._id?.toString());
+
+                        if (!xuser || !xuser._id) {
+                            console.log('Invalid xuser or xuser._id');
+                            return;
+                        }
+
+                        const userId = xuser._id.toString();
+
+                        if (youtubeLink[userId] != null) {
+                            youtubeLink[userId] = null;
                         } else {
-                            if (Array.from(roomInfo.speaker).has(xuser._id.toString())) {
-                                console.log('sending youtube link');
+                            if (roomInfo.speaker && Array.from(roomInfo.speaker).includes(userId)) {
+                                console.log('Sending YouTube link');
+                                if (!data.link) {
+                                    console.log('Invalid YouTube link received');
+                                    return;
+                                }
                                 const link = helpers.getEmbeddedYouTubeLink(data.link);
-                                youtubeLink[xuser._id.toString()] = link;
+                                youtubeLink[userId] = link;
                             }
                         }
+
+                        io.to(xroomId).emit('youtube-link-shared', {
+                            link: youtubeLink[userId],
+                        });
                     }
-                    io.to(xroomId).emit('youtube-link-shared', {
-                        link: youtubeLink[xuser._id.toString()],
-                    });
                 } catch (err) {
-                    console.log('error from share youtube link ' + err.toString());
+                    console.log('Error from share YouTube link:', err.message);
                 }
             });
 
