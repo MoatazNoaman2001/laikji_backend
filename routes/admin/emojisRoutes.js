@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', multer().any(), async (req, res) => {
-    console.log('req is ' + JSON.stringify(req, null, 2));
+    console.log('req is ' + JSON.stringify(req.body, null, 2));
     await Promise.all(
         req.files.map(async (file) => {
             let key = '';
