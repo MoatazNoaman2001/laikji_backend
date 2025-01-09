@@ -27,6 +27,13 @@ async function sendVerificationEmail(email, token) {
 }
 async function sendPasswordResetEmail(email, token) {
     const resetUrl = `http://yourdomain.com/reset-password?token=${token}`;
+    const transporter = nodemailer.createTransport({
+        service: 'Gmail', // or your email service
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+        },
+    });
 
     await transporter.sendMail({
         from: 'your-email@example.com',
