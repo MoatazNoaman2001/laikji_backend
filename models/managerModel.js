@@ -28,4 +28,4 @@ schema.pre('save', async function (next) {
     next();
 });
 
-module.exports = mongoose.model('RegUsers', schema);
+module.exports = mongoose.model('Mamagers', schema);
