@@ -1301,6 +1301,7 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain
                     ) {
+                        console.log('user id is ', xuser._id.toString());
                         if (
                             youtubeLink[xuser._id.toString()] != null &&
                             youtubeLink.key === xuser._id.toString()
