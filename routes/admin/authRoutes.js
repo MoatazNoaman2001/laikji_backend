@@ -1,6 +1,6 @@
 // routes/auth.js
 const express = require('express');
-const User = require('../../models/managerModel');
+const User = require('../../models/registeredUserModal');
 const router = express.Router();
 const {
     generateVerificationToken,
