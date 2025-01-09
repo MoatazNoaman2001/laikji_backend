@@ -2,7 +2,7 @@
 const express = require('express');
 const User = require('../../models/managerModel');
 const router = express.Router();
-const helpers = require('../../helpers/helpers');
+const helpers = require('../../helpers/managerHelpers');
 const jwt = require('jsonwebtoken');
 
 router.post('/register', async (req, res) => {
