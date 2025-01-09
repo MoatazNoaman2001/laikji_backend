@@ -58,8 +58,8 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
 
             pc.user1Ref = await public_user(pc.user1Ref);
             pc.user2Ref = await public_user(pc.user2Ref);
-            console.log(`userRef1  ${pc.user1Ref}`);
-            console.log(`userRef2  ${pc.user2Ref}`);
+            console.log(`userRef1  ${JSON.stringify(pc.user1Ref, null, 2)}`);
+            console.log(`userRef2  ${JSON.stringify(pc.user2Ref, null, 2)}`);
 
             const unReadMsgsCount = await privateMessageModel.countDocuments({
                 chatRef: new ObjectId(pc._id),
