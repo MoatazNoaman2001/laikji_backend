@@ -96,5 +96,22 @@ router.delete('/:id', multer().any(), async (req, res) => {
         ok: true,
     });
 });
+router.delete('/all', async (req, res) => {
+    try {
+        // Delete all emojis
+        await emojisModel.deleteMany({});
+
+        res.status(200).send({
+            ok: true,
+            message: 'All emojis have been deleted successfully.',
+        });
+    } catch (error) {
+        res.status(500).send({
+            ok: false,
+            message: 'An error occurred while deleting all emojis.',
+            error: error.message,
+        });
+    }
+});
 
 module.exports = router;
