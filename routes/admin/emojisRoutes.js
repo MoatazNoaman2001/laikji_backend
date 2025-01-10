@@ -74,44 +74,44 @@ router.post('/ordering', multer().any(), async (req, res) => {
     });
 });
 
-// router.delete('/:id', multer().any(), async (req, res) => {
-//     const id = req.params.id;
-//     await emojisModel
-//         .find({
-//             _id: new ObjectId(id),
-//         })
-//         .deleteMany();
+router.delete('/:id', multer().any(), async (req, res) => {
+    const id = req.params.id;
+    await emojisModel
+        .find({
+            _id: new ObjectId(id),
+        })
+        .deleteMany();
 
-//     const all = await emojisModel.find({}).sort('order').exec();
-//     let order = 0;
-//     await Promise.all(
-//         all.map(async (item) => {
-//             item.order = order;
-//             order++;
-//             return await item.save();
-//         }),
-//     );
+    const all = await emojisModel.find({}).sort('order').exec();
+    let order = 0;
+    await Promise.all(
+        all.map(async (item) => {
+            item.order = order;
+            order++;
+            return await item.save();
+        }),
+    );
 
-//     res.status(200).send({
-//         ok: true,
-//     });
-// });
-router.delete('/all', async (req, res) => {
-    try {
-        // Delete all emojis
-        await emojisModel.deleteMany({});
-
-        res.status(200).send({
-            ok: true,
-            message: 'All emojis have been deleted successfully.',
-        });
-    } catch (error) {
-        res.status(500).send({
-            ok: false,
-            message: 'An error occurred while deleting all emojis.',
-            error: error.message,
-        });
-    }
+    res.status(200).send({
+        ok: true,
+    });
 });
+// router.delete('/all', async (req, res) => {
+//     try {
+//         // Delete all emojis
+//         await emojisModel.deleteMany({});
+
+//         res.status(200).send({
+//             ok: true,
+//             message: 'All emojis have been deleted successfully.',
+//         });
+//     } catch (error) {
+//         res.status(500).send({
+//             ok: false,
+//             message: 'An error occurred while deleting all emojis.',
+//             error: error.message,
+//         });
+//     }
+// });
 
 module.exports = router;
