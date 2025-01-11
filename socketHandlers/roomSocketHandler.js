@@ -1313,7 +1313,7 @@ module.exports = (io) => {
                         if (youtubeLink[userId] != {}) {
                             youtubeLink[userId] = {};
                         } else {
-                            if (roomInfo.speaker && Array.from(roomInfo.speaker).includes(userId)) {
+                            if (roomInfo.speaker && roomInfo.speakers.has(userId)) {
                                 console.log('Sending YouTube link');
                                 if (!data.link) {
                                     console.log('Invalid YouTube link received');
