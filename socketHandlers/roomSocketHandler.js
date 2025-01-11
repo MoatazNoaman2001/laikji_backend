@@ -1310,8 +1310,8 @@ module.exports = (io) => {
 
                         const userId = xuser._id.toString();
 
-                        if (youtubeLink[userId] != null) {
-                            youtubeLink[userId] = null;
+                        if (youtubeLink[userId] != {}) {
+                            youtubeLink[userId] = {};
                         } else {
                             if (roomInfo.speaker && Array.from(roomInfo.speaker).includes(userId)) {
                                 console.log('Sending YouTube link');
