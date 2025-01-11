@@ -21,22 +21,22 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', multer().any(), async (req, res) => {
+    // Step 1: Add new emojis to the database
     await Promise.all(
         req.files.map(async (file) => {
             let key = '';
             let same_key = null;
             do {
                 key = helpers.generateKey(4);
-                same_key = await emojisModel.find({
-                    key: key,
-                });
+                same_key = await emojisModel.find({ key: key });
             } while (same_key.length > 0);
+
             const p = await helpers.saveMulterFile(file, 'emojis', key);
 
             let ei = new emojisModel({
                 key: key,
                 path: p,
-                order: 9999999,
+                order: 9999999, // Temporary high value
                 category: req.body.category,
             });
 
@@ -44,15 +44,26 @@ router.post('/', multer().any(), async (req, res) => {
         }),
     );
 
-    const all = await emojisModel.find({}).sort('order').exec();
-    let order = 0;
-    await Promise.all(
-        all.map(async (item) => {
-            item.order = order;
-            order++;
-            return await item.save();
-        }),
-    );
+    // Step 2: Re-order emojis within each category
+    const allEmojis = await emojisModel.find({}).sort('order').exec();
+    const categories = {};
+
+    // Group by category
+    allEmojis.forEach((emoji) => {
+        if (!categories[emoji.category]) {
+            categories[emoji.category] = [];
+        }
+        categories[emoji.category].push(emoji);
+    });
+
+    // Update order for each category
+    for (const [category, emojis] of Object.entries(categories)) {
+        let order = 1;
+        for (const emoji of emojis) {
+            emoji.order = order++;
+            await emoji.save();
+        }
+    }
 
     res.status(200).send({
         ok: true,
@@ -69,49 +80,73 @@ router.post('/ordering', multer().any(), async (req, res) => {
         }
     }
 
+    // Reorder categories
+    const allEmojis = await emojisModel.find({}).sort('order').exec();
+    const categories = {};
+
+    allEmojis.forEach((emoji) => {
+        if (!categories[emoji.category]) {
+            categories[emoji.category] = [];
+        }
+        categories[emoji.category].push(emoji);
+    });
+
+    for (const [category, emojis] of Object.entries(categories)) {
+        let order = 1;
+        for (const emoji of emojis) {
+            emoji.order = order++;
+            await emoji.save();
+        }
+    }
+
     res.status(200).send({
         ok: true,
     });
 });
 
-router.delete('/:id', multer().any(), async (req, res) => {
-    const id = req.params.id;
-    await emojisModel
-        .find({
-            _id: new ObjectId(id),
-        })
-        .deleteMany();
+// router.delete('/:id', multer().any(), async (req, res) => {
+//     const id = req.params.id;
+//     await emojisModel.deleteMany({ _id: new ObjectId(id) });
 
-    const all = await emojisModel.find({}).sort('order').exec();
-    let order = 0;
-    await Promise.all(
-        all.map(async (item) => {
-            item.order = order;
-            order++;
-            return await item.save();
-        }),
-    );
+//     const allEmojis = await emojisModel.find({}).sort('order').exec();
+//     const categories = {};
 
-    res.status(200).send({
-        ok: true,
-    });
-});
-// router.delete('/all', async (req, res) => {
-//     try {
-//         // Delete all emojis
-//         await emojisModel.deleteMany({});
+//     allEmojis.forEach((emoji) => {
+//         if (!categories[emoji.category]) {
+//             categories[emoji.category] = [];
+//         }
+//         categories[emoji.category].push(emoji);
+//     });
 
-//         res.status(200).send({
-//             ok: true,
-//             message: 'All emojis have been deleted successfully.',
-//         });
-//     } catch (error) {
-//         res.status(500).send({
-//             ok: false,
-//             message: 'An error occurred while deleting all emojis.',
-//             error: error.message,
-//         });
+//     for (const [category, emojis] of Object.entries(categories)) {
+//         let order = 1;
+//         for (const emoji of emojis) {
+//             emoji.order = order++;
+//             await emoji.save();
+//         }
 //     }
+
+//     res.status(200).send({
+//         ok: true,
+//     });
 // });
+
+router.delete('/all', async (req, res) => {
+    try {
+        // Delete all emojis
+        await emojisModel.deleteMany({});
+
+        res.status(200).send({
+            ok: true,
+            message: 'All emojis have been deleted successfully.',
+        });
+    } catch (error) {
+        res.status(500).send({
+            ok: false,
+            message: 'An error occurred while deleting all emojis.',
+            error: error.message,
+        });
+    }
+});
 
 module.exports = router;
