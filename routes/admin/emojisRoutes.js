@@ -104,32 +104,32 @@ router.post('/ordering', multer().any(), async (req, res) => {
     });
 });
 
-router.delete('/:id', multer().any(), async (req, res) => {
-    const id = req.params.id;
-    await emojisModel.deleteMany({ _id: new ObjectId(id) });
+// router.delete('/:id', multer().any(), async (req, res) => {
+//     const id = req.params.id;
+//     await emojisModel.deleteMany({ _id: new ObjectId(id) });
 
-    const allEmojis = await emojisModel.find({}).sort('order').exec();
-    const categories = {};
+//     const allEmojis = await emojisModel.find({}).sort('order').exec();
+//     const categories = {};
 
-    allEmojis.forEach((emoji) => {
-        if (!categories[emoji.category]) {
-            categories[emoji.category] = [];
-        }
-        categories[emoji.category].push(emoji);
-    });
+//     allEmojis.forEach((emoji) => {
+//         if (!categories[emoji.category]) {
+//             categories[emoji.category] = [];
+//         }
+//         categories[emoji.category].push(emoji);
+//     });
 
-    for (const [category, emojis] of Object.entries(categories)) {
-        let order = 1;
-        for (const emoji of emojis) {
-            emoji.order = order++;
-            await emoji.save();
-        }
-    }
+//     for (const [category, emojis] of Object.entries(categories)) {
+//         let order = 1;
+//         for (const emoji of emojis) {
+//             emoji.order = order++;
+//             await emoji.save();
+//         }
+//     }
 
-    res.status(200).send({
-        ok: true,
-    });
-});
+//     res.status(200).send({
+//         ok: true,
+//     });
+// });
 
 router.delete('/all', async (req, res) => {
     try {
