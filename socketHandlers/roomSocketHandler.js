@@ -1310,14 +1310,18 @@ module.exports = (io) => {
 
                         const userId = xuser._id.toString();
 
-                        if (roomInfo.speaker && roomInfo.speakers.has(userId)) {
-                            console.log('Sending YouTube link');
-                            if (!data.link) {
-                                console.log('Invalid YouTube link received');
-                                return;
+                        if (youtubeLink[userId] != {}) {
+                            youtubeLink[userId] = {};
+                        } else {
+                            if (roomInfo.speakers.has(userId)) {
+                                console.log('Sending YouTube link');
+                                if (!data.link) {
+                                    console.log('Invalid YouTube link received');
+                                    return;
+                                }
+                                const link = helpers.getEmbeddedYouTubeLink(data.link);
+                                youtubeLink[userId] = link;
                             }
-                            const link = helpers.getEmbeddedYouTubeLink(data.link);
-                            youtubeLink[userId] = link;
                         }
 
                         io.to(xroomId).emit('youtube-link-shared', {
