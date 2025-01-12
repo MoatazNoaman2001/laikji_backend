@@ -160,6 +160,12 @@ router.post('/', img_uploader.single('icon'), async (req, res) => {
             name: req.body.owner_name,
             email: req.body.owner_email,
         },
+        welcome: {
+            img: req.body.welcome_img,
+            text: req.body.welcome_text,
+            direction: 'center',
+            color: '0|0|0',
+        },
         outside_style: {
             background: '255|255|255',
             font_color: '0|0|0',
