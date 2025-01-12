@@ -96,6 +96,7 @@ router.get('/:id', async (req, res) => {
         .populate('groupRef');
 
     if (item.length > 0) {
+        console.log('room item is ' + JSON.stringify(item[0], null, 2));
         item = JSON.parse(JSON.stringify(item[0]));
         item.icon = item.icon ? process.env.mediaUrl + item.icon : null;
         item.welcome.img = item.welcome.img ? process.env.mediaUrl + item.welcome.img : null;
