@@ -98,6 +98,7 @@ router.get('/:id', async (req, res) => {
     if (item.length > 0) {
         item = JSON.parse(JSON.stringify(item[0]));
         item.icon = item.icon ? process.env.mediaUrl + item.icon : null;
+        item.welcome.img = item.welcome.img ? process.env.mediaUrl + item.welcome.img : null;
         item.group = item.groupRef;
         item.groupRef = item.groupRef._id;
 
@@ -167,7 +168,7 @@ router.post(
                 email: req.body.owner_email,
             },
             welcome: {
-                img: req.body.welcome_img,
+                img: req.file ? 'rooms/' + req.file.filename : '',
                 text: req.body.welcome_text,
                 direction: 'center',
                 color: '0|0|0',
@@ -319,7 +320,6 @@ router.put(
                 'talk_dur',
                 'mic_setting',
                 'shared_mic_capacity',
-                'welcome_img',
                 'welcome_text',
             ];
 
@@ -336,7 +336,7 @@ router.put(
                             ...(update.owner || {}),
                             [field === 'owner_name' ? 'name' : 'email']: req.body[field],
                         };
-                    } else if (field === 'welcome_img' || field === 'welcome_text') {
+                    } else if (field === 'welcome_text') {
                         update.welcome = {
                             ...(update.welcome || {}),
                             [field]: req.body[field],
