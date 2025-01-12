@@ -306,6 +306,8 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
             'talk_dur',
             'mic_setting',
             'shared_mic_capacity',
+            'welcome_img',
+            'welcome_text',
         ];
 
         fieldsToUpdate.forEach((field) => {
@@ -320,6 +322,11 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                     update.owner = {
                         ...(update.owner || {}),
                         [field === 'owner_name' ? 'name' : 'email']: req.body[field],
+                    };
+                } else if (field === 'welcome_img' || field === 'welcome_text') {
+                    update.welcome = {
+                        ...(update.welcome || {}),
+                        [field]: req.body[field],
                     };
                 } else if (
                     field === 'mic_permission' ||
