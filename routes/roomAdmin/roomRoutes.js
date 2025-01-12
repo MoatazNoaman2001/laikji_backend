@@ -81,7 +81,6 @@ router.get('/info', async (req, res) => {
     try {
         let room = req.room;
         response = await getRoomInfo(room);
-        console.log('response is ' + JSON.stringify(response, null, 2));
         return res.status(200).send({
             ok: true,
             data: response,
