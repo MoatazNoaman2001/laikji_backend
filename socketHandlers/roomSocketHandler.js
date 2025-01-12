@@ -1321,7 +1321,7 @@ module.exports = (io) => {
                         // }
 
                         io.to(xroomId).emit('youtube-link-shared', {
-                            link: youtubeLink[userId],
+                            link: data.link,
                         });
                     }
                 } catch (err) {
