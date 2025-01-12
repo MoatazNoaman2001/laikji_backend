@@ -369,6 +369,15 @@ router.put(
                 }
             }
 
+            if (req.files && req.files.welcome_img) {
+                const welcomeImgFile = req.files.welcome_img[0];
+                update.welcome = {
+                    ...(update.welcome || {}),
+                    welcome_img: 'rooms/' + welcomeImgFile.filename,
+                };
+                helpers.resizeImage(update.welcome.welcome_img);
+            }
+
             // Update meeting
             await roomModel.findOneAndUpdate(
                 { parentRef: new ObjectId(id), isMeeting: true },
