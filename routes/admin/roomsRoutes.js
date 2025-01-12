@@ -341,6 +341,8 @@ router.put(
                         update.welcome = {
                             ...(update.welcome || {}),
                             text: req.body[field],
+                            direction: 'center',
+                            color: '0|0|0',
                         };
                     } else if (
                         field === 'mic_permission' ||
