@@ -169,7 +169,7 @@ router.post(
                 email: req.body.owner_email,
             },
             welcome: {
-                img: req.file ? 'rooms/' + req.file.filename : '',
+                img: req.file && req.file.filename ? 'rooms/' + req.file.filename : '',
                 text: req.body.welcome_text,
                 direction: 'center',
                 color: '0|0|0',
@@ -340,7 +340,7 @@ router.put(
                     } else if (field === 'welcome_text') {
                         update.welcome = {
                             ...(update.welcome || {}),
-                            [field]: req.body[field],
+                            text: req.body[field],
                         };
                     } else if (
                         field === 'mic_permission' ||
@@ -373,7 +373,7 @@ router.put(
                 const welcomeImgFile = req.files.welcome_img[0];
                 update.welcome = {
                     ...(update.welcome || {}),
-                    welcome_img: 'rooms/' + welcomeImgFile.filename,
+                    img: 'rooms/' + welcomeImgFile.filename,
                 };
                 helpers.resizeImage(update.welcome.welcome_img);
             }
