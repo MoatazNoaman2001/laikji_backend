@@ -207,6 +207,7 @@ router.put(
         { name: 'img', maxCount: 1 },
         { name: 'special_shield', maxCount: 1 },
         { name: 'special_text_shield', maxCount: 1 },
+        { name: 'background', maxCount: 1 },
     ]),
     async (req, res) => {
         const id = req.params.id;
@@ -281,6 +282,16 @@ router.put(
             update.img = 'member/' + req.files.img[0].filename;
             helpers.resizeImage(update.img);
             helpers.removeFile(item.img);
+        }
+        if (
+            req.files &&
+            'background' in req.files &&
+            req.files.background.length > 0 &&
+            req.files.background[0].filename
+        ) {
+            update.background = 'member/' + req.files.background[0].filename;
+            helpers.resizeImage(update.background, true, 900);
+            helpers.removeFile(item.background);
         }
 
         if (
