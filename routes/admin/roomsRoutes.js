@@ -122,155 +122,15 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.post('/', img_uploader.single('icon'), async (req, res) => {
-    const same_name_count = await roomModel.count({
-        name: req.body.name,
-    });
-
-    if (same_name_count > 0) {
-        return res.status(200).send({
-            ok: false,
-            msg: 'اسم الغرفة موجود مسبقاً',
-        });
-    }
-    const endDate = new Date(req.body.endDate).toISOString();
-    const startDate = new Date(req.body.startDate).toISOString();
-
-    const insert = {
-        name: req.body.name,
-        description: req.body.description,
-        groupRef: req.body.groupRef,
-        isGold: req.body.type == '1',
-        isSpecial: req.body.type == '2',
-        icon: req.file ? 'rooms/' + req.file.filename : '',
-        endDate: endDate,
-        startDate: startDate,
-        o_name: req.body.o_name,
-        o_phone: req.body.o_phone,
-        o_email: req.body.o_email,
-        o_address: req.body.o_address,
-        o_other: req.body.o_other,
-        master_count: req.body.master_count,
-        super_admin_count: req.body.super_admin_count,
-        admin_count: req.body.admin_count,
-        member_count: req.body.member_count,
-        capacity: req.body.capacity,
-        serial: await generateRoomSerial(),
-        owner: {
-            name: req.body.owner_name,
-            email: req.body.owner_email,
-        },
-        welcome: {
-            img: req.body.welcome_img,
-            text: req.body.welcome_text,
-            direction: 'center',
-            color: '0|0|0',
-        },
-        outside_style: {
-            background: '255|255|255',
-            font_color: '0|0|0',
-        },
-        inside_style: {
-            background_1: '61|147|185',
-            background_2: '72|170|211',
-            border_1: '255|255|255',
-            font_color: '255|255|255',
-        },
-        // welcome: {
-        //     img: '',
-        //     text: req.body.welcome_text,
-        //     direction: 'center',
-        //     color: '0|0|0',
-        // },
-    };
-
-    var item = new roomModel(insert);
-
-    item.save().then(async (doc) => {
-        var c1 = new chatModel({
-            name: '',
-            roomRef: doc._id,
-            isMain: true,
-        });
-        c1.save();
-
-        var meeting_room = new roomModel({
-            ...insert,
-            parentRef: doc._id,
-            isMeeting: true,
-            isGold: false,
-            isSpecial: false,
-            groupRef: '606b8f8844e78f128ecbfac2',
-            description: '',
-            outside_style: {
-                background: '255|255|255',
-                font_color: '0|0|0',
-            },
-            inside_style: {
-                background_1: '61|147|185',
-                background_2: '72|170|211',
-                border_1: '72|170|211',
-                font_color: '255|255|255',
-            },
-            meetingPassword: '0000',
-        });
-        await meeting_room.save();
-
-        doc.meetingRef = meeting_room._id;
-        await doc.save();
-
-        var c2 = new chatModel({
-            name: '',
-            roomRef: meeting_room._id,
-            isMain: true,
-        });
-        c2.save();
-
-        var master = new registeredUserModal({
-            username: 'MASTER',
-            type: enums.userTypes.mastermain,
-            password: req.body.master_password,
-            roomRefs: [doc._id, doc.meetingRef],
-            type: enums.userTypes.mastermain,
-            permissions: '11111111111111111',
-            strong: 90000,
-            is_locked: false,
-        });
-        await master.save();
-
-        var master_mem = new memberModal({
-            username: 'MASTER',
-            password: req.body.master_password,
-            type: enums.fileTypes.mastermain,
-            roomRefs: [doc._id, meeting_room._id],
-            regUserRef: master._id,
-            isMain: true,
-            code: req.body.master_code,
-            endDate: endDate,
-            startDate: startDate,
-        });
-        await master_mem.save();
-
-        helpers.resizeImage(item.icon);
-
-        global.home_io.emit('groups_refresh', {});
-
-        res.status(200).send({
-            ok: true,
-        });
-    });
-});
-
-// dashboard update
-router.put('/:id', img_uploader.single('icon'), async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        // Check for duplicate names
+router.post(
+    '/',
+    img_uploader.fields([
+        { name: 'icon', maxCount: 1 },
+        { name: 'welcome_img', maxCount: 1 },
+    ]),
+    async (req, res) => {
         const same_name_count = await roomModel.count({
             name: req.body.name,
-            _id: { $ne: new ObjectId(id) },
-            isMeeting: false,
         });
 
         if (same_name_count > 0) {
@@ -279,88 +139,70 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                 msg: 'اسم الغرفة موجود مسبقاً',
             });
         }
+        const endDate = new Date(req.body.endDate).toISOString();
+        const startDate = new Date(req.body.startDate).toISOString();
 
-        // Prepare the update object dynamically
-        const update = {};
+        const insert = {
+            name: req.body.name,
+            description: req.body.description,
+            groupRef: req.body.groupRef,
+            isGold: req.body.type == '1',
+            isSpecial: req.body.type == '2',
+            icon: req.file ? 'rooms/' + req.file.filename : '',
+            endDate: endDate,
+            startDate: startDate,
+            o_name: req.body.o_name,
+            o_phone: req.body.o_phone,
+            o_email: req.body.o_email,
+            o_address: req.body.o_address,
+            o_other: req.body.o_other,
+            master_count: req.body.master_count,
+            super_admin_count: req.body.super_admin_count,
+            admin_count: req.body.admin_count,
+            member_count: req.body.member_count,
+            capacity: req.body.capacity,
+            serial: await generateRoomSerial(),
+            owner: {
+                name: req.body.owner_name,
+                email: req.body.owner_email,
+            },
+            welcome: {
+                img: req.body.welcome_img,
+                text: req.body.welcome_text,
+                direction: 'center',
+                color: '0|0|0',
+            },
+            outside_style: {
+                background: '255|255|255',
+                font_color: '0|0|0',
+            },
+            inside_style: {
+                background_1: '61|147|185',
+                background_2: '72|170|211',
+                border_1: '255|255|255',
+                font_color: '255|255|255',
+            },
+            // welcome: {
+            //     img: '',
+            //     text: req.body.welcome_text,
+            //     direction: 'center',
+            //     color: '0|0|0',
+            // },
+        };
 
-        const fieldsToUpdate = [
-            'name',
-            'description',
-            'groupRef',
-            'type',
-            'endDate',
-            'startDate',
-            'o_name',
-            'o_phone',
-            'o_email',
-            'o_address',
-            'o_other',
-            'master_count',
-            'super_admin_count',
-            'admin_count',
-            'member_count',
-            'capacity',
-            'owner_name',
-            'owner_email',
-            'mic_permission',
-            'talk_dur',
-            'mic_setting',
-            'shared_mic_capacity',
-            'welcome_img',
-            'welcome_text',
-        ];
+        var item = new roomModel(insert);
 
-        fieldsToUpdate.forEach((field) => {
-            if (req.body[field] !== undefined) {
-                // Special handling for nested structures or transformations
-                if (field === 'endDate' || field === 'startDate') {
-                    update[field] = new Date(req.body[field]).toISOString();
-                } else if (field === 'type') {
-                    update.isGold = req.body.type === '1';
-                    update.isSpecial = req.body.type === '2';
-                } else if (field === 'owner_name' || field === 'owner_email') {
-                    update.owner = {
-                        ...(update.owner || {}),
-                        [field === 'owner_name' ? 'name' : 'email']: req.body[field],
-                    };
-                } else if (field === 'welcome_img' || field === 'welcome_text') {
-                    update.welcome = {
-                        ...(update.welcome || {}),
-                        [field]: req.body[field],
-                    };
-                } else if (
-                    field === 'mic_permission' ||
-                    field === 'talk_dur' ||
-                    field === 'mic_setting' ||
-                    field === 'shared_mic_capacity'
-                ) {
-                    update.mic = {
-                        ...(update.mic || {}),
-                        [field]: req.body[field],
-                    };
-                } else {
-                    update[field] = req.body[field];
-                }
-            }
-        });
+        item.save().then(async (doc) => {
+            var c1 = new chatModel({
+                name: '',
+                roomRef: doc._id,
+                isMain: true,
+            });
+            c1.save();
 
-        if (req.file && req.file.filename) {
-            update.icon = 'rooms/' + req.file.filename;
-            helpers.resizeImage(update.icon);
-
-            const old_item = await roomModel.find({ _id: new ObjectId(id) });
-            if (old_item.length > 0) {
-                const old_icon = old_item[0].icon;
-                helpers.removeFile(old_icon);
-            }
-        }
-
-        // Update meeting
-        await roomModel.findOneAndUpdate(
-            { parentRef: new ObjectId(id), isMeeting: true },
-            {
-                ...update,
-                parentRef: id,
+            var meeting_room = new roomModel({
+                ...insert,
+                parentRef: doc._id,
                 isMeeting: true,
                 isGold: false,
                 isSpecial: false,
@@ -376,44 +218,216 @@ router.put('/:id', img_uploader.single('icon'), async (req, res) => {
                     border_1: '72|170|211',
                     font_color: '255|255|255',
                 },
-                //  meetingPassword: '0000',
-            },
-        );
+                meetingPassword: '0000',
+            });
+            await meeting_room.save();
 
-        // Update room
-        await roomModel.findOneAndUpdate({ _id: new ObjectId(id) }, update);
+            doc.meetingRef = meeting_room._id;
+            await doc.save();
 
-        // Update master member details if applicable
-        const query = {
-            type: enums.fileTypes.mastermain,
-            username: 'MASTER',
-            roomRefs: { $in: [new ObjectId(id)] },
-        };
+            var c2 = new chatModel({
+                name: '',
+                roomRef: meeting_room._id,
+                isMain: true,
+            });
+            c2.save();
 
-        const master_mem = await memberModal.findOne(query);
-        if (master_mem) {
-            master_mem.password = req.body.master_password;
-            master_mem.code = req.body.master_code;
-            master_mem.endDate = update.endDate;
+            var master = new registeredUserModal({
+                username: 'MASTER',
+                type: enums.userTypes.mastermain,
+                password: req.body.master_password,
+                roomRefs: [doc._id, doc.meetingRef],
+                type: enums.userTypes.mastermain,
+                permissions: '11111111111111111',
+                strong: 90000,
+                is_locked: false,
+            });
+            await master.save();
+
+            var master_mem = new memberModal({
+                username: 'MASTER',
+                password: req.body.master_password,
+                type: enums.fileTypes.mastermain,
+                roomRefs: [doc._id, meeting_room._id],
+                regUserRef: master._id,
+                isMain: true,
+                code: req.body.master_code,
+                endDate: endDate,
+                startDate: startDate,
+            });
             await master_mem.save();
+
+            helpers.resizeImage(item.icon);
+
+            global.home_io.emit('groups_refresh', {});
+
+            res.status(200).send({
+                ok: true,
+            });
+        });
+    },
+);
+
+// dashboard update
+router.put(
+    '/:id',
+    img_uploader.fields([
+        { name: 'icon', maxCount: 1 },
+        { name: 'welcome_img', maxCount: 1 },
+    ]),
+    async (req, res) => {
+        try {
+            const id = req.params.id;
+
+            // Check for duplicate names
+            const same_name_count = await roomModel.count({
+                name: req.body.name,
+                _id: { $ne: new ObjectId(id) },
+                isMeeting: false,
+            });
+
+            if (same_name_count > 0) {
+                return res.status(200).send({
+                    ok: false,
+                    msg: 'اسم الغرفة موجود مسبقاً',
+                });
+            }
+
+            // Prepare the update object dynamically
+            const update = {};
+
+            const fieldsToUpdate = [
+                'name',
+                'description',
+                'groupRef',
+                'type',
+                'endDate',
+                'startDate',
+                'o_name',
+                'o_phone',
+                'o_email',
+                'o_address',
+                'o_other',
+                'master_count',
+                'super_admin_count',
+                'admin_count',
+                'member_count',
+                'capacity',
+                'owner_name',
+                'owner_email',
+                'mic_permission',
+                'talk_dur',
+                'mic_setting',
+                'shared_mic_capacity',
+                'welcome_img',
+                'welcome_text',
+            ];
+
+            fieldsToUpdate.forEach((field) => {
+                if (req.body[field] !== undefined) {
+                    // Special handling for nested structures or transformations
+                    if (field === 'endDate' || field === 'startDate') {
+                        update[field] = new Date(req.body[field]).toISOString();
+                    } else if (field === 'type') {
+                        update.isGold = req.body.type === '1';
+                        update.isSpecial = req.body.type === '2';
+                    } else if (field === 'owner_name' || field === 'owner_email') {
+                        update.owner = {
+                            ...(update.owner || {}),
+                            [field === 'owner_name' ? 'name' : 'email']: req.body[field],
+                        };
+                    } else if (field === 'welcome_img' || field === 'welcome_text') {
+                        update.welcome = {
+                            ...(update.welcome || {}),
+                            [field]: req.body[field],
+                        };
+                    } else if (
+                        field === 'mic_permission' ||
+                        field === 'talk_dur' ||
+                        field === 'mic_setting' ||
+                        field === 'shared_mic_capacity'
+                    ) {
+                        update.mic = {
+                            ...(update.mic || {}),
+                            [field]: req.body[field],
+                        };
+                    } else {
+                        update[field] = req.body[field];
+                    }
+                }
+            });
+
+            if (req.file && req.file.filename) {
+                update.icon = 'rooms/' + req.file.filename;
+                helpers.resizeImage(update.icon);
+
+                const old_item = await roomModel.find({ _id: new ObjectId(id) });
+                if (old_item.length > 0) {
+                    const old_icon = old_item[0].icon;
+                    helpers.removeFile(old_icon);
+                }
+            }
+
+            // Update meeting
+            await roomModel.findOneAndUpdate(
+                { parentRef: new ObjectId(id), isMeeting: true },
+                {
+                    ...update,
+                    parentRef: id,
+                    isMeeting: true,
+                    isGold: false,
+                    isSpecial: false,
+                    groupRef: '606b8f8844e78f128ecbfac2',
+                    description: '',
+                    outside_style: {
+                        background: '255|255|255',
+                        font_color: '0|0|0',
+                    },
+                    inside_style: {
+                        background_1: '61|147|185',
+                        background_2: '72|170|211',
+                        border_1: '72|170|211',
+                        font_color: '255|255|255',
+                    },
+                    //  meetingPassword: '0000',
+                },
+            );
+
+            // Update room
+            await roomModel.findOneAndUpdate({ _id: new ObjectId(id) }, update);
+
+            // Update master member details if applicable
+            const query = {
+                type: enums.fileTypes.mastermain,
+                username: 'MASTER',
+                roomRefs: { $in: [new ObjectId(id)] },
+            };
+
+            const master_mem = await memberModal.findOne(query);
+            if (master_mem) {
+                master_mem.password = req.body.master_password;
+                master_mem.code = req.body.master_code;
+                master_mem.endDate = update.endDate;
+                await master_mem.save();
+            }
+
+            const regUser = await registeredUserModal.findOne(master_mem.regUserRef);
+            if (regUser) {
+                regUser.password = req.body.master_password;
+                await regUser.save();
+            }
+
+            // Notify and emit refresh event
+            await helpers.notifyRoomChanged(id, true, false);
+            global.home_io.emit('groups_refresh', {});
+
+            res.status(200).send({ ok: true });
+        } catch (err) {
+            console.log('error from update room admin route ' + err.toString());
+            res.status(500).send({ ok: false, error: 'Something went wrong.' });
         }
-
-        const regUser = await registeredUserModal.findOne(master_mem.regUserRef);
-        if (regUser) {
-            regUser.password = req.body.master_password;
-            await regUser.save();
-        }
-
-        // Notify and emit refresh event
-        await helpers.notifyRoomChanged(id, true, false);
-        global.home_io.emit('groups_refresh', {});
-
-        res.status(200).send({ ok: true });
-    } catch (err) {
-        console.log('error from update room admin route ' + err.toString());
-        res.status(500).send({ ok: false, error: 'Something went wrong.' });
-    }
-});
+    },
+);
 
 router.delete('/:id', async (req, res) => {
     const id = req.params.id;
