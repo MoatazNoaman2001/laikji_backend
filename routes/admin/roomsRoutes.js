@@ -379,6 +379,12 @@ router.put(
                 };
                 helpers.resizeImage(update.welcome.welcome_img);
             }
+            if (req.body.delete_welcome_img) {
+                update.welcome = {
+                    ...(update.welcome || {}),
+                    img: null,
+                };
+            }
 
             // Update meeting
             await roomModel.findOneAndUpdate(
