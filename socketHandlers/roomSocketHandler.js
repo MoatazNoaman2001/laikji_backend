@@ -1329,6 +1329,30 @@ module.exports = (io) => {
                 }
             });
 
+            xclient.on('pause-youtube', (data) => {
+                try {
+                    if (
+                        (xuser.type === enums.userTypes.root ||
+                        xuser.type === enums.userTypes.chatmanager ||
+                        xuser.type === enums.userTypes.master ||
+                        xuser.type === enums.userTypes.mastergirl ||
+                        xuser.type === enums.userTypes.mastermain )
+
+                        && youtubeLink[xuser._id] 
+                    ) {
+                        console.log(`Pausing YouTube for room ${xroomId}`);
+                    
+                        io.to(xroomId).emit('youtube-paused', {
+                            paused: true,
+                            link: youtubeLink[xuser_id],
+                            timestamp: data.timestamp,
+                        });
+                    }
+                } catch (err) {
+                    console.log('Error from pause YouTube event:', err.message);
+                }
+            });
+
             // سحب المايك
             xclient.on('disable-mic', async (data) => {
                 try {
