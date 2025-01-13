@@ -1312,16 +1312,16 @@ module.exports = (io) => {
 
                         if (roomInfo.speakers.has(userId)) {
                             console.log('Sending YouTube link');
-                            if (!data.link) {
-                                console.log('Invalid YouTube link received');
-                                return;
-                            }
-                            const link = helpers.getEmbeddedYouTubeLink(data.link);
-                            youtubeLink[userId] = link;
+                            // if (!data.link) {
+                            //     console.log('Invalid YouTube link received');
+                            //     return;
+                            // }
+                            // const link = helpers.getEmbeddedYouTubeLink(data.link);
+                            youtubeLink[userId] = data.link;
                         }
 
                         io.to(xroomId).emit('youtube-link-shared', {
-                            link: youtubeLink[userId],
+                            link: data.link,
                         });
                     }
                 } catch (err) {
