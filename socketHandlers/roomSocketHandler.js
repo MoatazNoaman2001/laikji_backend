@@ -543,9 +543,6 @@ module.exports = (io) => {
                     data: await public_user(xuser),
                 });
             }
-            io.to(xroomId).emit('youtube-link-shared', {
-                link:youtubeLink[xuser._id],
-            });
 
             setInterval(async () => {
                 const m = await memberModal.findOne(member_query);
@@ -1315,10 +1312,10 @@ module.exports = (io) => {
 
                         if (roomInfo.speakers.has(userId)) {
                             console.log('Sending YouTube link');
-                            if (!data.link) {
-                                console.log('Invalid YouTube link received');
-                                return;
-                            }
+                            // if (!data.link) {
+                            //     console.log('Invalid YouTube link received');
+                            //     return;
+                            // }
                             // const link = helpers.getEmbeddedYouTubeLink(data.link);
                             youtubeLink[userId] = data.link;
                         }
