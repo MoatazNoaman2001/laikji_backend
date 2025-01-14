@@ -1308,16 +1308,14 @@ module.exports = (io) => {
 
                         if (roomInfo.speakers.has(userId)) {
                             console.log('Sending YouTube link');
-                            // if (!data.link) {
-                            //     console.log('Invalid YouTube link received');
-                            //     return;
-                            // }
-                            // const link = helpers.getEmbeddedYouTubeLink(data.link);
-                            roomInfo.youtubeLink[userId] = data.link; // Store the link for the room
+
+                            roomInfo.youtubeLink.userId = userId;
+                            roomInfo.youtubeLink.link = data.link;
+                            roomInfo.youtubeLink.paused = false;
                         }
 
                         io.to(xroomId).emit('youtube-link-shared', {
-                            link: data.link,
+                            link: roomInfo.youtubeLink,
                         });
                     }
                 } catch (err) {
@@ -1329,20 +1327,13 @@ module.exports = (io) => {
                 try {
                     const userId = xuser._id.toString();
 
-                    if (
-                        (xuser.type === enums.userTypes.root ||
-                            xuser.type === enums.userTypes.chatmanager ||
-                            xuser.type === enums.userTypes.master ||
-                            xuser.type === enums.userTypes.mastergirl ||
-                            xuser.type === enums.userTypes.mastermain) &&
-                        roomInfo?.youtubeLink[userId]
-                    ) {
+                    if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
+                        youtubeLink.paused = true;
+                        youtubeLink.timestamp = data.timestamp;
 
                         io.to(xroomId).emit('youtube-paused', {
-                            paused: true,
-                            link: roomInfo.youtubeLink[userId],
-                            timestamp: data.timestamp,
+                            link: youtubeLink,
                         });
                     }
                 } catch (err) {
