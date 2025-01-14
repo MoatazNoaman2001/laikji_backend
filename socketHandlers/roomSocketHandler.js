@@ -1333,7 +1333,7 @@ module.exports = (io) => {
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
-                        roomInfo.youtubeLink.paused = true;
+                        roomInfo.youtubeLink.paused = !roomInfo.youtubeLink.paused;
                         roomInfo.youtubeLink.timestamp = data.timestamp;
 
                         io.to(xroomId).emit('youtube-paused', {
