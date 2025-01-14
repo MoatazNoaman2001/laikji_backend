@@ -1330,11 +1330,14 @@ module.exports = (io) => {
             xclient.on('pause-youtube', (data) => {
                 try {
                     const userId = xuser._id.toString();
+                    console.log("pause or resume video");
+                    console.log(`current video state ${roomInfo.youtubeLink}`);
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
                         roomInfo.youtubeLink.paused = !roomInfo.youtubeLink.paused;
                         roomInfo.youtubeLink.timestamp = data.timestamp;
+                        console.log(`current video state ${roomInfo.youtubeLink}`);
 
                         io.to(xroomId).emit('youtube-paused', {
                             link: roomInfo.youtubeLink,
