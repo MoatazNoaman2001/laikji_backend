@@ -534,7 +534,7 @@ module.exports = (io) => {
                 'muted-list': allMutedList[xroomId],
                 micQueue: roomInfo != null ? roomInfo.micQueue : [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
-                link: roomInfo[xroomId].youtubeLink,
+                link: roomInfo != null ? roomInfo[xroomId].youtubeLink : {},
             });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
