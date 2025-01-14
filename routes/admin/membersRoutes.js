@@ -313,6 +313,9 @@ router.put(
         ) {
             update.special_text_shield = 'member/' + req.files.special_text_shield[0].filename;
         }
+        if (req.body.delete_background === 'yes') {
+            update.background = null;
+        }
 
         const mem = await memberModal.findOneAndUpdate(
             {
