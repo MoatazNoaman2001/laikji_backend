@@ -1927,7 +1927,7 @@ module.exports = (io) => {
                 );
                 io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
             }
-            if (roomInfo.youtubeLink && roomInfo.userId == xuser._id.toString()) {
+            if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
                 roomInfo.youtubeLink = {};
             }
             // // Close all WebRTC stuff
