@@ -1312,11 +1312,10 @@ module.exports = (io) => {
                             roomInfo.youtubeLink.userId = userId;
                             roomInfo.youtubeLink.link = data.link;
                             roomInfo.youtubeLink.paused = false;
+                            io.to(xroomId).emit('youtube-link-shared', {
+                                link: roomInfo.youtubeLink,
+                            });
                         }
-
-                        io.to(xroomId).emit('youtube-link-shared', {
-                            link: roomInfo.youtubeLink,
-                        });
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
@@ -1329,11 +1328,11 @@ module.exports = (io) => {
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
-                        youtubeLink.paused = true;
-                        youtubeLink.timestamp = data.timestamp;
+                        roomInfo.youtubeLink.paused = true;
+                        roomInfo.youtubeLink.timestamp = data.timestamp;
 
                         io.to(xroomId).emit('youtube-paused', {
-                            link: youtubeLink,
+                            link: roomInfo.youtubeLink,
                         });
                     }
                 } catch (err) {
