@@ -534,7 +534,7 @@ module.exports = (io) => {
                 'muted-list': allMutedList[xroomId],
                 micQueue: roomInfo != null ? roomInfo.micQueue : [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
-                link: roomInfo != null ? roomInfo[xroomId].youtubeLink : {},
+                link: roomInfo != null ? roomInfo.youtubeLink : {},
             });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
@@ -1313,7 +1313,7 @@ module.exports = (io) => {
                             //     return;
                             // }
                             // const link = helpers.getEmbeddedYouTubeLink(data.link);
-                            roomInfo[xroomId].youtubeLink[userId] = data.link; // Store the link for the room
+                            roomInfo.youtubeLink[userId] = data.link; // Store the link for the room
                         }
 
                         io.to(xroomId).emit('youtube-link-shared', {
@@ -1335,13 +1335,13 @@ module.exports = (io) => {
                             xuser.type === enums.userTypes.master ||
                             xuser.type === enums.userTypes.mastergirl ||
                             xuser.type === enums.userTypes.mastermain) &&
-                        roomInfo[xroomId]?.youtubeLink[userId]
+                        roomInfo?.youtubeLink[userId]
                     ) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
 
                         io.to(xroomId).emit('youtube-paused', {
                             paused: true,
-                            link: roomInfo[xroomId].youtubeLink[userId],
+                            link: roomInfo.youtubeLink[userId],
                             timestamp: data.timestamp,
                         });
                     }
