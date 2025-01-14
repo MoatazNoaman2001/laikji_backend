@@ -1307,11 +1307,16 @@ module.exports = (io) => {
                         const userId = xuser._id.toString();
 
                         if (roomInfo.speakers.has(userId)) {
-                            console.log('Sending YouTube link');
+                            roomInfo.youtubeLink = {
+                                userId: userId,
+                                link: data.link,
+                                paused: false,
+                            };
+                            console.log(
+                                'Sending YouTube link',
+                                JSON.stringify(roomInfo.youtubeLink, null, 2),
+                            );
 
-                            roomInfo.youtubeLink.userId = userId;
-                            roomInfo.youtubeLink.link = data.link;
-                            roomInfo.youtubeLink.paused = false;
                             io.to(xroomId).emit('youtube-link-shared', {
                                 link: roomInfo.youtubeLink,
                             });
