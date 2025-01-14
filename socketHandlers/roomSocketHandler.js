@@ -51,7 +51,6 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var allMutedList = new Map(); // list for users whom muted all participarates
 var mutedSpeakers = new Map();
-var youtubeLink = {};
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -535,7 +534,7 @@ module.exports = (io) => {
                 'muted-list': allMutedList[xroomId],
                 micQueue: roomInfo != null ? roomInfo.micQueue : [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
-                link: youtubeLink,
+                link: roomInfo[xroomId].youtubeLink,
             });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
@@ -1291,7 +1290,6 @@ module.exports = (io) => {
                 }
             });
 
-            // data: link
             xclient.on('share-youtube-link', (data) => {
                 try {
                     if (
@@ -1301,8 +1299,6 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain
                     ) {
-                        console.log('User ID:', xuser._id?.toString());
-
                         if (!xuser || !xuser._id) {
                             console.log('Invalid xuser or xuser._id');
                             return;
@@ -1317,7 +1313,7 @@ module.exports = (io) => {
                             //     return;
                             // }
                             // const link = helpers.getEmbeddedYouTubeLink(data.link);
-                            youtubeLink[userId] = data.link;
+                            roomInfo[xroomId].youtubeLink[userId] = data.link; // Store the link for the room
                         }
 
                         io.to(xroomId).emit('youtube-link-shared', {
@@ -1331,20 +1327,21 @@ module.exports = (io) => {
 
             xclient.on('pause-youtube', (data) => {
                 try {
+                    const userId = xuser._id.toString();
+
                     if (
                         (xuser.type === enums.userTypes.root ||
-                        xuser.type === enums.userTypes.chatmanager ||
-                        xuser.type === enums.userTypes.master ||
-                        xuser.type === enums.userTypes.mastergirl ||
-                        xuser.type === enums.userTypes.mastermain )
-
-                        && youtubeLink[xuser._id] 
+                            xuser.type === enums.userTypes.chatmanager ||
+                            xuser.type === enums.userTypes.master ||
+                            xuser.type === enums.userTypes.mastergirl ||
+                            xuser.type === enums.userTypes.mastermain) &&
+                        roomInfo[xroomId]?.youtubeLink[userId]
                     ) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
-                    
+
                         io.to(xroomId).emit('youtube-paused', {
                             paused: true,
-                            link: youtubeLink[xuser_id],
+                            link: roomInfo[xroomId].youtubeLink[userId],
                             timestamp: data.timestamp,
                         });
                     }

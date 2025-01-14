@@ -23,6 +23,7 @@ function getRoomData(roomId) {
             speakers: new Set(),
             listeners: new Set(),
             micQueue: new Array(),
+            youtubeLink: new Map(),
             holdMic: new Set(),
         });
     }
