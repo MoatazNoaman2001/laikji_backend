@@ -522,7 +522,7 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
-
+            console.log('started ' + JSON.stringify(roomInfo?.youtubeLink, null, 2));
             xclient.emit('started', {
                 ok: true,
                 user: xuser,
