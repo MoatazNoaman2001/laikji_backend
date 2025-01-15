@@ -1307,7 +1307,11 @@ module.exports = (io) => {
                         const userId = xuser._id.toString();
                         if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == userId) {
                             console.log('share you tube link stop');
-                            roomInfo.youtubeLink = {};
+                            roomInfo.youtubeLink = {
+                                userId: '',
+                                paused: false,
+                                link: '',
+                            };
                         } else {
                             if (roomInfo.speakers.has(userId)) {
                                 roomInfo.youtubeLink = {
@@ -1934,9 +1938,9 @@ module.exports = (io) => {
                 );
                 io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
             }
-            if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
-                roomInfo.youtubeLink = {};
-            }
+            // if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
+            //     roomInfo.youtubeLink = {};
+            // }
             // // Close all WebRTC stuff
             // if (xuser.transport) {
             //     await closeTransport(xroomId, xuser.transport);

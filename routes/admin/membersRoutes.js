@@ -211,7 +211,7 @@ router.put(
     ]),
     async (req, res) => {
         const id = req.params.id;
-
+        console.log('member is ' + JSON.stringify(req.body, null, 2));
         const same_username_count = await memberModal.count({
             username: req.body.username,
             _id: { $ne: new ObjectId(id) },
