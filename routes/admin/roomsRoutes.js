@@ -9,6 +9,10 @@ const chatModel = require('../../models/chatModel');
 const memberModal = require('../../models/memberModal');
 const { generateRoomSerial } = require('../../helpers/tools');
 const registeredUserModal = require('../../models/registeredUserModal');
+const reportModel = require('../../models/reportModel');
+const entryLogModel = require('../../models/entryLogModel');
+const adminLogModel = require('../../models/adminLogModel');
+const bannedModel = require('../../models/bannedModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -182,12 +186,6 @@ router.post(
                 border_1: '255|255|255',
                 font_color: '255|255|255',
             },
-            // welcome: {
-            //     img: '',
-            //     text: req.body.welcome_text,
-            //     direction: 'center',
-            //     color: '0|0|0',
-            // },
         };
 
         var item = new roomModel(insert);
@@ -461,7 +459,6 @@ router.put('/reset/:id', async (req, res) => {
             'meetingRef',
             'code',
             'isMeeting',
-            'meetingPassword',
             'isGold',
             'isSpecial',
             'startDate',
@@ -473,10 +470,53 @@ router.put('/reset/:id', async (req, res) => {
                 room[key] = defaultRoom[key];
             }
         }
+        var meeting_room = new roomModel({
+            ...room,
+            parentRef: room._id,
+            isMeeting: true,
+            isGold: false,
+            isSpecial: false,
+            groupRef: '606b8f8844e78f128ecbfac2',
+            description: '',
+            outside_style: {
+                background: '255|255|255',
+                font_color: '0|0|0',
+            },
+            inside_style: {
+                background_1: '61|147|185',
+                background_2: '72|170|211',
+                border_1: '72|170|211',
+                font_color: '255|255|255',
+            },
+            meetingPassword: '0000',
+        });
+        await meeting_room.save();
 
-        // Save the updated room
+        doc.meetingRef = meeting_room._id;
+        await doc.save();
+
+        var c2 = new chatModel({
+            name: '',
+            roomRef: meeting_room._id,
+            isMain: true,
+        });
+        c2.save();
+
+        // delete admin logs
+        await adminLogModel.deleteMany({
+            roomRef: id,
+        });
+        // delete logs
+        await entryLogModel.deleteMany({
+            roomRef: id,
+        });
+
+        //delete blocked
+        await bannedModel.deleteMany({
+            roomRef: id,
+            type: enums.banTypes.room,
+        });
         await room.save();
-
         return res.status(200).send({ ok: true, data: room });
     } catch (error) {
         console.error(`Error resetting room data: ${error.message}`);
