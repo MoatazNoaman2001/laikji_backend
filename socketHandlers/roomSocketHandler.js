@@ -1094,14 +1094,13 @@ module.exports = (io) => {
                 const key = data.chat_key;
                 const msg_id = data.msg_id;
 
-                let pc = await privateChatModel
+                let pc_res = await privateChatModel
                     .find({
                         key: key,
                     })
                     .populate(['user1Ref', 'user2Ref']);
 
-                pc = pc[0];
-                console.log('pc is ' + JSON.stringify(pc, null, 2));
+                var pc = pc_res[0];
                 //const id = mongoose.Types.ObjectId(msg_id.trim());
                 const msg = await privateMessageModel.find({
                     _id: msg_id,
@@ -1331,11 +1330,14 @@ module.exports = (io) => {
             xclient.on('pause-youtube', (data) => {
                 try {
                     const userId = xuser._id.toString();
+                    console.log('pause or resume video');
+                    console.log(`current video state ${roomInfo.youtubeLink}`);
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
-                        roomInfo.youtubeLink.paused = true;
+                        roomInfo.youtubeLink.paused = !roomInfo.youtubeLink.paused;
                         roomInfo.youtubeLink.timestamp = data.timestamp;
+                        console.log(`current video state ${roomInfo.youtubeLink}`);
 
                         io.to(xroomId).emit('youtube-paused', {
                             link: roomInfo.youtubeLink,
