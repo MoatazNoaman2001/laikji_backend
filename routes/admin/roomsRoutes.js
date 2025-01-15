@@ -470,37 +470,37 @@ router.put('/reset/:id', async (req, res) => {
                 room[key] = defaultRoom[key];
             }
         }
-        var meeting_room = new roomModel({
-            ...room,
-            parentRef: room._id,
-            isMeeting: true,
-            isGold: false,
-            isSpecial: false,
-            groupRef: '606b8f8844e78f128ecbfac2',
-            description: '',
-            outside_style: {
-                background: '255|255|255',
-                font_color: '0|0|0',
-            },
-            inside_style: {
-                background_1: '61|147|185',
-                background_2: '72|170|211',
-                border_1: '72|170|211',
-                font_color: '255|255|255',
-            },
-            meetingPassword: '0000',
-        });
-        await meeting_room.save();
+        // var meeting_room = new roomModel({
+        //     ...room,
+        //     parentRef: room._id,
+        //     isMeeting: true,
+        //     isGold: false,
+        //     isSpecial: false,
+        //     groupRef: '606b8f8844e78f128ecbfac2',
+        //     description: '',
+        //     outside_style: {
+        //         background: '255|255|255',
+        //         font_color: '0|0|0',
+        //     },
+        //     inside_style: {
+        //         background_1: '61|147|185',
+        //         background_2: '72|170|211',
+        //         border_1: '72|170|211',
+        //         font_color: '255|255|255',
+        //     },
+        //     meetingPassword: '0000',
+        // });
+        // await meeting_room.save();
 
-        // doc.meetingRef = meeting_room._id;
-        // await doc.save();
+        // // doc.meetingRef = meeting_room._id;
+        // // await doc.save();
 
-        var c2 = new chatModel({
-            name: '',
-            roomRef: meeting_room._id,
-            isMain: true,
-        });
-        c2.save();
+        // var c2 = new chatModel({
+        //     name: '',
+        //     roomRef: meeting_room._id,
+        //     isMain: true,
+        // });
+        // c2.save();
 
         // delete admin logs
         await adminLogModel.deleteMany({
