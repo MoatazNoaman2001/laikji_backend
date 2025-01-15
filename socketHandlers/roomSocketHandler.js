@@ -1305,10 +1305,8 @@ module.exports = (io) => {
                         }
 
                         const userId = xuser._id.toString();
-                        if (
-                            roomInfo.youtubeLink.hasOwnProperty('userId') &&
-                            roomInfo.youtubeLink.userId === userId
-                        ) {
+                        if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == userId) {
+                            console.log('share you tube link stop');
                             roomInfo.youtubeLink = {};
                         } else {
                             if (roomInfo.speakers.has(userId)) {
