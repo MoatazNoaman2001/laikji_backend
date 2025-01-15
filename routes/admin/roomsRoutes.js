@@ -358,7 +358,9 @@ router.put(
                     }
                 }
             });
-
+            if (req.body.icon === '') {
+                update.icon = null;
+            }
             if (req.files && req.files.icon) {
                 update.icon = 'rooms/' + req.files.icon[0].filename;
 
