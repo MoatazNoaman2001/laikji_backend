@@ -477,7 +477,7 @@ router.put('/reset/:id', async (req, res) => {
         // Save the updated room
         await room.save();
 
-        return res.status(200).send({ ok: true });
+        return res.status(200).send({ ok: true, data: room });
     } catch (error) {
         console.error(`Error resetting room data: ${error.message}`);
         throw error;
