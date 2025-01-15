@@ -512,9 +512,25 @@ router.put('/reset/:id', async (req, res) => {
         });
         // delete users
         await registeredUserModal.deleteMany({
-            roomRefs: { $in: [id] },
+            roomRefs: id,
+            type: {
+                $nin: [
+                    enums.userTypes.mastermain,
+                    enums.userTypes.chatmanager,
+                    enums.userTypes.root,
+                ],
+            },
         });
-
+        await memberModal.deleteMany({
+            roomRefs: id,
+            type: {
+                $nin: [
+                    enums.userTypes.mastermain,
+                    enums.userTypes.chatmanager,
+                    enums.userTypes.root,
+                ],
+            },
+        });
         //delete blocked
         await bannedModel.deleteMany({
             roomRef: id,
