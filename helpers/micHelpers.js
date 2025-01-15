@@ -74,7 +74,10 @@ const releaseMic = async (roomInfo, userId, xroomId) => {
                 assignMic(xroomId, roomInfo);
             }
             if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == userId) {
+                console.log('ending youtube');
                 roomInfo.youtubeLink = {};
+            } else {
+                console.log('error ending');
             }
         }
     } catch (err) {
