@@ -316,6 +316,9 @@ router.put(
         if (req.body.delete_background === 'yes') {
             update.background = null;
         }
+        if (req.body.delete_img == 'yes') {
+            update.img = null;
+        }
 
         const mem = await memberModal.findOneAndUpdate(
             {
