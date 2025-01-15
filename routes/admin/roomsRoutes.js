@@ -492,8 +492,8 @@ router.put('/reset/:id', async (req, res) => {
         });
         await meeting_room.save();
 
-        doc.meetingRef = meeting_room._id;
-        await doc.save();
+        // doc.meetingRef = meeting_room._id;
+        // await doc.save();
 
         var c2 = new chatModel({
             name: '',
