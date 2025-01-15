@@ -73,6 +73,12 @@ const releaseMic = async (roomInfo, userId, xroomId) => {
             if (Array.from(roomInfo.speakers).length === 0) {
                 assignMic(xroomId, roomInfo);
             }
+            if (
+                roomInfo.youtubeLink.hasOwnProperty('userId') &&
+                roomInfo.youtubeLink.userId === userId
+            ) {
+                roomInfo.youtubeLink = {};
+            }
         }
     } catch (err) {
         console.log('error from release mic ' + err.toString());
