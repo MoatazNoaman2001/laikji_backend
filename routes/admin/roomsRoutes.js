@@ -442,6 +442,48 @@ router.put(
     },
 );
 
+router.put('/reset/:id', async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const room = await roomModel.findById(id);
+        if (!room) {
+            throw new Error('Room not found');
+        }
+
+        const defaultRoom = new roomModel();
+        const unReset = [
+            'name',
+            '_id',
+            '__v',
+            'serial',
+            'groupRef',
+            'parentRef',
+            'meetingRef',
+            'code',
+            'isMeeting',
+            'meetingPassword',
+            'isGold',
+            'isSpecial',
+            'startDate',
+            'endDate',
+        ];
+        // Iterate over the fields in the schema
+        for (const key in roomModel.schema.obj) {
+            if (!unReset.includes(key)) {
+                room[key] = defaultRoom[key];
+            }
+        }
+
+        // Save the updated room
+        await room.save();
+
+        return room;
+    } catch (error) {
+        console.error(`Error resetting room data: ${error.message}`);
+        throw error;
+    }
+});
 router.delete('/:id', async (req, res) => {
     const id = req.params.id;
 
