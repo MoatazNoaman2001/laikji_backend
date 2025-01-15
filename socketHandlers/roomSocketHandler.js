@@ -1101,6 +1101,7 @@ module.exports = (io) => {
                     .populate(['user1Ref', 'user2Ref']);
 
                 pc = pc[0];
+                console.log('pc is ' + JSON.stringify(pc, null, 2));
                 //const id = mongoose.Types.ObjectId(msg_id.trim());
                 const msg = await privateMessageModel.find({
                     _id: msg_id,
