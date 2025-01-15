@@ -359,8 +359,8 @@ router.put(
                 }
             });
 
-            if (req.file && req.file.icon) {
-                update.icon = 'rooms/' + req.file.icon[0];
+            if (req.files && req.files.icon) {
+                update.icon = 'rooms/' + req.files.icon[0].filename;
 
                 helpers.resizeImage(update.icon);
                 // const old_item = await roomModel.find({ _id: new ObjectId(id) });
