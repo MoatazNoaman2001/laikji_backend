@@ -107,7 +107,6 @@ router.get('/:id', async (req, res) => {
             username: 'MASTER',
             roomRefs: { $in: [new ObjectId(id)] },
         };
-
         master_mem = await memberModal.findOne(member_query);
 
         if (master_mem) {
@@ -478,7 +477,7 @@ router.put('/reset/:id', async (req, res) => {
         // Save the updated room
         await room.save();
 
-        return room;
+        return res.status(200).send({ ok: true });
     } catch (error) {
         console.error(`Error resetting room data: ${error.message}`);
         throw error;
