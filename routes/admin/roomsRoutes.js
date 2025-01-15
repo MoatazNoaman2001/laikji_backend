@@ -96,7 +96,6 @@ router.get('/:id', async (req, res) => {
         .populate('groupRef');
 
     if (item.length > 0) {
-        console.log('room item is ' + JSON.stringify(item[0], null, 2));
         item = JSON.parse(JSON.stringify(item[0]));
         item.icon = item.icon ? process.env.mediaUrl + item.icon : null;
         item.welcome.img = item.welcome.img ? process.env.mediaUrl + item.welcome.img : null;
@@ -360,15 +359,15 @@ router.put(
                 }
             });
 
-            if (req.file && req.file.filename) {
-                update.icon = 'rooms/' + req.file.filename;
-                helpers.resizeImage(update.icon);
+            if (req.file && req.file.icon) {
+                update.icon = 'rooms/' + req.file.icon[0];
 
-                const old_item = await roomModel.find({ _id: new ObjectId(id) });
-                if (old_item.length > 0) {
-                    const old_icon = old_item[0].icon;
-                    helpers.removeFile(old_icon);
-                }
+                helpers.resizeImage(update.icon);
+                // const old_item = await roomModel.find({ _id: new ObjectId(id) });
+                // if (old_item.length > 0) {
+                //     const old_icon = old_item[0].icon;
+                //     helpers.removeFile(old_icon);
+                // }
             }
 
             if (req.files && req.files.welcome_img) {
