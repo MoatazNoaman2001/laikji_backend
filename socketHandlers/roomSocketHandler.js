@@ -1331,7 +1331,10 @@ module.exports = (io) => {
                 try {
                     const userId = xuser._id.toString();
                     console.log('pause or resume video');
-                    console.log(`current video state ${roomInfo.youtubeLink}`);
+                    console.log(
+                        `current video state `,
+                        JSON.stringify(roomInfo.youtubeLink, null, 2),
+                    );
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);

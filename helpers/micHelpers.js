@@ -77,6 +77,7 @@ const releaseMic = async (roomInfo, userId, xroomId) => {
                 roomInfo.youtubeLink.hasOwnProperty('userId') &&
                 roomInfo.youtubeLink.userId === userId
             ) {
+                console.log('stop video');
                 roomInfo.youtubeLink = {};
             }
         }
