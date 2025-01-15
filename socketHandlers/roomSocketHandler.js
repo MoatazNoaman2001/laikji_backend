@@ -1305,21 +1305,27 @@ module.exports = (io) => {
                         }
 
                         const userId = xuser._id.toString();
+                        if (
+                            roomInfo.youtubeLink.hasOwnProperty('userId') &&
+                            roomInfo.youtubeLink.userId === userId
+                        ) {
+                            roomInfo.youtubeLink = {};
+                        } else {
+                            if (roomInfo.speakers.has(userId)) {
+                                roomInfo.youtubeLink = {
+                                    userId: userId,
+                                    link: data.link,
+                                    paused: false,
+                                };
+                                console.log(
+                                    'Sending YouTube link',
+                                    JSON.stringify(roomInfo.youtubeLink, null, 2),
+                                );
 
-                        if (roomInfo.speakers.has(userId)) {
-                            roomInfo.youtubeLink = {
-                                userId: userId,
-                                link: data.link,
-                                paused: false,
-                            };
-                            console.log(
-                                'Sending YouTube link',
-                                JSON.stringify(roomInfo.youtubeLink, null, 2),
-                            );
-
-                            io.to(xroomId).emit('youtube-link-shared', {
-                                link: roomInfo.youtubeLink,
-                            });
+                                io.to(xroomId).emit('youtube-link-shared', {
+                                    link: roomInfo.youtubeLink,
+                                });
+                            }
                         }
                     }
                 } catch (err) {
