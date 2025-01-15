@@ -510,6 +510,10 @@ router.put('/reset/:id', async (req, res) => {
         await entryLogModel.deleteMany({
             roomRef: id,
         });
+        // delete users
+        await registeredUserModal.deleteMany({
+            roomRefs: { $in: [id] },
+        });
 
         //delete blocked
         await bannedModel.deleteMany({
