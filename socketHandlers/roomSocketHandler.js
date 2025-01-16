@@ -536,13 +536,14 @@ module.exports = (io) => {
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
                 link: roomInfo != null ? roomInfo.youtubeLink : {},
             });
-
+            console.log('started');
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
                     data: await public_user(xuser),
                 });
             }
+            console.log('new user');
 
             setInterval(async () => {
                 const m = await memberModal.findOne(member_query);
@@ -551,6 +552,7 @@ module.exports = (io) => {
                     m.save();
                 }
             }, 60 * 60 * 1000 * 9);
+            console.log('set interval');
 
             xclient.on('send-msg', async (data) => {
                 if (!xuser) return;

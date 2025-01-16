@@ -713,85 +713,81 @@ async function getAppUsersColors() {
 }
 
 async function public_user(xuser, withMember = true) {
-    try {
-        let member;
+    let member;
 
-        if (withMember && xuser.memberRef) {
-            member = await memberModal.findOne({
-                _id: new ObjectId(xuser.memberRef),
-            });
-        }
-
-        return {
-            _id: xuser._id,
-            name: xuser.name,
-            username: xuser.username,
-            icon: xuser.icon,
-            os: xuser.os,
-            order: xuser.order,
-            img: xuser.img,
-            img_key: xuser.img_key,
-            is_typing: xuser.is_typing,
-            is_meeting_typing: xuser.is_meeting_typing,
-            is_locked: xuser.is_locked,
-            can_public_chat: xuser.can_public_chat,
-            can_private_chat: xuser.can_private_chat,
-            can_use_mic: xuser.can_use_mic,
-            can_use_camera: xuser.can_use_camera,
-            stop_strong_public_chat: xuser.stop_strong_public_chat,
-            stop_strong_private_chat: xuser.stop_strong_private_chat,
-            stop_strong_use_mic: xuser.stop_strong_use_mic,
-            stop_strong_use_camera: xuser.stop_strong_use_camera,
-            server_can_public_chat: xuser.server_can_public_chat,
-            server_can_private_chat: xuser.server_can_private_chat,
-            server_can_use_mic: xuser.server_can_use_mic,
-            server_can_use_camera: xuser.server_can_use_camera,
-            server_stop_until: xuser.server_stop_until,
-            server_stop_remaining: xuser.server_stop_remaining,
-            prevent_private_screenshot: xuser.prevent_private_screenshot,
-            type: xuser.type,
-            status: xuser.status,
-            private_status: xuser.private_status,
-            showCountry: xuser.showCountry,
-            flag: xuser.showCountry ? xuser.flag : '',
-            country_code: xuser.showCountry ? xuser.country_code : '',
-            strong: xuser.strong,
-            permissions: xuser.permissions,
-            is_spy: xuser.is_spy,
-            is_joker: xuser.is_joker,
-            game_number: xuser.game_number,
-            game_number_color: xuser.game_number_color,
-            is_visible: xuser.is_visible,
-            server_now: xuser.server_now,
-            ...(await getUserColor(member ? member : null, xuser)),
-            member: member
-                ? {
-                      _id: member._id,
-                      username: member.username,
-                      name_color: member.name_color,
-                      bg_color: member.bg_color,
-                      img_color: member.img_color,
-                      is_full_bg: member.is_full_bg,
-                      is_girl: member.is_girl,
-                      likes: member.likes,
-                      accept_photos: member.accept_photos,
-                      is_animated_text: member.is_animated_text,
-                      is_flash: member.is_flash,
-                      like_level: member.like_level,
-                      bio: member.bio,
-                      img: member.img,
-                      background: member.background,
-                      type: member.type,
-                      time_to_end: getMemberRemainingTime(member),
-                      imageUpdatedDate: member.imageUpdatedDate,
-                      ...(await getMemberShields(member, xuser)),
-                      settings: { ...(await getMemberSettings(member)) },
-                  }
-                : null,
-        };
-    } catch (err) {
-        console.log('error from public room ' + err.toString());
+    if (withMember && xuser.memberRef) {
+        member = await memberModal.findOne({
+            _id: new ObjectId(xuser.memberRef),
+        });
     }
+
+    return {
+        _id: xuser._id,
+        name: xuser.name,
+        username: xuser.username,
+        icon: xuser.icon,
+        os: xuser.os,
+        order: xuser.order,
+        img: xuser.img,
+        img_key: xuser.img_key,
+        is_typing: xuser.is_typing,
+        is_meeting_typing: xuser.is_meeting_typing,
+        is_locked: xuser.is_locked,
+        can_public_chat: xuser.can_public_chat,
+        can_private_chat: xuser.can_private_chat,
+        can_use_mic: xuser.can_use_mic,
+        can_use_camera: xuser.can_use_camera,
+        stop_strong_public_chat: xuser.stop_strong_public_chat,
+        stop_strong_private_chat: xuser.stop_strong_private_chat,
+        stop_strong_use_mic: xuser.stop_strong_use_mic,
+        stop_strong_use_camera: xuser.stop_strong_use_camera,
+        server_can_public_chat: xuser.server_can_public_chat,
+        server_can_private_chat: xuser.server_can_private_chat,
+        server_can_use_mic: xuser.server_can_use_mic,
+        server_can_use_camera: xuser.server_can_use_camera,
+        server_stop_until: xuser.server_stop_until,
+        server_stop_remaining: xuser.server_stop_remaining,
+        prevent_private_screenshot: xuser.prevent_private_screenshot,
+        type: xuser.type,
+        status: xuser.status,
+        private_status: xuser.private_status,
+        showCountry: xuser.showCountry,
+        flag: xuser.showCountry ? xuser.flag : '',
+        country_code: xuser.showCountry ? xuser.country_code : '',
+        strong: xuser.strong,
+        permissions: xuser.permissions,
+        is_spy: xuser.is_spy,
+        is_joker: xuser.is_joker,
+        game_number: xuser.game_number,
+        game_number_color: xuser.game_number_color,
+        is_visible: xuser.is_visible,
+        server_now: xuser.server_now,
+        ...(await getUserColor(member ? member : null, xuser)),
+        member: member
+            ? {
+                  _id: member._id,
+                  username: member.username,
+                  name_color: member.name_color,
+                  bg_color: member.bg_color,
+                  img_color: member.img_color,
+                  is_full_bg: member.is_full_bg,
+                  is_girl: member.is_girl,
+                  likes: member.likes,
+                  accept_photos: member.accept_photos,
+                  is_animated_text: member.is_animated_text,
+                  is_flash: member.is_flash,
+                  like_level: member.like_level,
+                  bio: member.bio,
+                  img: member.img,
+                  background: member.background,
+                  type: member.type,
+                  time_to_end: getMemberRemainingTime(member),
+                  imageUpdatedDate: member.imageUpdatedDate,
+                  ...(await getMemberShields(member, xuser)),
+                  settings: { ...(await getMemberSettings(member)) },
+              }
+            : null,
+    };
 }
 
 const notifyUserChangedByName = async (name, room_id, extras = {}) => {
