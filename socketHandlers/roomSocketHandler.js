@@ -892,7 +892,7 @@ module.exports = (io) => {
                         break;
                 }
 
-                ack('done');
+                // ack('done');
 
                 if (xuser.is_visible) {
                     io.emit(xroomId, {
