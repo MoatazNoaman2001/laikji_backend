@@ -3,71 +3,75 @@ const privateMessageModel = require('../models/privateMessageModel');
 const roomModel = require('../models/roomModel');
 const { public_user } = require('./userHelpers');
 var ObjectId = require('mongoose').Types.ObjectId;
-const ignoredUsers = new Map()
+const ignoredUsers = new Map();
 
 const getMyPrivateChats = async (room_id, user_id, only_meeting = true) => {
-    let room = await roomModel.findById(room_id);
+    try {
+        let room = await roomModel.findById(room_id);
 
-    if (!room.isMeeting && only_meeting) return [];
+        if (!room.isMeeting && only_meeting) return [];
 
-    let filter = [
-        {
-            user1Ref: new ObjectId(user_id),
-            isUser1Deleted: false,
-            roomRef: new ObjectId(room_id),
-        },
-        {
-            user2Ref: new ObjectId(user_id),
-            isUser2Deleted: false,
-            roomRef: new ObjectId(room_id),
-        },
-        {
-            user1Ref: new ObjectId(user_id),
-            isUser1Deleted: false,
-            roomRef: new ObjectId(room.parentRef),
-        },
-        {
-            user2Ref: new ObjectId(user_id),
-            isUser2Deleted: false,
-            roomRef: new ObjectId(room.parentRef),
-        },
-    ];
+        let filter = [
+            {
+                user1Ref: new ObjectId(user_id),
+                isUser1Deleted: false,
+                roomRef: new ObjectId(room_id),
+            },
+            {
+                user2Ref: new ObjectId(user_id),
+                isUser2Deleted: false,
+                roomRef: new ObjectId(room_id),
+            },
+            {
+                user1Ref: new ObjectId(user_id),
+                isUser1Deleted: false,
+                roomRef: new ObjectId(room.parentRef),
+            },
+            {
+                user2Ref: new ObjectId(user_id),
+                isUser2Deleted: false,
+                roomRef: new ObjectId(room.parentRef),
+            },
+        ];
 
-    const private_chats = await privateChatModel
-        .find({
-            $or: filter,
-        })
-        .populate(['user1Ref', 'user2Ref']);
+        const private_chats = await privateChatModel
+            .find({
+                $or: filter,
+            })
+            .populate(['user1Ref', 'user2Ref']);
 
-    let res = [];
-    await Promise.all(
-        private_chats.map(async (pc, i) => {
-            let npc = { ...pc._doc };
-            npc.user1Ref = await public_user(npc.user1Ref);
-            npc.user2Ref = await public_user(npc.user2Ref);
+        let res = [];
+        await Promise.all(
+            private_chats.map(async (pc, i) => {
+                let npc = { ...pc._doc };
+                npc.user1Ref = await public_user(npc.user1Ref);
+                npc.user2Ref = await public_user(npc.user2Ref);
 
-            const last = await privateMessageModel
-                .find({
+                const last = await privateMessageModel
+                    .find({
+                        chatRef: new ObjectId(npc._id),
+                    })
+                    .sort('-creationDate')
+                    .limit(1);
+
+                const unReadMsgsCount = await privateMessageModel.countDocuments({
                     chatRef: new ObjectId(npc._id),
-                })
-                .sort('-creationDate')
-                .limit(1);
+                    userRef: { $ne: new ObjectId(user_id) },
+                    isRead: false,
+                });
 
-            const unReadMsgsCount = await privateMessageModel.countDocuments({
-                chatRef: new ObjectId(npc._id),
-                userRef: { $ne: new ObjectId(user_id) },
-                isRead: false,
-            });
+                npc.newMsgs = unReadMsgsCount;
 
-            npc.newMsgs = unReadMsgsCount;
+                res.push({ ...npc, last: last.length > 0 ? last[0] : null });
 
-            res.push({ ...npc, last: last.length > 0 ? last[0] : null });
+                return pc;
+            }),
+        );
 
-            return pc;
-        }),
-    );
-
-    return res;
+        return res;
+    } catch (err) {
+        console.log('error from private chat room ' + err.toString());
+    }
 };
 
 const deleteMyChat = async (xuser, key = null, room_id = null) => {
@@ -139,5 +143,5 @@ const deleteMyChat = async (xuser, key = null, room_id = null) => {
 module.exports = {
     getMyPrivateChats,
     deleteMyChat,
-    ignoredUsers
+    ignoredUsers,
 };
