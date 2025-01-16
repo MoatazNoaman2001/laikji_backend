@@ -376,6 +376,7 @@ module.exports = (io) => {
         }
         ////////////////// START ROOM LOGIN FUNCTIONS///////////////////////
         xroomId = room._id.toString();
+
         var member;
         var member_query = {
             password: xclient.handshake.query.fp,
@@ -521,6 +522,7 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
+            console.log('started ' + JSON.stringify(roomInfo?.youtubeLink, null, 2));
             xclient.emit('started', {
                 ok: true,
                 user: xuser,
@@ -889,6 +891,8 @@ module.exports = (io) => {
                     default:
                         break;
                 }
+
+                ack('done');
 
                 if (xuser.is_visible) {
                     io.emit(xroomId, {
@@ -1303,29 +1307,21 @@ module.exports = (io) => {
                         }
 
                         const userId = xuser._id.toString();
-                        if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == userId) {
-                            console.log('share you tube link stop');
-                            roomInfo.youtubeLink = {
-                                userId: '',
-                                paused: false,
-                                link: '',
-                            };
-                        } else {
-                            if (roomInfo.speakers.has(userId)) {
-                                roomInfo.youtubeLink = {
-                                    userId: userId,
-                                    link: data.link,
-                                    paused: false,
-                                };
-                                console.log(
-                                    'Sending YouTube link',
-                                    JSON.stringify(roomInfo.youtubeLink, null, 2),
-                                );
 
-                                io.to(xroomId).emit('youtube-link-shared', {
-                                    link: roomInfo.youtubeLink,
-                                });
-                            }
+                        if (roomInfo.speakers.has(userId)) {
+                            roomInfo.youtubeLink = {
+                                userId: userId,
+                                link: data.link,
+                                paused: false,
+                            };
+                            console.log(
+                                'Sending YouTube link',
+                                JSON.stringify(roomInfo.youtubeLink, null, 2),
+                            );
+
+                            io.to(xroomId).emit('youtube-link-shared', {
+                                link: roomInfo.youtubeLink,
+                            });
                         }
                     }
                 } catch (err) {
@@ -1336,11 +1332,8 @@ module.exports = (io) => {
             xclient.on('pause-youtube', (data) => {
                 try {
                     const userId = xuser._id.toString();
-                    console.log('pause or resume video');
-                    console.log(
-                        `current video state `,
-                        JSON.stringify(roomInfo.youtubeLink, null, 2),
-                    );
+                    console.log("pause or resume video");
+                    console.log(`current video state ${roomInfo.youtubeLink}`);
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
                         console.log(`Pausing YouTube for room ${xroomId}`);
@@ -1810,7 +1803,10 @@ module.exports = (io) => {
                 }
             });
 
+            // end test mic features
+
             // mute speaker
+            // no data
             xclient.on('mute-speaker', () => {
                 try {
                     if (!xuser) return;
@@ -1936,9 +1932,9 @@ module.exports = (io) => {
                 );
                 io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
             }
-            // if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
-            //     roomInfo.youtubeLink = {};
-            // }
+            if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
+                roomInfo.youtubeLink = {};
+            }
             // // Close all WebRTC stuff
             // if (xuser.transport) {
             //     await closeTransport(xroomId, xuser.transport);
