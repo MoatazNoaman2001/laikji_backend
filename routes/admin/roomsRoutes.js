@@ -145,7 +145,7 @@ router.post(
         }
         const endDate = new Date(req.body.endDate).toISOString();
         const startDate = new Date(req.body.startDate).toISOString();
-
+        console.log('posted room is ' + JSON.stringify(req.body, null, 2));
         const insert = {
             name: req.body.name,
             description: req.body.description,
