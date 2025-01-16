@@ -376,7 +376,7 @@ module.exports = (io) => {
         }
         ////////////////// START ROOM LOGIN FUNCTIONS///////////////////////
         xroomId = room._id.toString();
-
+        console.log('room ' + JSON.stringify(room, null, 2));
         var member;
         var member_query = {
             password: xclient.handshake.query.fp,
@@ -522,7 +522,6 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
-            console.log('started ' + JSON.stringify(roomInfo?.youtubeLink, null, 2));
             xclient.emit('started', {
                 ok: true,
                 user: xuser,
@@ -536,7 +535,6 @@ module.exports = (io) => {
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
                 link: roomInfo != null ? roomInfo.youtubeLink : {},
             });
-            console.log('started');
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
@@ -552,7 +550,6 @@ module.exports = (io) => {
                     m.save();
                 }
             }, 60 * 60 * 1000 * 9);
-            console.log('set interval');
 
             xclient.on('send-msg', async (data) => {
                 if (!xuser) return;
