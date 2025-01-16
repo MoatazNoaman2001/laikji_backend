@@ -376,7 +376,6 @@ module.exports = (io) => {
         }
         ////////////////// START ROOM LOGIN FUNCTIONS///////////////////////
         xroomId = room._id.toString();
-        console.log('room ' + JSON.stringify(room, null, 2));
         var member;
         var member_query = {
             password: xclient.handshake.query.fp,
@@ -541,7 +540,6 @@ module.exports = (io) => {
                     data: await public_user(xuser),
                 });
             }
-            console.log('new user');
 
             setInterval(async () => {
                 const m = await memberModal.findOne(member_query);
