@@ -41,7 +41,7 @@ const schema = Schema({
         type: Object,
         default: {
             img: '',
-            text: '',
+            text: 'welcome',
             direction: 'center',
             color: '0|0|0',
         },
