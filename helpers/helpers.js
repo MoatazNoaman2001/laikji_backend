@@ -246,23 +246,27 @@ const notifyAllRoomsChanged = async () => {
 };
 
 const notifyRoomChanged = async (room_id, noti_room = true, noti_home = false) => {
-    let room = await roomModel
-        .findOne({
-            _id: new ObjectId(room_id),
-        })
-        .populate('groupRef');
+    try {
+        let room = await roomModel
+            .findOne({
+                _id: new ObjectId(room_id),
+            })
+            .populate('groupRef');
 
-    if (noti_room) {
-        global.io.emit(room_id, {
-            type: 'room-update',
-            data: await public_room(room),
-        });
-    }
+        if (noti_room) {
+            global.io.emit(room_id, {
+                type: 'room-update',
+                data: await public_room(room),
+            });
+        }
 
-    if (noti_home) {
-        global.home_io.emit('room_changed', {
-            data: await get_room_small(room, room.groupRef),
-        });
+        if (noti_home) {
+            global.home_io.emit('room_changed', {
+                data: await get_room_small(room, room.groupRef),
+            });
+        }
+    } catch (err) {
+        console.log('error from notify' + err.toString());
     }
 };
 
