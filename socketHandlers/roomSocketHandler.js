@@ -536,6 +536,7 @@ module.exports = (io) => {
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
                 link: roomInfo != null ? roomInfo.youtubeLink : {},
             });
+
             if (xuser.is_visible) {
                 io.emit(xroomId, {
                     type: 'new-user',
