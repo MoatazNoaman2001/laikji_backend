@@ -372,13 +372,20 @@ router.put(
                 // }
             }
 
+            const currentRoom = await roomModel.findById(id);
+
             if (req.files && req.files.welcome_img) {
                 const welcomeImgFile = req.files.welcome_img[0];
                 update.welcome = {
                     ...(update.welcome || {}),
                     img: 'rooms/' + welcomeImgFile.filename,
                 };
-                helpers.resizeImage(update.welcome.welcome_img);
+                helpers.resizeImage(update.welcome.img);
+            } else if (currentRoom && currentRoom.welcome && currentRoom.welcome.img) {
+                update.welcome = {
+                    ...(update.welcome || {}),
+                    img: currentRoom.welcome.img,
+                };
             }
 
             // Update meeting
