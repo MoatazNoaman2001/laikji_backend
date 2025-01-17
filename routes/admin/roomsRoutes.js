@@ -171,7 +171,10 @@ router.post(
                 email: req.body.owner_email,
             },
             welcome: {
-                img: req.file && req.file.filename ? 'rooms/' + req.file.filename : '',
+                img:
+                    req.file && req.file.filename
+                        ? 'rooms/' + req.file.filename
+                        : req.body.welcome.img ?? '',
                 text: req.body.welcome_text ?? '',
                 direction: 'center',
                 color: '0|0|0',
