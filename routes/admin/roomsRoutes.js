@@ -174,7 +174,7 @@ router.post(
                 img:
                     req.file && req.file.filename
                         ? 'rooms/' + req.file.filename
-                        : req.body.welcome.img ?? '',
+                        : req.body.welcome && req.body.welcome.img,
                 text: req.body.welcome_text ?? '',
                 direction: 'center',
                 color: '0|0|0',
