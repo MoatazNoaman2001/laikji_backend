@@ -51,6 +51,10 @@ router.get('/', async (req, res) => {
         }
 
         var rooms = await roomModel.find(query);
+        var roomss = await roomModel.find({});
+        roomss.map(async (room) => {
+            console.log('name ', room.name ?? 'no', 'id', room._id, 'meeting ', room.isMeeting);
+        });
 
         rooms.map(async (item) => {
             var u_in_room = global.rooms_users[item._id];
@@ -474,7 +478,6 @@ router.put('/reset/:id', async (req, res) => {
             'startDate',
             'endDate',
         ];
-        // Iterate over the fields in the schema
         for (const key in roomModel.schema.obj) {
             if (!unReset.includes(key)) {
                 room[key] = defaultRoom[key];
