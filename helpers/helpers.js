@@ -239,7 +239,9 @@ const notifyReportChanged = async () => {
 
 const notifyAllRoomsChanged = async () => {
     const rooms = await roomModel.find();
-    console.log('rooms length ', rooms.length);
+    rooms.map(async (room) => {
+        console.log('name ', room.name ?? 'no', 'id', room._id, 'meeting ', room.isMeeting);
+    });
     await Promise.all(
         rooms.map(async (room) => {
             global.io.emit(room._id, {

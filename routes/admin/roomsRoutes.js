@@ -51,10 +51,6 @@ router.get('/', async (req, res) => {
         }
 
         var rooms = await roomModel.find(query);
-        var roomss = await roomModel.find({});
-        roomss.map(async (room) => {
-            console.log('name ', room.name ?? 'no', 'id', room._id, 'meeting ', room.isMeeting);
-        });
 
         rooms.map(async (item) => {
             var u_in_room = global.rooms_users[item._id];
