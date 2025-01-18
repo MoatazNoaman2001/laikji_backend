@@ -138,6 +138,7 @@ async function public_room(room) {
         roomRef: room._id,
     });
 
+    console.log('room name: ', room.name);
     var mainChat = chats.find((c) => c.isMain == true)._id;
 
     return {

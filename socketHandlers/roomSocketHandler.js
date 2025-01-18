@@ -1332,7 +1332,7 @@ module.exports = (io) => {
             xclient.on('pause-youtube', (data) => {
                 try {
                     const userId = xuser._id.toString();
-                    console.log("pause or resume video");
+                    console.log('pause or resume video');
                     console.log(`current video state ${roomInfo.youtubeLink}`);
 
                     if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId === userId) {
