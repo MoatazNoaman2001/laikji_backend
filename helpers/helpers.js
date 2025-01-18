@@ -138,7 +138,6 @@ async function public_room(room) {
         var chats = await chatModel.find({
             roomRef: room._id,
         });
-        console.log('room name: ', room.name);
         var mainChat = chats.find((c) => c.isMain == true)._id;
 
         return {
@@ -239,9 +238,7 @@ const notifyReportChanged = async () => {
 
 const notifyAllRoomsChanged = async () => {
     const rooms = await roomModel.find();
-    rooms.map(async (room) => {
-        console.log('name ', room.name ?? 'no', 'id', room._id, 'meeting ', room.isMeeting);
-    });
+
     await Promise.all(
         rooms.map(async (room) => {
             global.io.emit(room._id, {
