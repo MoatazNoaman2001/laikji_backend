@@ -133,44 +133,48 @@ const endJokerInRoom = async (room) => {
 };
 
 async function public_room(room) {
-    const settings = await getSettings();
-    var chats = await chatModel.find({
-        roomRef: room._id,
-    });
+    try {
+        const settings = await getSettings();
+        var chats = await chatModel.find({
+            roomRef: room._id,
+        });
 
-    console.log('room name: ', room.name);
-    var mainChat = chats.find((c) => c.isMain == true)._id;
+        console.log('room name: ', room.name);
+        var mainChat = chats.find((c) => c.isMain == true)._id;
 
-    return {
-        _id: room._id,
-        serial: room.serial,
-        parentRef: room.parentRef,
-        meetingRef: room.meetingRef,
-        name: room.name,
-        title: room.title,
-        ad_text: settings.ad_text,
-        description: room.description,
-        icon: simg(room.icon),
-        mainChat: mainChat,
-        chats: chats,
-        isGold: room.isGold,
-        isSpecial: room.isSpecial,
-        isMeeting: room.isMeeting,
-        type: room.isGold ? 'ذهبية' : room.isSpecial ? 'مميزة' : 'عادية',
-        outside_style: room.outside_style,
-        inside_style: room.inside_style,
-        private_status: room.private_status,
-        lock_status: room.lock_status,
-        lock_msg: room.lock_msg,
-        welcome: {
-            img: room.welcome.img ? simg(room.welcome.img) : '',
-            text: room.welcome.text,
-            direction: room.welcome.direction,
-            color: room.welcome.color,
-        },
-        mic: room.mic,
-        colors: await getAppUsersColors(),
-    };
+        return {
+            _id: room._id,
+            serial: room.serial,
+            parentRef: room.parentRef,
+            meetingRef: room.meetingRef,
+            name: room.name,
+            title: room.title,
+            ad_text: settings.ad_text,
+            description: room.description,
+            icon: simg(room.icon),
+            mainChat: mainChat,
+            chats: chats,
+            isGold: room.isGold,
+            isSpecial: room.isSpecial,
+            isMeeting: room.isMeeting,
+            type: room.isGold ? 'ذهبية' : room.isSpecial ? 'مميزة' : 'عادية',
+            outside_style: room.outside_style,
+            inside_style: room.inside_style,
+            private_status: room.private_status,
+            lock_status: room.lock_status,
+            lock_msg: room.lock_msg,
+            welcome: {
+                img: room.welcome.img ? simg(room.welcome.img) : '',
+                text: room.welcome.text,
+                direction: room.welcome.direction,
+                color: room.welcome.color,
+            },
+            mic: room.mic,
+            colors: await getAppUsersColors(),
+        };
+    } catch (err) {
+        console.log('error from public room ', err.toString());
+    }
 }
 
 async function public_room_small(room, group = null) {
