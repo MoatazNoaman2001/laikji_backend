@@ -138,7 +138,7 @@ async function public_room(room) {
         var chats = await chatModel.find({
             roomRef: room._id,
         });
-        if (room_id != '673a4395c92256f6a78c3c14') {
+        if (room._id != '673a4395c92256f6a78c3c14') {
             console.log('room name: ', room.name);
             var mainChat = chats.find((c) => c.isMain == true)._id;
 
