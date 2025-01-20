@@ -487,6 +487,7 @@ module.exports = (io) => {
             mutedSpeakers[xroomId] = [];
         }
         const continue_to_room = async () => {
+            console.log('user data is ' + JSON.stringify(xuser, null, 2));
             // add user to room
             xclient.join(xroomId);
             addUserToRoom(xroomId, xuser);
@@ -1299,7 +1300,8 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.chatmanager ||
                         xuser.type === enums.userTypes.master ||
                         xuser.type === enums.userTypes.mastergirl ||
-                        xuser.type === enums.userTypes.mastermain
+                        xuser.type === enums.userTypes.mastermain ||
+                        xuser.fileType !== null
                     ) {
                         if (!xuser || !xuser._id) {
                             console.log('Invalid xuser or xuser._id');
