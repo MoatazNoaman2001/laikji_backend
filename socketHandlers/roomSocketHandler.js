@@ -1301,7 +1301,7 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.master ||
                         xuser.type === enums.userTypes.mastergirl ||
                         xuser.type === enums.userTypes.mastermain ||
-                        xuser.fileType !== null
+                        member
                     ) {
                         if (!xuser || !xuser._id) {
                             console.log('Invalid xuser or xuser._id');
