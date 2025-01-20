@@ -412,14 +412,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(
-                key,
-                xroomId,
-                xclient.handshake.query.name,
-                xclient.handshake.query.device ?? xclient.handshake.query.key,
-                member,
-                regUser_id,
-            );
+            xuser = await createUser(key, xroomId, member, regUser_id);
         }
 
         let os = xclient.handshake.query.os;
@@ -475,7 +468,6 @@ module.exports = (io) => {
             xuser._id,
             xroomId,
         );
-        console.log('xuser device is ' + xuser.device);
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
@@ -487,7 +479,6 @@ module.exports = (io) => {
             mutedSpeakers[xroomId] = [];
         }
         const continue_to_room = async () => {
-            console.log('user data is ' + JSON.stringify(xuser, null, 2));
             // add user to room
             xclient.join(xroomId);
             addUserToRoom(xroomId, xuser);
