@@ -1723,12 +1723,10 @@ module.exports = (io) => {
             });
             xclient.on('temp-disconnect', async (data) => {
                 console.log('temp-disconnect called');
-                const date = new Date(loginTime);
+                var date = new Date(loginTime);
 
-                // Add 6 seconds
                 date.setSeconds(date.getSeconds() + 6);
 
-                // Convert the updated date back to ISO string
                 const time = date.toISOString();
                 setInterval(() => {
                     time -= 1000;
