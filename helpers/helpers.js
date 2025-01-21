@@ -33,12 +33,12 @@ function generateToken(_id) {
         id: _id,
     };
 
-    return jwt.sign(payload, process.env.JWT_SECRET);
+    return jwt.sign(payload, 'catsandogs');
 }
 
 function verifyToken(req, res) {
     try {
-        var token = jwt.verify(req.body.token, process.env.JWT_SECRET);
+        var token = jwt.verify(req.body.token, 'catsandogs');
         if (!token) {
             res.status(200).send({
                 ok: false,
@@ -59,7 +59,7 @@ function verifyToken(req, res) {
 
 function verifyTokenGet(t) {
     try {
-        var token = jwt.verify(t, process.env.JWT_SECRET);
+        var token = jwt.verify(t, 'catsandogs');
         if (!token) {
             return false;
         } else {
@@ -72,7 +72,7 @@ function verifyTokenGet(t) {
 
 async function getUserByToken(t) {
     try {
-        var token_user = jwt.verify(t, process.env.JWT_SECRET);
+        var token_user = jwt.verify(t, 'catsandogs');
         if (!token_user) return false;
         var ru = await roomUsersModel.findOne({
             _id: token_user.id,
