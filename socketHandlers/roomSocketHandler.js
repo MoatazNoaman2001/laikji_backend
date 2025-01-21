@@ -2048,12 +2048,6 @@ module.exports = (io) => {
         });
     });
 };
-const io = new Server(3000, {
-    cors: {
-        origin: '*', // Allow all origins (adjust for production)
-        methods: ['GET', 'POST'],
-    },
-});
 
 // io.on('connection', (xclinet) => {
 
