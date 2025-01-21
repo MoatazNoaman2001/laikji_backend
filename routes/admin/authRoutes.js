@@ -1,37 +1,37 @@
-// routes/auth.js
-const express = require('express');
-const User = require('../../models/managerModel');
-const router = express.Router();
-const helpers = require('../../helpers/helpers');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+// // routes/auth.js
+// const express = require('express');
+// const User = require('../../models/managerModel');
+// const router = express.Router();
+// const helpers = require('../../helpers/helpers');
+// const bcrypt = require('bcrypt');
+// const jwt = require('jsonwebtoken');
 
-const {
-    generateVerificationToken,
-    sendVerificationEmail,
-    sendPasswordResetEmail,
-} = require('../../helpers/managerHelpers');
-// Login route
-router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(401).json({ message: 'خطأ في الاسم أو كلمة المرور' });
-        }
+// const {
+//     generateVerificationToken,
+//     sendVerificationEmail,
+//     sendPasswordResetEmail,
+// } = require('../../helpers/managerHelpers');
+// // Login route
+// router.post('/login', async (req, res) => {
+//     const { username, password } = req.body;
+//     try {
+//         const user = await User.findOne({ username });
+//         if (!user) {
+//             return res.status(401).json({ message: 'خطأ في الاسم أو كلمة المرور' });
+//         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'خطأ في الاسم أو كلمة المرور' });
-        }
+//         const isPasswordValid = await bcrypt.compare(password, user.password);
+//         if (!isPasswordValid) {
+//             return res.status(401).json({ message: 'خطأ في الاسم أو كلمة المرور' });
+//         }
 
-        const accessToken = helpers.generateToken(user._id);
-        res.json({ accessToken, user });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'حدث خطأ في الخادم' });
-    }
-});
+//         const accessToken = helpers.generateToken(user._id);
+//         res.json({ accessToken, user });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: 'حدث خطأ في الخادم' });
+//     }
+// });
 
 // // // Refresh token route
 // router.post('/refresh', (req, res) => {
