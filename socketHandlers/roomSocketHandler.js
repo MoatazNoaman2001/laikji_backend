@@ -55,6 +55,7 @@ module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
+        let logTime = socket.handshake.query.time;
         let room_id = socket.handshake.query.roomId;
         let user_key = socket.handshake.query.key;
         let device = socket.handshake.query.device;
@@ -365,7 +366,6 @@ module.exports = (io) => {
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
         var xroomId;
-        var enterDate = null;
         var key = xclient.handshake.query.key;
         console.log('on connection');
         // get room
@@ -1185,7 +1185,7 @@ module.exports = (io) => {
                 }
             });
             ///////////////////////////// MIC SOCKET HANDLER //////////////////////////
-            // 185.203.118.57:9600?name=MASTER&rp=1234&roomId=673e4fb4de7fccf2cd63c380&key=02218e5d-0128-40a8-a315-4d7cfc0f9f50
+            // 185.203.118.57:9600?name=MASTER&rp=1234&roomId=6789285b0d67595e1177d70d&key=02218e5d-0128-40a8-a315-4d7cfc0f9f50
 
             // Function to handle mic request
             xclient.on('request-mic', async (data) => {
@@ -1720,7 +1720,16 @@ module.exports = (io) => {
                     console.log('error from renew mic time' + err.toString());
                 }
             });
-
+            xclient.on('temp-disconnect', async (data) => {
+                console.log('temp-disconnect called');
+                let time = 600;
+                setInterval(() => {
+                    time -= 1000;
+                    if (time <= 0) {
+                        disconnectFromRoom(data);
+                    }
+                }, 1000);
+            });
             // Add mic sharing feature
             xclient.on('share-mic', async (data) => {
                 try {
@@ -1841,55 +1850,7 @@ module.exports = (io) => {
             });
         };
 
-        /////////////// CHECk ROOM LOCK CASES //////////////////
-        if (
-            room.lock_status == 0 ||
-            xuser.type == enums.userTypes.mastermain ||
-            !xuser.is_visible
-        ) {
-            continue_to_room();
-        } else if (room.lock_status === 2 && xuser.type && xuser.type != enums.userTypes.guest) {
-            continue_to_room();
-        } else {
-            addUserToWaiting(xroomId, xuser);
-            xclient.on('enter-room', async (data) => {
-                if (!xuser) return;
-                if (data.passcode != enums.passcodes.enterLock) return;
-
-                continue_to_room();
-            });
-
-            xclient.emit('room-wait', {
-                ok: true,
-                room: await public_room(room),
-            });
-
-            let pub_usr = await public_user(xuser);
-
-            pub_usr = {
-                ...pub_usr,
-                location: xuser.country_code + ' ' + xuser.ip,
-            };
-
-            const all_in_room = await getUsersInRoom(xroomId, false, false);
-            all_in_room.forEach((u) => {
-                if (u.permissions && u.permissions[6] == 1) {
-                    io.to(u.socketId).emit('knock-room', {
-                        data: pub_usr,
-                    });
-                }
-            });
-        }
-
-        ////////////////// DISCONNECT CLIENT /////////////////////////
-        xclient.on('reconnect', () => {
-            io.to(xuser.socketId).emit('update-speakers', Array.from(roomInfo.speakers));
-
-            io.to(xuser.socketId).emit('mic-queue-update', roomInfo.micQueue);
-            io.to(xuser.socketId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
-        });
-
-        xclient.on('disconnect', async (data) => {
+        const disconnectFromRoom = async (data) => {
             console.log(
                 'disconnected client:',
                 xuser._id.toString(),
@@ -1928,23 +1889,7 @@ module.exports = (io) => {
             if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
                 roomInfo.youtubeLink = {};
             }
-            // // Close all WebRTC stuff
-            // if (xuser.transport) {
-            //     await closeTransport(xroomId, xuser.transport);
-            // }
-            // if (xuser.producer) {
-            //     await closeProducer(xroomId, xuser.producer);
-            // }
-            // if (xuser.consumers) {
-            //     for (const consumerId of xuser.consumers) {
-            //         await closeConsumer(xroomId, consumerId);
-            //     }
-            // }
 
-            // io.to(xroomId).emit('update-listeners', Array.from(roomInfo.listeners));
-            // io.to(xroomId).emit('update-hold-mic', Array.from(roomInfo.holdMic));
-
-            // Notify others that the user has left
             io.to(xroomId).emit('user-left', xuser._id.toString());
 
             if (enterDate) {
@@ -1952,11 +1897,6 @@ module.exports = (io) => {
             }
 
             console.log('User disconnected:', xuser._id.toString(), xuser.name, 'from:', xroomId);
-
-            //     roomRef: new ObjectId(xroomId),
-            // }, {
-            //     socketId: null
-            // });
 
             await helpers.notifyRoomChanged(xroomId, false, true);
 
@@ -2009,6 +1949,59 @@ module.exports = (io) => {
                     await updateUser(xuser, xuser._id, xroomId);
                 }
             }
+        };
+
+        /////////////// CHECk ROOM LOCK CASES //////////////////
+        if (
+            room.lock_status == 0 ||
+            xuser.type == enums.userTypes.mastermain ||
+            !xuser.is_visible
+        ) {
+            continue_to_room();
+        } else if (room.lock_status === 2 && xuser.type && xuser.type != enums.userTypes.guest) {
+            continue_to_room();
+        } else {
+            addUserToWaiting(xroomId, xuser);
+            xclient.on('enter-room', async (data) => {
+                if (!xuser) return;
+                if (data.passcode != enums.passcodes.enterLock) return;
+
+                continue_to_room();
+            });
+
+            xclient.emit('room-wait', {
+                ok: true,
+                room: await public_room(room),
+            });
+
+            let pub_usr = await public_user(xuser);
+
+            pub_usr = {
+                ...pub_usr,
+                location: xuser.country_code + ' ' + xuser.ip,
+            };
+
+            const all_in_room = await getUsersInRoom(xroomId, false, false);
+            all_in_room.forEach((u) => {
+                if (u.permissions && u.permissions[6] == 1) {
+                    io.to(u.socketId).emit('knock-room', {
+                        data: pub_usr,
+                    });
+                }
+            });
+        }
+
+        ////////////////// DISCONNECT CLIENT /////////////////////////
+        xclient.on('reconnect', () => {
+            io.to(xuser.socketId).emit('update-speakers', Array.from(roomInfo.speakers));
+
+            io.to(xuser.socketId).emit('mic-queue-update', roomInfo.micQueue);
+            io.to(xuser.socketId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
+        });
+
+        xclient.on('disconnect', async (data) => {
+            console.log('disconnect socket called');
+            //disconnectFromRoom(data);
         });
     });
 };

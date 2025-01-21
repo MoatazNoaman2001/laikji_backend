@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const chatModel = require('../models/chatModel');
-const secretKey = '@catsanddogs';
 const Jimp = require('jimp');
 const fs = require('fs');
 const enums = require('./enums');
@@ -34,12 +33,12 @@ function generateToken(_id) {
         id: _id,
     };
 
-    return jwt.sign(payload, secretKey);
+    return jwt.sign(payload, process.env.JWT_SECRET);
 }
 
 function verifyToken(req, res) {
     try {
-        var token = jwt.verify(req.body.token, secretKey);
+        var token = jwt.verify(req.body.token, process.env.JWT_SECRET);
         if (!token) {
             res.status(200).send({
                 ok: false,
@@ -60,7 +59,7 @@ function verifyToken(req, res) {
 
 function verifyTokenGet(t) {
     try {
-        var token = jwt.verify(t, secretKey);
+        var token = jwt.verify(t, process.env.JWT_SECRET);
         if (!token) {
             return false;
         } else {
@@ -73,7 +72,7 @@ function verifyTokenGet(t) {
 
 async function getUserByToken(t) {
     try {
-        var token_user = jwt.verify(t, secretKey);
+        var token_user = jwt.verify(t, process.env.JWT_SECRET);
         if (!token_user) return false;
         var ru = await roomUsersModel.findOne({
             _id: token_user.id,
@@ -413,7 +412,6 @@ function getEmbeddedYouTubeLink(originalUrl) {
 module.exports = {
     generateKey,
     generateToken,
-    secretKey,
     verifyToken,
     verifyTokenGet,
     getUserByToken,
