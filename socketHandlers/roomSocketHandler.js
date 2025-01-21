@@ -366,7 +366,7 @@ module.exports = (io) => {
     }).on('connection', async (xclient) => {
         var xroomId;
         var key = xclient.handshake.query.key;
-        var loginTime = socket.handshake.query.time;
+        var loginTime = xclient.handshake.query.time;
 
         console.log('on connection');
         // get room
