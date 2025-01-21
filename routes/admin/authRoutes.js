@@ -1,4 +1,3 @@
-routes / auth.js;
 const express = require('express');
 const User = require('../../models/managerModel');
 const router = express.Router();
@@ -6,11 +5,7 @@ const helpers = require('../../helpers/helpers');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const {
-    generateVerificationToken,
-    sendVerificationEmail,
-    sendPasswordResetEmail,
-} = require('../../helpers/managerHelpers');
+const { sendPasswordResetEmail } = require('../../helpers/managerHelpers');
 // Login route
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
