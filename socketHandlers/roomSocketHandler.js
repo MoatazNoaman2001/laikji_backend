@@ -55,7 +55,6 @@ module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
-        let logTime = socket.handshake.query.time;
         let room_id = socket.handshake.query.roomId;
         let user_key = socket.handshake.query.key;
         let device = socket.handshake.query.device;
@@ -367,6 +366,8 @@ module.exports = (io) => {
     }).on('connection', async (xclient) => {
         var xroomId;
         var key = xclient.handshake.query.key;
+        var loginTime = socket.handshake.query.time;
+
         console.log('on connection');
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
@@ -1722,7 +1723,13 @@ module.exports = (io) => {
             });
             xclient.on('temp-disconnect', async (data) => {
                 console.log('temp-disconnect called');
-                let time = 600;
+                const date = new Date(loginTime);
+
+                // Add 6 seconds
+                date.setSeconds(date.getSeconds() + 6);
+
+                // Convert the updated date back to ISO string
+                const time = date.toISOString();
                 setInterval(() => {
                     time -= 1000;
                     if (time <= 0) {
