@@ -32,4 +32,4 @@ async function sendPasswordResetEmail(email, token) {
         `,
     });
 }
-module.exports = { generateVerificationToken, sendVerificationEmail, sendPasswordResetEmail };
+module.exports = { generateVerificationToken, sendPasswordResetEmail };
