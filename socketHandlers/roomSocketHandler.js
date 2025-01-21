@@ -1727,7 +1727,7 @@ module.exports = (io) => {
 
                 date.setSeconds(date.getSeconds() + 6);
 
-                const time = date.toISOString();
+                var time = date.toISOString();
                 setInterval(() => {
                     time -= 1000;
                     if (time <= 0) {
