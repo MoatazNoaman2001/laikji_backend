@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const { sendPasswordResetEmail } = require('../../helpers/managerHelpers');
 // Login route
 
-router.get('/managers', async (req, res) => {
+router.get('/', async (req, res) => {
     var page = req.query.page ? req.query.page : 1;
     var in_page = 10000;
     try {
