@@ -141,15 +141,19 @@ router.get('/reset-password', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
+    try {
+        let item = await User.find({
+            _id: new ObjectId(id),
+        });
 
-    let item = await User.find({
-        _id: new ObjectId(id),
-    });
-
-    res.status(200).send({
-        ok: true,
-        data: item[0],
-    });
+        res.status(200).send({
+            ok: true,
+            data: item[0],
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'حدث خطأ في الخادم' });
+    }
 });
 
 router.put('/:id', async (req, res) => {
