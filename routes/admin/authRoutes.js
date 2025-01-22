@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
     var in_page = 10000;
     try {
         var response = [];
-        var items = await memberModal.find();
+        var items = await User.find();
         items = items.map((item) => {
             item = JSON.parse(JSON.stringify(item));
             response.push(item);
