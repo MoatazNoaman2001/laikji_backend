@@ -7,6 +7,31 @@ const jwt = require('jsonwebtoken');
 
 const { sendPasswordResetEmail } = require('../../helpers/managerHelpers');
 // Login route
+
+router.get('/managers', async (req, res) => {
+    var page = req.query.page ? req.query.page : 1;
+    var in_page = 10000;
+    try {
+        var response = [];
+        var items = await memberModal.find();
+        items = items.map((item) => {
+            item = JSON.parse(JSON.stringify(item));
+            response.push(item);
+            return item;
+        });
+
+        res.status(200).send({
+            ok: true,
+            page: page,
+            in_page: in_page,
+            all_pages: 10,
+            data: response,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'حدث خطأ في الخادم' });
+    }
+});
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -28,23 +53,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Refresh token route
-// router.post('/refresh', (req, res) => {
-//     const { refreshToken } = req.cookies;
-//     if (!refreshToken) return res.status(401).json({ message: 'No token provided' });
-
-//     jwt.verify(refreshToken, process.env.JWT_SECRET, (err, user) => {
-//         if (err) return res.status(403).json({ message: 'Token invalid' });
-
-//         const newAccessToken = generateToken(
-//             user,
-//             process.env.JWT_SECRET,
-//             process.env.JWT_EXPIRATION,
-//         );
-//         res.json({ accessToken: newAccessToken });
-//     });
-// });
-router.post('/register', async (req, res) => {
+router.post('/', async (req, res) => {
     const { username, password } = req.body;
     try {
         const existingUser = await User.findOne({ username });
@@ -130,4 +139,45 @@ router.get('/reset-password', async (req, res) => {
     }
 });
 
+router.get('/:id', async (req, res) => {
+    const id = req.params.id;
+
+    let item = await User.find({
+        _id: new ObjectId(id),
+    });
+
+    res.status(200).send({
+        ok: true,
+        data: item[0],
+    });
+});
+
+router.put('/:id', async (req, res) => {
+    const id = req.params.id;
+    let update = {
+        username: req.body.username,
+        password: req.body.password,
+    };
+
+    await User.findOneAndUpdate(
+        {
+            _id: new ObjectId(id),
+        },
+        update,
+    );
+
+    res.status(200).send({
+        ok: true,
+    });
+});
+router.delete('/:id', async (req, res) => {
+    const id = req.params.id;
+    const manager = await User.findById(id);
+
+    manager.delete();
+
+    res.status(200).send({
+        ok: true,
+    });
+});
 module.exports = router;

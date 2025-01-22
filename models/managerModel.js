@@ -12,10 +12,6 @@ const schema = Schema({
     //     default: enums.userTypes.guest,
     // },
     permissions: String,
-    isEmailVerified: {
-        type: Boolean,
-        default: false,
-    },
     creationDate: {
         type: Date,
         default: getNowDateTime,

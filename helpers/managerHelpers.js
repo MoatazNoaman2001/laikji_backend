@@ -15,8 +15,8 @@ async function sendPasswordResetEmail(email, token) {
         port: 587,
         secure: false,
         auth: {
-            user: process.env.EMAIL_USERNAME, // Your Hotmail email
-            pass: process.env.EMAIL_PASSWORD, // Your Hotmail password
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
         },
     });
 
