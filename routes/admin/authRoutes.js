@@ -166,7 +166,7 @@ router.put('/:id', async (req, res) => {
 
     await User.findOneAndUpdate(
         {
-            _id: new ObjectId(id),
+            _id: id,
         },
         update,
     );
