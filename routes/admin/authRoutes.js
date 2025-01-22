@@ -34,9 +34,9 @@ router.get('/all', async (req, res) => {
     }
 });
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ message: 'خطأ في الاسم أو كلمة المرور' });
         }
@@ -55,14 +55,14 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
     try {
-        const existingUser = await User.findOne({ username });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'هذا الاسم موجود مسبقا' });
         }
         // Create a new user
-        const newUser = new User({ username, password });
+        const newUser = new User({ username, password, email });
         await newUser.save();
 
         res.status(201).json({
@@ -75,10 +75,10 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/request-password-reset', async (req, res) => {
-    const { username } = req.body;
+    const { email } = req.body;
     try {
         // Find the user by email
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'البريد الإلكتروني غير مسجل' });
         }
@@ -86,7 +86,7 @@ router.post('/request-password-reset', async (req, res) => {
         const token = helpers.generateToken(user._id);
         console.log('token id', token);
         // Send the password reset email
-        await sendPasswordResetEmail(username, token);
+        await sendPasswordResetEmail(email, token);
 
         res.status(200).json({
             message: 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
@@ -162,6 +162,7 @@ router.put('/:id', async (req, res) => {
     let update = {
         username: req.body.username,
         password: req.body.password,
+        email: req.body.email,
     };
 
     await User.findOneAndUpdate(
