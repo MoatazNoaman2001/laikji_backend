@@ -863,7 +863,7 @@ module.exports = (io) => {
                     });
                 }
             });
-            xclient.on('change-user', async (data) => {
+            xclient.on('change-user', async (data, ack) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
                 switch (data.type) {
@@ -916,13 +916,14 @@ module.exports = (io) => {
                         }
 
                         xuser = await updateUser(xuser, xuser._id, xroomId);
+
+                        if (ack) ack({ ok: true, message: 'User status updated successfully' });
                         break;
 
                     default:
+                        if (ack) ack({ ok: false, message: 'Invalid type' });
                         break;
                 }
-
-                // ack('done');
 
                 if (xuser.is_visible) {
                     io.emit(xroomId, {
