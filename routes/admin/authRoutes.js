@@ -114,31 +114,31 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-router.get('/reset-password', async (req, res) => {
-    const token = req.query.token;
-    try {
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('Decoded token:', decoded); // Debug log
+// router.get('/reset-password', async (req, res) => {
+//     const token = req.query.token;
+//     try {
+//         // Verify the token
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//         console.log('Decoded token:', decoded); // Debug log
 
-        if (!decoded || !decoded.id) {
-            return res
-                .status(400)
-                .json({ message: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية' });
-        }
+//         if (!decoded || !decoded.id) {
+//             return res
+//                 .status(400)
+//                 .json({ message: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية' });
+//         }
 
-        // Hash the new password
-        // const hashedPassword = await bcrypt.hash(password, 10);
+//         // Hash the new password
+//         // const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Update the password in the database
-        // await User.findByIdAndUpdate(decoded.id, { password: hashedPassword });
+//         // Update the password in the database
+//         // await User.findByIdAndUpdate(decoded.id, { password: hashedPassword });
 
-        res.status(200).json({ message: 'تمت إعادة تعيين كلمة المرور بنجاح' });
-    } catch (error) {
-        console.error(error);
-        res.status(400).json({ message: 'حدث خطأ ما!' });
-    }
-});
+//         res.status(200).json({ message: 'تمت إعادة تعيين كلمة المرور بنجاح' });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(400).json({ message: 'حدث خطأ ما!' });
+//     }
+// });
 
 router.get('/:id', async (req, res) => {
     const id = req.params.id;

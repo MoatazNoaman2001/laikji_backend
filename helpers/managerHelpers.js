@@ -9,7 +9,7 @@ function generateVerificationToken(userId) {
 
 async function sendPasswordResetEmail(email, token) {
     console.log('sendeing reset password');
-    const resetUrl = `http://185.203.118.57:9600.com/admin/auth/reset-password?token=${token}`;
+    const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         host: 'smtp.gmail.com',
