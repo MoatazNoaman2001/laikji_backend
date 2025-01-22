@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const { sendPasswordResetEmail } = require('../../helpers/managerHelpers');
 // Login route
 
-router.get('/managers', async (req, res) => {
+router.get('/all', async (req, res) => {
     var page = req.query.page ? req.query.page : 1;
     var in_page = 10000;
     try {
@@ -19,6 +19,7 @@ router.get('/managers', async (req, res) => {
             response.push(item);
             return item;
         });
+        console.log('response length ', response.length);
 
         res.status(200).send({
             ok: true,
