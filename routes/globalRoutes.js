@@ -7,6 +7,7 @@ const { getUserById } = require('../helpers/userHelpers');
 const { getUserByToken, notifyReportChanged } = require('../helpers/helpers');
 const emojisModel = require('../models/emojisModel');
 const router = express.Router();
+var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/app-info', async (req, res) => {
     try {
@@ -127,7 +128,7 @@ router.post('/report', async (req, res) => {
             ownerRef: xuser._id,
             roomRef: room._id,
             userRef: user ? user._id : null,
-            memberRef: req.body.member_id,
+            //memberRef: new ObjectId(member_id),
             roomName: room.name,
             country: user.country_code ?? '',
             ip: user.ip ?? '',
