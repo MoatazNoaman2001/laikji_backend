@@ -102,10 +102,12 @@ router.post('/reset-password', async (req, res) => {
     try {
         var token_user = jwt.verify(token, process.env.JWT_SECRET);
         if (!token_user) return false;
+        console.log('token user ', token_user);
         await User.findOne({
             _id: token_user.id,
         });
         const userId = token_user.id;
+        console.log('userid ', userId);
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await User.findByIdAndUpdate(userId, { password: hashedPassword });
         res.status(200).json({ message: 'تمت اعادة ضبط كلمة السر بنجاح' });
