@@ -105,15 +105,15 @@ router.post('/reset-password', async (req, res) => {
     try {
         var token_user = jwt.verify(token, 'catsandogs');
         console.log('token user ', token_user);
-        if (!token_user || !token_user.id) {
+        if (!token_user || !token_user.userId) {
             return res
                 .status(400)
                 .json({ message: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية' });
         }
         await User.findOne({
-            _id: token_user.id,
+            _id: token_user.userId,
         });
-        const userId = token_user.id;
+        const userId = token_user.userId;
         console.log('userid ', userId);
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await User.findByIdAndUpdate(userId, { password: hashedPassword });
