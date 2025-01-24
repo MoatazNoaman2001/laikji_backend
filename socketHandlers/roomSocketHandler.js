@@ -888,14 +888,11 @@ module.exports = (io) => {
                                 xuser.game_number_color = '255|255|255';
                             }
                         }
-
                         if (data.user.hasOwnProperty('icon')) xuser.icon = data.user.icon;
-
                         if (data.user.hasOwnProperty('img_key')) {
                             xuser.img_key = data.user.img_key;
                             xuser.img = await getEnterIcon(data.user.img_key);
                         }
-
                         if (data.user.hasOwnProperty('is_typing')) {
                             xuser.is_typing = data.user.is_typing;
                         }
@@ -914,12 +911,10 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('prevent_private_screenshot')) {
                             xuser.prevent_private_screenshot = data.user.prevent_private_screenshot;
                         }
-
                         xuser = await updateUser(xuser, xuser._id, xroomId);
-
-                        if (ack) ack({ ok: true, message: 'User status updated successfully' });
+                        if (ack) console.log('ack is ', JSON.stringify(ack, null, 2));
+                        ack({ ok: true, message: 'User status updated successfully' });
                         break;
-
                     default:
                         if (ack) ack({ ok: false, message: 'Invalid type' });
                         break;

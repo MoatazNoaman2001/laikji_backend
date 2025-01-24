@@ -12,6 +12,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 router.get('/app-info', async (req, res) => {
     try {
         const response = await getSettings();
+        console.log('respons is ', JSON.stringify(response, null, 2));
         for (const key in response) {
             if (Object.hasOwnProperty.call(response, key)) {
                 const val = response[key];
