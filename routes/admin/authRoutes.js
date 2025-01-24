@@ -116,8 +116,8 @@ router.post('/reset-password', async (req, res) => {
         const userId = token_user.userId;
         console.log('userid ', userId);
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await User.findByIdAndUpdate(userId, { password: hashedPassword });
-        res.status(200).json({ message: 'تمت اعادة ضبط كلمة السر بنجاح' });
+        const user = await User.findByIdAndUpdate(userId, { password: hashedPassword });
+        res.status(200).json({ message: 'تمت اعادة ضبط كلمة السر بنجاح', token, user });
     } catch (error) {
         res.status(400).json({ message: 'حدث خطأ ما!' });
     }
