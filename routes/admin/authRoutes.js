@@ -99,6 +99,7 @@ router.post('/request-password-reset', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
     const token = req.body.token;
     const newPassword = req.body.password;
+    console.log('reset body ', JSON.stringify(req.body, null, 2));
     try {
         var token_user = jwt.verify(token, process.env.JWT_SECRET);
         console.log('token user ', token_user);
