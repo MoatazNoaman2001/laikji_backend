@@ -913,11 +913,11 @@ module.exports = (io) => {
                         }
                         xuser = await updateUser(xuser, xuser._id, xroomId);
                         if (ack) console.log('ack is ', JSON.stringify(ack, null, 2));
-                        ack({ ok: true, message: 'User status updated successfully' });
-                        break;
-                    default:
-                        if (ack) ack({ ok: false, message: 'Invalid type' });
-                        break;
+                    // ack({ ok: true, message: 'User status updated successfully' });
+                    // break;
+                    // default:
+                    // if (ack) ack({ ok: false, message: 'Invalid type' });
+                    // break;
                 }
 
                 if (xuser.is_visible) {
