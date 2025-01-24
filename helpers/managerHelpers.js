@@ -1,9 +1,8 @@
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-require('dotenv').config(); //import and config dotenv to use .env file for secrets
-
+require('dotenv').config();
 function generateVerificationToken(userId) {
-    const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId }, 'catsandogs', { expiresIn: '1h' });
     return token;
 }
 

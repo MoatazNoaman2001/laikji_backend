@@ -5,7 +5,10 @@ const helpers = require('../../helpers/helpers');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const { sendPasswordResetEmail } = require('../../helpers/managerHelpers');
+const {
+    sendPasswordResetEmail,
+    generateVerificationToken,
+} = require('../../helpers/managerHelpers');
 // Login route
 
 router.get('/all', async (req, res) => {
@@ -83,7 +86,7 @@ router.post('/request-password-reset', async (req, res) => {
             return res.status(404).json({ message: 'البريد الإلكتروني غير مسجل' });
         }
 
-        const token = helpers.generateToken(user._id);
+        const token = generateVerificationToken(user._id);
         console.log('token id', token);
         // Send the password reset email
         await sendPasswordResetEmail(email, token);
@@ -99,9 +102,8 @@ router.post('/request-password-reset', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
     const token = req.body.token;
     const newPassword = req.body.password;
-    console.log('reset body ', JSON.stringify(req.body, null, 2));
     try {
-        var token_user = jwt.verify(token, process.env.JWT_SECRET);
+        var token_user = jwt.verify(token, 'catsandogs');
         console.log('token user ', token_user);
         if (!token_user || !token_user.id) {
             return res
