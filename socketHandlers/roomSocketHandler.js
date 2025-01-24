@@ -877,7 +877,27 @@ module.exports = (io) => {
                             } else {
                                 xuser.status = data.user.status;
                             }
+                            if (
+                                data.user.status == enums.statusTypes.phone &&
+                                roomInfo.speakers.has(xuser._id.toString())
+                            ) {
+                                releaseMic(roomInfo, user._id.toString(), xroomId);
+                                if (Array.from(roomInfo.speakers).length == 0) {
+                                    console.log('clear timer from request mic');
+                                    clearActiveTimers(xroomId);
+                                }
+                                if (mutedSpeakers[xroomId].includes(xuser._id.toString())) {
+                                    mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
+                                        (id) => id !== xuser._id.toString(),
+                                    );
+                                    io.to(xroomId).emit('speaker-muted', {
+                                        mutedSpeakers: mutedSpeakers[xroomId],
+                                    });
+                                }
+                                console.log('after delete user id', roomInfo.speakers);
 
+                                console.log(`User ${xuser._id.toString()} has declined the mic.`);
+                            }
                             if (
                                 data.user.status != enums.statusTypes.f1 &&
                                 data.user.status != enums.statusTypes.f2 &&
@@ -912,7 +932,6 @@ module.exports = (io) => {
                             xuser.prevent_private_screenshot = data.user.prevent_private_screenshot;
                         }
                         xuser = await updateUser(xuser, xuser._id, xroomId);
-                        if (ack) console.log('ack is ', JSON.stringify(ack, null, 2));
                     // ack({ ok: true, message: 'User status updated successfully' });
                     // break;
                     // default:
