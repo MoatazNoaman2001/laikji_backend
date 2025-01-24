@@ -101,8 +101,12 @@ router.post('/reset-password', async (req, res) => {
     const newPassword = req.body.password;
     try {
         var token_user = jwt.verify(token, process.env.JWT_SECRET);
-        if (!token_user) return false;
         console.log('token user ', token_user);
+        if (!token_user || !token_user.id) {
+            return res
+                .status(400)
+                .json({ message: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية' });
+        }
         await User.findOne({
             _id: token_user.id,
         });
