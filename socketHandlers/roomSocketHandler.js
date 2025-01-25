@@ -881,7 +881,7 @@ module.exports = (io) => {
                                 data.user.status == enums.statusTypes.phone &&
                                 roomInfo.speakers.has(xuser._id.toString())
                             ) {
-                                releaseMic(roomInfo, user._id.toString(), xroomId);
+                                releaseMic(roomInfo, xuser._id.toString(), xroomId);
                                 if (Array.from(roomInfo.speakers).length == 0) {
                                     console.log('clear timer from request mic');
                                     clearActiveTimers(xroomId);
@@ -1370,11 +1370,9 @@ module.exports = (io) => {
                             });
                         }
                     } else {
-                        io.to(xuser.socketId).emit('new-alert', {
-                            msg_en: `Youtube feature is only available for registered names`,
+                        io.to(xuser.socketId).emit('new-toast', {
                             msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                         });
-                        return;
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
