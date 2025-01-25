@@ -1369,6 +1369,12 @@ module.exports = (io) => {
                                 link: roomInfo.youtubeLink,
                             });
                         }
+                    } else {
+                        io.to(xuser.socketId).emit('new-alert', {
+                            msg_en: `Youtube feature is only available for registered names`,
+                            msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
+                        });
+                        return;
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
