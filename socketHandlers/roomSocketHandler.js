@@ -1370,7 +1370,7 @@ module.exports = (io) => {
                             });
                         }
                     } else {
-                        io.to(xuser.socketId).emit('new-toast', {
+                        io.to(xuser.socketId).emit('alert-msg', {
                             msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                         });
                     }
