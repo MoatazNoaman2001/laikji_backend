@@ -22,7 +22,6 @@ router.get('/all', async (req, res) => {
             response.push(item);
             return item;
         });
-        console.log('response length ', response.length);
 
         res.status(200).send({
             ok: true,
@@ -65,7 +64,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ message: 'هذا الاسم موجود مسبقا' });
         }
         // Create a new user
-        const newUser = new User({ username, password, email });
+        const newUser = new User({ username, password, email, permissions });
         await newUser.save();
 
         res.status(201).json({

@@ -88,13 +88,11 @@ async function getUserByToken(t) {
 }
 async function getAdminByToken(t) {
     try {
-        console.log('token is ', t);
         var token_user = jwt.verify(t, 'catsandogs');
         if (!token_user) return false;
         var user = await managerModel.findOne({
             _id: token_user.id,
         });
-        console.log('admin ', JSON.stringify(user, null, 2));
         return user;
     } catch (error) {
         return false;
