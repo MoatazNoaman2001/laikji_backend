@@ -20,6 +20,7 @@ const { getNowDateTime, hexToXRgb, getSettings } = require('./tools');
 const roomModel = require('../models/roomModel');
 const groupModel = require('../models/groupModel');
 const reportModel = require('../models/reportModel');
+const managerModel = require('../models/managerModel');
 
 function generateKey(length = 32) {
     return crypto
@@ -80,6 +81,18 @@ async function getUserByToken(t) {
 
         var user = await getUserById(ru.userRef, ru.roomRef);
 
+        return user;
+    } catch (error) {
+        return false;
+    }
+}
+async function getAdminByToken(t) {
+    try {
+        var token_user = jwt.verify(t, 'catsandogs');
+        if (!token_user) return false;
+        var user = await managerModel.findOne({
+            _id: token_user.id,
+        });
         return user;
     } catch (error) {
         return false;
@@ -415,6 +428,7 @@ module.exports = {
     verifyToken,
     verifyTokenGet,
     getUserByToken,
+    getAdminByToken,
     public_room,
     public_room_small,
     get_room_small,

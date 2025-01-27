@@ -147,20 +147,34 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', img_uploader.single('icon'), async (req, res) => {
-    var g1 = new groupModel({
-        name: req.body.name,
-        icon: 'groups/' + req.file.filename,
-    });
-    g1.save();
+    const admin = await helpers.getAdminByToken(req.body.token);
+    if (!admin) {
+        return res.status(403).send({
+            ok: false,
+            data: 'Wrong token',
+        });
+    }
+    if (admin.permissions[0] == '1') {
+        var g1 = new groupModel({
+            name: req.body.name,
+            icon: 'groups/' + req.file.filename,
+        });
+        g1.save();
 
-    helpers.resizeImage(g1.icon);
-    
-    global.home_io.emit('groups_refresh', {});
+        helpers.resizeImage(g1.icon);
 
-    res.status(200).send({
-        ok: true,
-        id: g1._id,
-    });
+        global.home_io.emit('groups_refresh', {});
+
+        res.status(200).send({
+            ok: true,
+            id: g1._id,
+        });
+    } else {
+        res.status(403).send({
+            ok: false,
+            message: 'لا تملك الصلاحية للقيام بهذا الاجراء',
+        });
+    }
 });
 
 router.put('/:id', img_uploader.single('icon'), async (req, res) => {
