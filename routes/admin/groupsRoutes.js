@@ -149,7 +149,8 @@ router.get('/:id', async (req, res) => {
 router.post('/', img_uploader.single('icon'), async (req, res) => {
     const admin = await helpers.getAdminByToken(req.body.token);
     if (!admin) {
-        return res.status(403).send({
+        console.log('admin not found');
+        return res.status(403).json({
             ok: false,
             data: 'Wrong token',
         });

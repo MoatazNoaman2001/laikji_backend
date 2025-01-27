@@ -93,6 +93,7 @@ async function getAdminByToken(t) {
         var user = await managerModel.findOne({
             _id: token_user.id,
         });
+
         return user;
     } catch (error) {
         return false;
