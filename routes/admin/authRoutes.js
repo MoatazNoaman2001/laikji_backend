@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, permissions } = req.body;
     try {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
