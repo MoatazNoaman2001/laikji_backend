@@ -147,6 +147,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', img_uploader.single('icon'), async (req, res) => {
+    console.log('req is ', JSON.stringify(req.body));
     const admin = await helpers.getAdminByToken(req.body.token);
     if (!admin) {
         console.log('admin not found');
