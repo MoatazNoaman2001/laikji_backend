@@ -170,7 +170,7 @@ router.post('/', img_uploader.single('icon'), async (req, res) => {
             id: g1._id,
         });
     } else {
-        res.status(403).send({
+        res.status(403).json({
             ok: false,
             message: 'لا تملك الصلاحية للقيام بهذا الاجراء',
         });
