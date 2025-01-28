@@ -353,6 +353,11 @@ router.put(
                             ...(update.mic || {}),
                             [field]: req.body[field],
                         };
+                    } else if (field === 'welcome_img') {
+                        update.welcome = {
+                            ...(update.welcome || {}),
+                            img: req.body[field],
+                        };
                     } else {
                         update[field] = req.body[field];
                     }
@@ -373,12 +378,7 @@ router.put(
             }
 
             const currentRoom = await roomModel.findById(id);
-            if (req.body.welcome_img === '') {
-                update.welcome = {
-                    ...(update.welcome || {}),
-                    img: null,
-                };
-            }
+
             if (req.files && req.files.welcome_img) {
                 const welcomeImgFile = req.files.welcome_img[0];
                 update.welcome = {
