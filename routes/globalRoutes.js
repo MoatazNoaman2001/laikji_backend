@@ -125,6 +125,7 @@ router.post('/report', async (req, res) => {
             user = await getUserById(req.body.user_id, room._id);
             console.log('user is ', JSON.stringify(user, null, 2));
             device = user.device.replace(/[{}]/g, '');
+            console.log('device ', device);
         }
         const item = new reportModel({
             ownerRef: xuser._id,
