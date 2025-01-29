@@ -9,28 +9,28 @@ router.get('/', async (req, res) => {
     try {
         response = [];
         var items = await reportModel.find({}).populate(['ownerRef', 'userRef', 'memberRef']);
-        await Promise.all(
-            items.map(async (item) => {
-                res = {};
-                if (item.type == 0 || item.type == 1) {
-                    item = JSON.parse(JSON.stringify(item));
-                    const isBanned = await isBannedFromServer(item.userRef.key);
-                    res = {
-                        ...item,
-                        isBanned,
-                    };
-                } else {
-                    res = { ...item };
-                }
+        // await Promise.all(
+        //     items.map(async (item) => {
+        //         res = {};
+        //         if (item.type == 0 || item.type == 1) {
+        //             item = JSON.parse(JSON.stringify(item));
+        //             const isBanned = await isBannedFromServer(item.userRef.key);
+        //             res = {
+        //                 ...item,
+        //                 isBanned,
+        //             };
+        //         } else {
+        //             res = { ...item };
+        //         }
 
-                response.push(res);
-            }),
-        );
+        //         response.push(res);
+        //     }),
+        // );
 
-        console.log('response ', JSON.stringify(response, null, 2));
+        console.log('response ', JSON.stringify(items, null, 2));
         res.status(200).send({
             ok: true,
-            data: response,
+            data: items,
         });
     } catch (e) {
         console.log(e);
