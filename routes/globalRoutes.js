@@ -114,7 +114,6 @@ router.get('/image', async (req, res) => {
 
 router.post('/report', async (req, res) => {
     try {
-        console.log('report body ', JSON.stringify(req.body, null, 2));
         let xuser = await getUserByToken(req.headers.token);
 
         const room = await roomModel.findById(req.body.room_id);
@@ -131,8 +130,7 @@ router.post('/report', async (req, res) => {
         if (req.body.user_id) {
             user = await getUserById(req.body.user_id, room._id);
             device = user.device.replace(/[{}]/g, '');
-            item.userRef = user._id;
-
+            item.userRef = req.body.user_id;
             item.device = device;
             if (req.body.member_id) {
                 item.memberRef = user.memberRef;
