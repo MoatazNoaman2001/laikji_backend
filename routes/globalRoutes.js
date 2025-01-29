@@ -122,6 +122,7 @@ router.post('/report', async (req, res) => {
         let user = null;
         if (req.body.user_id) {
             user = await getUserById(req.body.user_id, room._id);
+            console.log('user is ', JSON.stringify(user, null, 2));
         }
         const item = new reportModel({
             ownerRef: xuser._id,
