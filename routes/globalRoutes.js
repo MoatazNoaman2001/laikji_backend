@@ -124,20 +124,26 @@ router.post('/report', async (req, res) => {
         if (req.body.user_id) {
             user = await getUserById(req.body.user_id, room._id);
         }
-
         const item = new reportModel({
             ownerRef: xuser._id,
             roomRef: room._id,
-            userRef: user ? user._id : null,
-            //memberRef: new ObjectId(member_id),
             roomName: room.name,
-            country: user.country_code ?? '',
-            ip: user.ip ?? '',
-            userName: user ? user.name : null,
-            type: req.body.type,
             message: req.body.message,
         });
 
+        if (req.body.member_id && req.body.user_id) {
+            item.userName = user.name;
+            item.memberRef = user.memberRef;
+            item.country = user.country_code ?? '';
+            item.ip = user.ip ?? '';
+            item.type = 2;
+        } else if (!req.body.member_id && req.body.user_id) {
+            item.userRef = user._id;
+            item.userName = user.name;
+            item.type = 1;
+        } else {
+            item.type = 0;
+        }
         await item.save();
 
         await notifyReportChanged();
