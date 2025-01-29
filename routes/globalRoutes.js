@@ -131,6 +131,7 @@ router.post('/report', async (req, res) => {
             ownerRef: xuser._id,
             roomRef: room._id,
             roomName: room.name,
+            userRef: user._id,
             message: req.body.message,
             type: req.body.type,
         });
