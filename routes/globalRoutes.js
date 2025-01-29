@@ -117,7 +117,8 @@ router.post('/report', async (req, res) => {
         let xuser = await getUserByToken(req.headers.token);
 
         const room = await roomModel.findById(req.body.room_id);
-
+        console.log('xuser id', xuser._id.toString());
+        console.log('user id', req.body.user_id);
         let user = null;
         let device = null;
         const item = new reportModel({
