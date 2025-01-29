@@ -121,7 +121,8 @@ router.post('/report', async (req, res) => {
         let user = null;
         let device = null;
         const item = new reportModel({
-            ownerRef: xuser._id,
+            reporterName: xuser.name,
+            reporterId: xuser._id,
             roomRef: room._id,
             roomName: room.name,
             message: req.body.message,

@@ -3,10 +3,6 @@ const { getNowDateTime } = require('../helpers/tools');
 const Schema = mongoose.Schema;
 
 const schema = Schema({
-    ownerRef: {
-        type: Schema.Types.ObjectId,
-        ref: 'Users',
-    },
     roomRef: {
         type: Schema.Types.ObjectId,
         ref: 'Rooms',
@@ -19,6 +15,8 @@ const schema = Schema({
         type: Schema.Types.ObjectId,
         ref: 'Members',
     },
+    reporterName: String,
+    reporterId: String,
     roomName: String,
     userName: String,
     ip: String,
