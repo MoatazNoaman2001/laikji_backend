@@ -8,7 +8,7 @@ const { isBannedFromServer } = require('../../helpers/userHelpers');
 router.get('/', async (req, res) => {
     try {
         response = [];
-        var items = await reportModel.find({}).lean().populate(['userRef', 'memberRef']);
+        var items = await reportModel.find({}).populate(['ownerRef', 'userRef', 'memberRef']);
         await Promise.all(
             items.map(async (item) => {
                 result = {};
