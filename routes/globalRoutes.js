@@ -12,7 +12,6 @@ var ObjectId = require('mongoose').Types.ObjectId;
 router.get('/app-info', async (req, res) => {
     try {
         const response = await getSettings();
-        console.log('respons is ', JSON.stringify(response, null, 2));
         for (const key in response) {
             if (Object.hasOwnProperty.call(response, key)) {
                 const val = response[key];
@@ -137,9 +136,13 @@ router.post('/report', async (req, res) => {
             item.memberRef = user.memberRef;
             item.country = user.country_code ?? '';
             item.ip = user.ip ?? '';
+            item.device = user.device ?? '';
         } else if (!req.body.member_id && req.body.user_id) {
             item.userRef = user._id;
             item.userName = user.name;
+            item.device = user.device ?? '';
+            item.country = user.country_code ?? '';
+            item.ip = user.ip ?? '';
         }
         await item.save();
 
