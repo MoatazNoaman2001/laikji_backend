@@ -10,8 +10,11 @@ router.get('/', async (req, res) => {
         response = [];
         var items = await reportModel
             .find({})
-            .lean()
-            .populate(['ownerRef', 'userRef', 'memberRef']);
+            .populate([
+                { path: 'ownerRef' },
+                { path: 'userRef', match: { _id: { $ne: '$ownerRef' } } },
+                { path: 'memberRef' },
+            ]);
         await Promise.all(
             items.map(async (item) => {
                 result = {};
