@@ -129,6 +129,7 @@ router.post('/report', async (req, res) => {
             roomRef: room._id,
             roomName: room.name,
             message: req.body.message,
+            type: req.body.type,
         });
 
         if (req.body.member_id && req.body.user_id) {
@@ -136,13 +137,9 @@ router.post('/report', async (req, res) => {
             item.memberRef = user.memberRef;
             item.country = user.country_code ?? '';
             item.ip = user.ip ?? '';
-            item.type = 2;
         } else if (!req.body.member_id && req.body.user_id) {
             item.userRef = user._id;
             item.userName = user.name;
-            item.type = 1;
-        } else {
-            item.type = 0;
         }
         await item.save();
 
