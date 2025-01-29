@@ -11,19 +11,18 @@ router.get('/', async (req, res) => {
         var items = await reportModel.find({}).populate(['ownerRef', 'userRef', 'memberRef']);
         await Promise.all(
             items.map(async (item) => {
-                res1 = {};
+                result = {};
                 if (item.type !== 1) {
                     item = JSON.parse(JSON.stringify(item));
                     const isBanned = await isBannedFromServer(item.userRef.key);
-                    res1 = {
+                    result = {
                         ...item,
                         isBanned,
                     };
+                    response.push(result);
                 } else {
-                    res1 = { ...item };
+                    response.push(item);
                 }
-
-                response.push(res1);
             }),
         );
 
