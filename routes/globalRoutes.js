@@ -123,6 +123,7 @@ router.post('/report', async (req, res) => {
         if (req.body.user_id) {
             user = await getUserById(req.body.user_id, room._id);
             console.log('user is ', JSON.stringify(user, null, 2));
+            const device = user.device.replace(/[{}]/g, '');
         }
         const item = new reportModel({
             ownerRef: xuser._id,
@@ -137,11 +138,11 @@ router.post('/report', async (req, res) => {
             item.memberRef = user.memberRef;
             item.country = user.country_code ?? '';
             item.ip = user.ip ?? '';
-            item.device = user.device ?? '';
+            item.device = device ?? '';
         } else if (!req.body.member_id && req.body.user_id) {
             item.userRef = user._id;
             item.userName = user.name;
-            item.device = user.device ?? '';
+            item.device = device ?? '';
             item.country = user.country_code ?? '';
             item.ip = user.ip ?? '';
         }
