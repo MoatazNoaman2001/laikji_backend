@@ -226,6 +226,7 @@ const getUserById = async (user_id, room_id) => {
         ...regUser,
         regUserRef: regUser && regUser._id ? regUser._id : null,
         ...user._doc,
+        device,
         server_stop_remaining,
         is_spy,
         is_visible: !is_hidden,
