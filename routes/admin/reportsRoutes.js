@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 res = {};
-                if (item.type == 1 || item.type == 2) {
+                if (item.type == 0 || item.type == 1) {
                     item = JSON.parse(JSON.stringify(item));
                     const isBanned = await isBannedFromServer(item.userRef.key);
                     res = {
