@@ -136,11 +136,11 @@ router.post('/report', async (req, res) => {
             item.memberRef = user.memberRef;
             item.country = user.country_code ?? '';
             item.ip = user.ip ?? '';
-            item.device = user.device ?? '';
+            item.device = user.key ?? '';
         } else if (!req.body.member_id && req.body.user_id) {
             item.userRef = user._id;
             item.userName = user.name;
-            item.device = user.device ?? '';
+            item.device = user.key ?? '';
             item.country = user.country_code ?? '';
             item.ip = user.ip ?? '';
         }
