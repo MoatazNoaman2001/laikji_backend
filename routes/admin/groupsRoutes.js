@@ -17,23 +17,6 @@ var storage = multer.diskStorage({
     },
 });
 
-router.post('/', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
-    var g1 = new groupModel({
-        name: req.body.name,
-        icon: 'groups/' + req.file.filename,
-    });
-    g1.save();
-
-    helpers.resizeImage(g1.icon);
-
-    global.home_io.emit('groups_refresh', {});
-
-    return res.status(200).send({
-        ok: true,
-        id: g1._id,
-    });
-});
-
 const img_uploader = multer({
     storage: storage,
 });
@@ -144,6 +127,22 @@ router.get('/', async (req, res) => {
             error: e.message,
         });
     }
+});
+router.post('/', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
+    var g1 = new groupModel({
+        name: req.body.name,
+        icon: 'groups/' + req.file.filename,
+    });
+    g1.save();
+
+    helpers.resizeImage(g1.icon);
+
+    global.home_io.emit('groups_refresh', {});
+
+    return res.status(200).send({
+        ok: true,
+        id: g1._id,
+    });
 });
 
 router.get('/:id', async (req, res) => {
