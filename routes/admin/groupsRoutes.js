@@ -16,7 +16,7 @@ var storage = multer.diskStorage({
     },
 });
 
-router.post('/', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
+router.post('/', img_uploader.single('icon'), async (req, res) => {
     var g1 = new groupModel({
         name: req.body.name,
         icon: 'groups/' + req.file.filename,
@@ -163,7 +163,7 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.put('/:id', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
+router.put('/:id', img_uploader.single('icon'), async (req, res) => {
     const id = req.params.id;
     let update = {
         name: req.body.name,
@@ -197,7 +197,7 @@ router.put('/:id', img_uploader.single('icon'), authCheckMiddleware, async (req,
     });
 });
 
-router.delete('/:id', authCheckMiddleware, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     const id = req.params.id;
 
     await groupModel
