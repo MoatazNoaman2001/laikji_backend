@@ -166,12 +166,12 @@ router.post('/', img_uploader.single('icon'), async (req, res) => {
 
         global.home_io.emit('groups_refresh', {});
 
-        res.status(200).send({
+        return res.status(200).send({
             ok: true,
             id: g1._id,
         });
     } else {
-        res.status(403).json({
+        return res.status(403).json({
             ok: false,
             message: 'لا تملك الصلاحية للقيام بهذا الاجراء',
         });
