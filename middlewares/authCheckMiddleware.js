@@ -16,6 +16,7 @@ module.exports = async (req, res, next) => {
                 data: 'Wrong token',
             });
         }
+        console.log('print admin ', JSON.stringify(admin, null, 2));
         req.admin = admin;
 
         if (admin.permissions[req.body.action] === '0') {
