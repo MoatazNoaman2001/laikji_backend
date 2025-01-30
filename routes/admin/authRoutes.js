@@ -171,6 +171,7 @@ router.put('/:id', async (req, res) => {
         username: req.body.username,
         password: req.body.password,
         email: req.body.email,
+        permissions: req.body.permissions,
     };
 
     await User.findOneAndUpdate(
