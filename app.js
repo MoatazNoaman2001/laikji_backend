@@ -10,6 +10,7 @@ const memberMiddleware = require('./middlewares/memberMiddleware');
 const memberPrivateMiddleware = require('./middlewares/memberPrivateMiddleware');
 const { getNowDateTime } = require('./helpers/tools');
 const http = require('http');
+const authCheckMiddleware = require('./middlewares/authCheckMiddleware');
 
 //#region if ssl enabled
 // const https = require('https');
@@ -54,7 +55,7 @@ app.use('/:roomId', require('./routes/micRoutes'));
 app.use('/room_admin/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/roomRoutes'));
 app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/commandsRoutes'));
 // Admin Routes
-app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
+app.use('/admin/groups', authCheckMiddleware, require('./routes/admin/groupsRoutes'));
 app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));
 app.use('/admin/emojis', require('./routes/admin/emojisRoutes'));
 app.use('/admin/rooms', require('./routes/admin/roomsRoutes'));
