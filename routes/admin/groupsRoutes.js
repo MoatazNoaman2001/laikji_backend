@@ -179,37 +179,52 @@ router.post('/', img_uploader.single('icon'), async (req, res) => {
 });
 
 router.put('/:id', img_uploader.single('icon'), async (req, res) => {
-    const id = req.params.id;
-    let update = {
-        name: req.body.name,
-    };
-
-    if (req.file && req.file.filename) {
-        update.icon = 'groups/' + req.file.filename;
-        helpers.resizeImage(update.icon);
-
-        const old_item = await groupModel.find({
-            _id: new ObjectId(id),
+    const admin = await helpers.getAdminByToken(req.body.token);
+    if (!admin) {
+        return res.status(403).json({
+            ok: false,
+            data: 'Wrong token',
         });
-
-        if (old_item.length > 0) {
-            old_icon = old_item[0].icon;
-            helpers.removeFile(old_icon);
-        }
     }
+    console.log('admin', JSON.stringify(admin, null, 2));
+    if (admin.permissions[0] === '1') {
+        const id = req.params.id;
+        let update = {
+            name: req.body.name,
+        };
 
-    await groupModel.findOneAndUpdate(
-        {
-            _id: new ObjectId(id),
-        },
-        update,
-    );
+        if (req.file && req.file.filename) {
+            update.icon = 'groups/' + req.file.filename;
+            helpers.resizeImage(update.icon);
 
-    global.home_io.emit('groups_refresh', {});
+            const old_item = await groupModel.find({
+                _id: new ObjectId(id),
+            });
 
-    res.status(200).send({
-        ok: true,
-    });
+            if (old_item.length > 0) {
+                old_icon = old_item[0].icon;
+                helpers.removeFile(old_icon);
+            }
+        }
+
+        await groupModel.findOneAndUpdate(
+            {
+                _id: new ObjectId(id),
+            },
+            update,
+        );
+
+        global.home_io.emit('groups_refresh', {});
+
+        res.status(200).send({
+            ok: true,
+        });
+    } else {
+        return res.status(200).send({
+            ok: false,
+            message: 'لا تملك الصلاحية للقيام بهذا الاجراء',
+        });
+    }
 });
 
 router.delete('/:id', async (req, res) => {
