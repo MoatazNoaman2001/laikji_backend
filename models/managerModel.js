@@ -12,6 +12,10 @@ const schema = Schema({
     //     default: enums.userTypes.guest,
     // },
     permissions: String,
+    lockModify: {
+        type: Boolean,
+        default: false,
+    },
     creationDate: {
         type: Date,
         default: getNowDateTime,
