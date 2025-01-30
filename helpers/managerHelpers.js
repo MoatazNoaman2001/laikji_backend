@@ -16,7 +16,7 @@ async function sendPasswordResetEmail(email, token) {
         secure: false,
         auth: {
             user: 'jkrsrvr@gmail.com',
-            pass: '#Ryequ#twq33',
+            pass: 'atzp uvct jlvu nzxc',
         },
     });
 
