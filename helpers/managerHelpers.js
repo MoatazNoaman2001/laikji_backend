@@ -15,13 +15,13 @@ async function sendPasswordResetEmail(email, token) {
         port: 587,
         secure: false,
         auth: {
-            user: 'ameera.gharibeh@gmail.com',
-            pass: 'hwlt zzld osep tvew',
+            user: 'jkrsrvr@gmail.com',
+            pass: '#Ryequ#twq33',
         },
     });
 
     await transporter.sendMail({
-        from: 'ameera.gharibeh@gmail.com',
+        from: 'jkrsrvr@gmail.com',
         to: email,
         subject: 'إعادة تعيين كلمة المرور',
         html: `
