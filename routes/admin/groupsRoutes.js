@@ -7,7 +7,7 @@ const enums = require('../../helpers/enums');
 const multer = require('multer');
 const path = require('path');
 const chatModel = require('../../models/chatModel');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const authCheckMiddleware = require('./authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -15,6 +15,23 @@ var storage = multer.diskStorage({
     filename: function (req, file, cb) {
         cb(null, helpers.generateKey(8) + '-' + Date.now() + path.extname(file.originalname));
     },
+});
+
+router.post('/', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
+    var g1 = new groupModel({
+        name: req.body.name,
+        icon: 'groups/' + req.file.filename,
+    });
+    g1.save();
+
+    helpers.resizeImage(g1.icon);
+
+    global.home_io.emit('groups_refresh', {});
+
+    return res.status(200).send({
+        ok: true,
+        id: g1._id,
+    });
 });
 
 const img_uploader = multer({
@@ -147,24 +164,7 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.post('/', img_uploader.single('icon'), adminPermissionCheck, async (req, res) => {
-    var g1 = new groupModel({
-        name: req.body.name,
-        icon: 'groups/' + req.file.filename,
-    });
-    g1.save();
-
-    helpers.resizeImage(g1.icon);
-
-    global.home_io.emit('groups_refresh', {});
-
-    return res.status(200).send({
-        ok: true,
-        id: g1._id,
-    });
-});
-
-router.put('/:id', img_uploader.single('icon'), adminPermissionCheck, async (req, res) => {
+router.put('/:id', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
     let update = {
         name: req.body.name,
@@ -198,7 +198,7 @@ router.put('/:id', img_uploader.single('icon'), adminPermissionCheck, async (req
     });
 });
 
-router.delete('/:id', adminPermissionCheck, async (req, res) => {
+router.delete('/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
 
     await groupModel
