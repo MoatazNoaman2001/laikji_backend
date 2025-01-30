@@ -2,6 +2,8 @@ const helpers = require('../helpers/helpers');
 
 module.exports = async (req, res, next) => {
     try {
+        const per = req.body.action;
+        const action = parseInt(per);
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
         if (!token) {
@@ -19,7 +21,7 @@ module.exports = async (req, res, next) => {
         console.log('print admin ', JSON.stringify(admin, null, 2));
         req.admin = admin;
 
-        if (admin.permissions[req.body.action] === '0') {
+        if (admin.permissions[action] === '0') {
             return res
                 .status(200)
                 .json({ ok: false, message: 'عذراً, لا تملك الصلاحية للقيام بهذا الإجراء' });
