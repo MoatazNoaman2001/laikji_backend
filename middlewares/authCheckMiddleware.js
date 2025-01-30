@@ -3,6 +3,7 @@ const helpers = require('../helpers/helpers');
 module.exports = async (req, res, next) => {
     try {
         const body = req.body;
+        console.log('auth first ', JSON.stringify(body, null, 2));
         const action = parseInt(req.headers['action']);
 
         const authHeader = req.headers['authorization'];
