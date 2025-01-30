@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 var ObjectId = require('mongoose').Types.ObjectId;
 const spyModal = require('../../models/spyModal');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {

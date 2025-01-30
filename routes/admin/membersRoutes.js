@@ -6,7 +6,7 @@ const helpers = require('../../helpers/helpers');
 const multer = require('multer');
 const path = require('path');
 const roomModel = require('../../models/roomModel');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 const { getMemberRemainingTime, getDefaultRegUser } = require('../../helpers/userHelpers');
 const registeredUserModal = require('../../models/registeredUserModal');

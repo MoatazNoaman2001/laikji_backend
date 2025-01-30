@@ -6,7 +6,7 @@ const helpers = require('../../helpers/helpers');
 const path = require('path');
 const multer = require('multer');
 const { getSettings } = require('../../helpers/tools');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {

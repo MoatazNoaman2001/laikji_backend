@@ -13,7 +13,7 @@ const reportModel = require('../../models/reportModel');
 const entryLogModel = require('../../models/entryLogModel');
 const adminLogModel = require('../../models/adminLogModel');
 const bannedModel = require('../../models/bannedModel');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({

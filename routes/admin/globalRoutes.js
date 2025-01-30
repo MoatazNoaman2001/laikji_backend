@@ -8,7 +8,7 @@ const { getSettings, millisecondsToDays } = require('../../helpers/tools');
 const { getRoomRemainingTime } = require('../../helpers/helpers');
 const enums = require('../../helpers/enums');
 const { getMemberRemainingTime } = require('../../helpers/userHelpers');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 router.get('/dashboard', multer().any(), async (req, res) => {
     const settings = await getSettings();

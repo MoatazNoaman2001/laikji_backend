@@ -12,7 +12,7 @@ const {
 } = require('../../helpers/userHelpers');
 const userModal = require('../../models/userModal');
 const roomModel = require('../../models/roomModel');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/entrylogs', async (req, res) => {

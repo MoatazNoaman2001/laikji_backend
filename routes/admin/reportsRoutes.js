@@ -4,7 +4,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 const reportModel = require('../../models/reportModel');
 const { notifyReportChanged } = require('../../helpers/helpers');
 const { isBannedFromServer } = require('../../helpers/userHelpers');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {

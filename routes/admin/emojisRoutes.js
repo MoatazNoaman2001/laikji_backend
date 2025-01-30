@@ -4,7 +4,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 const helpers = require('../../helpers/helpers');
 const multer = require('multer');
 const emojisModel = require('../../models/emojisModel');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {

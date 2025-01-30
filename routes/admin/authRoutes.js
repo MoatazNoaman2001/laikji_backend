@@ -9,7 +9,7 @@ const {
     sendPasswordResetEmail,
     generateVerificationToken,
 } = require('../../helpers/managerHelpers');
-const { adminPermissionCheck } = require('./authCheckMiddleware');
+const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
 
 router.get('/all', async (req, res) => {
     var page = req.query.page ? req.query.page : 1;

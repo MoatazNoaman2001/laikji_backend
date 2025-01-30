@@ -1,4 +1,4 @@
-const helpers = require('../../helpers/helpers');
+const helpers = require('../helpers/helpers');
 
 module.exports = async (req, res, next) => {
     try {
