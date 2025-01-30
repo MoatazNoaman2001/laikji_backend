@@ -66,7 +66,7 @@ router.post('/', authCheckMiddleware, async (req, res) => {
         }
         // Create a new user
         const pass = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, pass, email, permissions });
+        const newUser = new User({ username, password: pass, email, permissions });
         await newUser.save();
 
         res.status(201).json({
