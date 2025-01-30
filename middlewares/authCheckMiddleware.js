@@ -2,6 +2,7 @@ const helpers = require('../helpers/helpers');
 
 module.exports = async (req, res, next) => {
     try {
+        const body = req.body;
         const action = parseInt(req.headers['action']);
 
         const authHeader = req.headers['authorization'];
@@ -24,7 +25,7 @@ module.exports = async (req, res, next) => {
                 .status(200)
                 .json({ ok: false, message: 'عذراً, لا تملك الصلاحية للقيام بهذا الإجراء' });
         }
-        req.body = req.body;
+        req.body = body;
         return next();
     } catch (error) {
         console.error(`Permission middleware error: ${error.message}`);
