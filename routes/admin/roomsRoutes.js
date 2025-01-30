@@ -37,7 +37,9 @@ const adminPermissionCheck = async (req, res, next) => {
         req.admin = admin;
 
         if (admin.permissions[1] !== '1') {
-            return res.status(403).json({ ok: false, message: 'Unauthorized' });
+            return res
+                .status(200)
+                .json({ ok: false, message: 'عذراً, لا تملك الصلاحية للقيام بهذا الإجراء' });
         }
 
         next();
