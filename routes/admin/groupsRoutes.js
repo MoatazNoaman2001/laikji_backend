@@ -22,7 +22,8 @@ const img_uploader = multer({
 
 const adminPermissionCheck = async (req, res, next) => {
     try {
-        const token = req.headers['authorization'];
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
         if (!token) {
             console.log('no token');
             return res.status(403).json({ ok: false, data: 'Token is required' });
@@ -30,18 +31,20 @@ const adminPermissionCheck = async (req, res, next) => {
 
         const admin = await helpers.getAdminByToken(token);
         if (!admin) {
-            return res.status(403).json({ ok: false, data: 'Wrong token' });
+            return res.status(403).json({
+                ok: false,
+                data: 'Wrong token',
+            });
         }
-
         req.admin = admin;
 
-        if (admin.permissions[0] !== '1') {
+        if (admin.permissions[0] === '0') {
             return res
                 .status(200)
                 .json({ ok: false, message: 'عذراً, لا تملك الصلاحية للقيام بهذا الإجراء' });
         }
 
-        next();
+        return next();
     } catch (error) {
         console.error(`Permission middleware error: ${error.message}`);
         res.status(500).json({ ok: false, message: 'Internal Server Error' });
