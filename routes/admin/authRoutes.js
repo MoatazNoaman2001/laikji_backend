@@ -65,7 +65,8 @@ router.post('/', authCheckMiddleware, async (req, res) => {
             return res.status(400).json({ message: 'هذا الاسم موجود مسبقا' });
         }
         // Create a new user
-        const newUser = new User({ username, password, email, permissions });
+        const pass = await bcrypt.hash(password, 10);
+        const newUser = new User({ username, pass, email, permissions });
         await newUser.save();
 
         res.status(201).json({
