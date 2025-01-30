@@ -68,6 +68,7 @@ router.post('/', authCheckMiddleware, async (req, res) => {
         await newUser.save();
 
         res.status(201).json({
+            ok: true,
             message: 'تم تسجيلك بنجاح!',
         });
     } catch (error) {
