@@ -55,18 +55,19 @@ app.use('/:roomId', require('./routes/micRoutes'));
 app.use('/room_admin/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/roomRoutes'));
 app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/commandsRoutes'));
 // Admin Routes
-app.use('/admin/groups', authCheckMiddleware, require('./routes/admin/groupsRoutes'));
-app.use('/admin/entericons', authCheckMiddleware, require('./routes/admin/enterIconsRoutes'));
-app.use('/admin/emojis', authCheckMiddleware, require('./routes/admin/emojisRoutes'));
-app.use('/admin/rooms', authCheckMiddleware, require('./routes/admin/roomsRoutes'));
-app.use('/admin/members', authCheckMiddleware, require('./routes/admin/membersRoutes'));
-app.use('/admin/users', authCheckMiddleware, require('./routes/admin/usersRoutes'));
-app.use('/admin/spys', authCheckMiddleware, require('./routes/admin/spyRoutes'));
-app.use('/admin/reports', authCheckMiddleware, require('./routes/admin/reportsRoutes'));
-app.use('/admin/settings', authCheckMiddleware, require('./routes/admin/settingsRoutes'));
-app.use('/admin/global', authCheckMiddleware, require('./routes/admin/globalRoutes'));
-app.use('/admin/auth', authCheckMiddleware, require('./routes/admin/authRoutes'));
-// here to put the dashboard login routes
+app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
+app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));
+app.use('/admin/emojis', require('./routes/admin/emojisRoutes'));
+app.use('/admin/rooms', require('./routes/admin/roomsRoutes'));
+app.use('/admin/members', require('./routes/admin/membersRoutes'));
+app.use('/admin/users', require('./routes/admin/usersRoutes'));
+app.use('/admin/spys', require('./routes/admin/spyRoutes'));
+app.use('/admin/reports', require('./routes/admin/reportsRoutes'));
+app.use('/admin/settings', require('./routes/admin/settingsRoutes'));
+app.use('/admin/global', require('./routes/admin/globalRoutes'));
+app.use('/admin/auth', require('./routes/admin/authRoutes'));
+app.use('/admin/groups/', authCheckMiddleware, require('./routes/admin/groupsRoutes'));
+
 // Member Routes
 app.use(
     '/member/:member_id',
