@@ -9,7 +9,7 @@ const {
     sendPasswordResetEmail,
     generateVerificationToken,
 } = require('../../helpers/managerHelpers');
-const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
+const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 
 router.get('/all', async (req, res) => {
     var page = req.query.page ? req.query.page : 1;
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/', adminPermissionCheck, async (req, res) => {
+router.post('/', authCheckMiddleware, async (req, res) => {
     const { username, email, password, permissions } = req.body;
     try {
         const existingUser = await User.findOne({ email });
@@ -139,7 +139,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', adminPermissionCheck, async (req, res) => {
+router.put('/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
     let update = {
         username: req.body.username,
@@ -159,7 +159,7 @@ router.put('/:id', adminPermissionCheck, async (req, res) => {
         ok: true,
     });
 });
-router.delete('/:id', adminPermissionCheck, async (req, res) => {
+router.delete('/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
     const manager = await User.findById(id);
 

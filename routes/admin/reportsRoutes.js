@@ -4,7 +4,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 const reportModel = require('../../models/reportModel');
 const { notifyReportChanged } = require('../../helpers/helpers');
 const { isBannedFromServer } = require('../../helpers/userHelpers');
-const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
+const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {
@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.delete('/:id', adminPermissionCheck, async (req, res) => {
+router.delete('/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
     const item = await reportModel.findById(id);
 

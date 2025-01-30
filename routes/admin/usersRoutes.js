@@ -12,7 +12,7 @@ const {
 } = require('../../helpers/userHelpers');
 const userModal = require('../../models/userModal');
 const roomModel = require('../../models/roomModel');
-const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
+const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/entrylogs', async (req, res) => {
@@ -68,7 +68,7 @@ router.get('/entrylogs', async (req, res) => {
     }
 });
 
-router.get('/entrylogs/clear', adminPermissionCheck, async (req, res) => {
+router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
     try {
         var filters = {};
         if (req.query.id) {
@@ -88,7 +88,7 @@ router.get('/entrylogs/clear', adminPermissionCheck, async (req, res) => {
     }
 });
 
-router.post('/ban/:device', adminPermissionCheck, async (req, res) => {
+router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
     console.log('req body ' + JSON.stringify(req.body, null, 2));
     try {
@@ -167,7 +167,7 @@ router.post('/ban/:device', adminPermissionCheck, async (req, res) => {
     }
 });
 
-router.get('/unban/:device', adminPermissionCheck, async (req, res) => {
+router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
     try {
         await bannedModel.deleteMany({
             device: req.params.device,
@@ -186,7 +186,7 @@ router.get('/unban/:device', adminPermissionCheck, async (req, res) => {
     }
 });
 
-router.post('/set-stop/:device', adminPermissionCheck, async (req, res) => {
+router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
     try {
         let until = -1;
 
@@ -243,7 +243,7 @@ router.post('/set-stop/:device', adminPermissionCheck, async (req, res) => {
     }
 });
 
-router.get('/unstop/:device', adminPermissionCheck, async (req, res) => {
+router.get('/unstop/:device', authCheckMiddleware, async (req, res) => {
     try {
         const user = await userModal.findOneAndUpdate(
             {

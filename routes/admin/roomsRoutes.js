@@ -13,7 +13,7 @@ const reportModel = require('../../models/reportModel');
 const entryLogModel = require('../../models/entryLogModel');
 const adminLogModel = require('../../models/adminLogModel');
 const bannedModel = require('../../models/bannedModel');
-const { adminPermissionCheck } = require('../../middlewares/authCheckMiddleware');
+const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -133,7 +133,7 @@ router.post(
         { name: 'icon', maxCount: 1 },
         { name: 'welcome_img', maxCount: 1 },
     ]),
-    adminPermissionCheck,
+    authCheckMiddleware,
     async (req, res) => {
         const same_name_count = await roomModel.count({
             name: req.body.name,
@@ -277,7 +277,7 @@ router.put(
         { name: 'icon', maxCount: 1 },
         { name: 'welcome_img', maxCount: 1 },
     ]),
-    adminPermissionCheck,
+    authCheckMiddleware,
     async (req, res) => {
         try {
             const id = req.params.id;
@@ -455,7 +455,7 @@ router.put(
     },
 );
 
-router.put('/reset/:id', adminPermissionCheck, async (req, res) => {
+router.put('/reset/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
 
     try {
@@ -558,7 +558,7 @@ router.put('/reset/:id', adminPermissionCheck, async (req, res) => {
         throw error;
     }
 });
-router.delete('/:id', adminPermissionCheck, async (req, res) => {
+router.delete('/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
 
     let rooms = await roomModel.find({
