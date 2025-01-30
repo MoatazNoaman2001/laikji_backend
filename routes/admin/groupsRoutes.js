@@ -173,7 +173,7 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.post('/', adminPermissionCheck, img_uploader.single('icon'), async (req, res) => {
+router.post('/', img_uploader.single('icon'), adminPermissionCheck, async (req, res) => {
     var g1 = new groupModel({
         name: req.body.name,
         icon: 'groups/' + req.file.filename,
@@ -190,7 +190,7 @@ router.post('/', adminPermissionCheck, img_uploader.single('icon'), async (req, 
     });
 });
 
-router.put('/:id', adminPermissionCheck, img_uploader.single('icon'), async (req, res) => {
+router.put('/:id', img_uploader.single('icon'), adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     let update = {
         name: req.body.name,
