@@ -154,7 +154,8 @@ router.post('/', img_uploader.single('icon'), async (req, res) => {
             data: 'Wrong token',
         });
     }
-    if (admin.permissions[0] == '1') {
+    console.log('admin', JSON.stringify(admin, null, 2));
+    if (admin.permissions[0] === '1') {
         var g1 = new groupModel({
             name: req.body.name,
             icon: 'groups/' + req.file.filename,

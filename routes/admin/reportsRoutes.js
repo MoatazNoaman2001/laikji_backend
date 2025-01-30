@@ -25,8 +25,6 @@ router.get('/', async (req, res) => {
                 }
             }),
         );
-
-        console.log('response ', JSON.stringify(response, null, 2));
         res.status(200).send({
             ok: true,
             data: response,
