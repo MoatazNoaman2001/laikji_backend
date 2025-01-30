@@ -55,8 +55,8 @@ app.use('/:roomId', require('./routes/micRoutes'));
 app.use('/room_admin/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/roomRoutes'));
 app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/commandsRoutes'));
 // Admin Routes
-app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
-app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));
+app.use('/admin/groups', authCheckMiddleware, require('./routes/admin/groupsRoutes'));
+app.use('/admin/entericons', authCheckMiddleware, require('./routes/admin/enterIconsRoutes'));
 app.use('/admin/emojis', authCheckMiddleware, require('./routes/admin/emojisRoutes'));
 app.use('/admin/rooms', authCheckMiddleware, require('./routes/admin/roomsRoutes'));
 app.use('/admin/members', authCheckMiddleware, require('./routes/admin/membersRoutes'));
