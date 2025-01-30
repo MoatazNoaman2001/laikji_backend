@@ -22,8 +22,9 @@ const img_uploader = multer({
 
 const adminPermissionCheck = async (req, res, next) => {
     try {
-        const token = req.body.token || req.headers['authorization'];
+        const token = req.headers['authorization'];
         if (!token) {
+            console.log('no token');
             return res.status(403).json({ ok: false, data: 'Token is required' });
         }
 
