@@ -2,8 +2,8 @@ const helpers = require('../helpers/helpers');
 
 module.exports = async (req, res, next) => {
     try {
-        const per = req.body.action;
-        const action = parseInt(per);
+        const action = parseInt(req.headers['action']);
+
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
         if (!token) {
