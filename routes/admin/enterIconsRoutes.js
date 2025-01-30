@@ -6,21 +6,6 @@ const multer = require('multer');
 const enterIconModel = require('../../models/enterIconModel');
 const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 
-router.get('/', async (req, res) => {
-    try {
-        const response = await enterIconModel.find({}).sort('order').exec();
-        res.status(200).send({
-            ok: true,
-            data: response,
-        });
-    } catch (e) {
-        res.status(500).send({
-            ok: false,
-            error: e.message,
-        });
-    }
-});
-
 router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
     await Promise.all(
         req.files.map(async (file) => {
@@ -98,6 +83,20 @@ router.delete('/:id', multer().any(), authCheckMiddleware, async (req, res) => {
     res.status(200).send({
         ok: true,
     });
+});
+router.get('/', async (req, res) => {
+    try {
+        const response = await enterIconModel.find({}).sort('order').exec();
+        res.status(200).send({
+            ok: true,
+            data: response,
+        });
+    } catch (e) {
+        res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
 });
 
 module.exports = router;
