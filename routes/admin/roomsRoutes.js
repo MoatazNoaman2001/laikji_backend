@@ -457,7 +457,7 @@ router.put(
 
 router.put('/reset/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
-
+    console.log('reset room ', req.body);
     try {
         const room = await roomModel.findById(id);
         if (!room) {

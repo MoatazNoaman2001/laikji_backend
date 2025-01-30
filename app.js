@@ -10,7 +10,6 @@ const memberMiddleware = require('./middlewares/memberMiddleware');
 const memberPrivateMiddleware = require('./middlewares/memberPrivateMiddleware');
 const { getNowDateTime } = require('./helpers/tools');
 const http = require('http');
-const authCheckMiddleware = require('./middlewares/authCheckMiddleware');
 
 //#region if ssl enabled
 // const https = require('https');
