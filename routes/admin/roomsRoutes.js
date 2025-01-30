@@ -22,6 +22,31 @@ var storage = multer.diskStorage({
     },
 });
 
+const adminPermissionCheck = async (req, res, next) => {
+    try {
+        const token = req.body.token || req.headers['authorization'];
+        if (!token) {
+            return res.status(403).json({ ok: false, data: 'Token is required' });
+        }
+
+        const admin = await helpers.getAdminByToken(token);
+        if (!admin) {
+            return res.status(403).json({ ok: false, data: 'Wrong token' });
+        }
+
+        req.admin = admin;
+
+        if (admin.permissions[1] !== '1') {
+            return res.status(403).json({ ok: false, message: 'Unauthorized' });
+        }
+
+        next();
+    } catch (error) {
+        console.error(`Permission middleware error: ${error.message}`);
+        res.status(500).json({ ok: false, message: 'Internal Server Error' });
+    }
+};
+
 const img_uploader = multer({
     storage: storage,
 });
@@ -132,6 +157,7 @@ router.post(
         { name: 'icon', maxCount: 1 },
         { name: 'welcome_img', maxCount: 1 },
     ]),
+    adminPermissionCheck,
     async (req, res) => {
         const same_name_count = await roomModel.count({
             name: req.body.name,
@@ -145,7 +171,6 @@ router.post(
         }
         const endDate = new Date(req.body.endDate).toISOString();
         const startDate = new Date(req.body.startDate).toISOString();
-        console.log('posted room is ' + JSON.stringify(req.body, null, 2));
         const insert = {
             name: req.body.name,
             description: req.body.description,
@@ -276,6 +301,7 @@ router.put(
         { name: 'icon', maxCount: 1 },
         { name: 'welcome_img', maxCount: 1 },
     ]),
+    adminPermissionCheck,
     async (req, res) => {
         try {
             const id = req.params.id;
@@ -453,7 +479,7 @@ router.put(
     },
 );
 
-router.put('/reset/:id', async (req, res) => {
+router.put('/reset/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
 
     try {
@@ -556,7 +582,7 @@ router.put('/reset/:id', async (req, res) => {
         throw error;
     }
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
 
     let rooms = await roomModel.find({

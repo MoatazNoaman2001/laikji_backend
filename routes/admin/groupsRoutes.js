@@ -20,6 +20,30 @@ const img_uploader = multer({
     storage: storage,
 });
 
+const adminPermissionCheck = async (req, res, next) => {
+    try {
+        const token = req.body.token || req.headers['authorization'];
+        if (!token) {
+            return res.status(403).json({ ok: false, data: 'Token is required' });
+        }
+
+        const admin = await helpers.getAdminByToken(token);
+        if (!admin) {
+            return res.status(403).json({ ok: false, data: 'Wrong token' });
+        }
+
+        req.admin = admin;
+
+        if (admin.permissions[0] !== '1') {
+            return res.status(403).json({ ok: false, message: 'Unauthorized' });
+        }
+
+        next();
+    } catch (error) {
+        console.error(`Permission middleware error: ${error.message}`);
+        res.status(500).json({ ok: false, message: 'Internal Server Error' });
+    }
+};
 router.get('/', async (req, res) => {
     var response = [];
     var page = req.query.page ? req.query.page : 1;
@@ -146,88 +170,58 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.post('/', img_uploader.single('icon'), async (req, res) => {
-    const admin = await helpers.getAdminByToken(req.body.token);
-    if (!admin) {
-        return res.status(403).json({
-            ok: false,
-            data: 'Wrong token',
-        });
-    }
-    console.log('admin', JSON.stringify(admin, null, 2));
-    if (admin.permissions[0] === '1') {
-        var g1 = new groupModel({
-            name: req.body.name,
-            icon: 'groups/' + req.file.filename,
-        });
-        g1.save();
+router.post('/', adminPermissionCheck, img_uploader.single('icon'), async (req, res) => {
+    var g1 = new groupModel({
+        name: req.body.name,
+        icon: 'groups/' + req.file.filename,
+    });
+    g1.save();
 
-        helpers.resizeImage(g1.icon);
+    helpers.resizeImage(g1.icon);
 
-        global.home_io.emit('groups_refresh', {});
+    global.home_io.emit('groups_refresh', {});
 
-        return res.status(200).send({
-            ok: true,
-            id: g1._id,
-        });
-    } else {
-        return res.status(200).send({
-            ok: false,
-            message: 'لا تملك الصلاحية للقيام بهذا الاجراء',
-        });
-    }
+    return res.status(200).send({
+        ok: true,
+        id: g1._id,
+    });
 });
 
-router.put('/:id', img_uploader.single('icon'), async (req, res) => {
-    const admin = await helpers.getAdminByToken(req.body.token);
-    if (!admin) {
-        return res.status(403).json({
-            ok: false,
-            data: 'Wrong token',
+router.put('/:id', adminPermissionCheck, img_uploader.single('icon'), async (req, res) => {
+    const id = req.params.id;
+    let update = {
+        name: req.body.name,
+    };
+
+    if (req.file && req.file.filename) {
+        update.icon = 'groups/' + req.file.filename;
+        helpers.resizeImage(update.icon);
+
+        const old_item = await groupModel.find({
+            _id: new ObjectId(id),
         });
-    }
-    console.log('admin', JSON.stringify(admin, null, 2));
-    if (admin.permissions[0] === '1') {
-        const id = req.params.id;
-        let update = {
-            name: req.body.name,
-        };
 
-        if (req.file && req.file.filename) {
-            update.icon = 'groups/' + req.file.filename;
-            helpers.resizeImage(update.icon);
-
-            const old_item = await groupModel.find({
-                _id: new ObjectId(id),
-            });
-
-            if (old_item.length > 0) {
-                old_icon = old_item[0].icon;
-                helpers.removeFile(old_icon);
-            }
+        if (old_item.length > 0) {
+            old_icon = old_item[0].icon;
+            helpers.removeFile(old_icon);
         }
-
-        await groupModel.findOneAndUpdate(
-            {
-                _id: new ObjectId(id),
-            },
-            update,
-        );
-
-        global.home_io.emit('groups_refresh', {});
-
-        res.status(200).send({
-            ok: true,
-        });
-    } else {
-        return res.status(200).send({
-            ok: false,
-            message: 'لا تملك الصلاحية للقيام بهذا الاجراء',
-        });
     }
+
+    await groupModel.findOneAndUpdate(
+        {
+            _id: new ObjectId(id),
+        },
+        update,
+    );
+
+    global.home_io.emit('groups_refresh', {});
+
+    res.status(200).send({
+        ok: true,
+    });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
 
     await groupModel
