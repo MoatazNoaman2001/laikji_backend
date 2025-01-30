@@ -7,7 +7,6 @@ const enums = require('../../helpers/enums');
 const multer = require('multer');
 const path = require('path');
 const chatModel = require('../../models/chatModel');
-const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
