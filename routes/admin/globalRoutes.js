@@ -8,6 +8,7 @@ const { getSettings, millisecondsToDays } = require('../../helpers/tools');
 const { getRoomRemainingTime } = require('../../helpers/helpers');
 const enums = require('../../helpers/enums');
 const { getMemberRemainingTime } = require('../../helpers/userHelpers');
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 
 router.get('/dashboard', multer().any(), async (req, res) => {
     const settings = await getSettings();
@@ -148,7 +149,7 @@ router.get('/dashboard', multer().any(), async (req, res) => {
     });
 });
 
-router.post('/broadcast', multer().any(), async (req, res) => {
+router.post('/broadcast', multer().any(), adminPermissionCheck, async (req, res) => {
     global.io.emit('broadcast-msg', {
         data: {
             type: req.body.type,

@@ -9,7 +9,7 @@ const {
     sendPasswordResetEmail,
     generateVerificationToken,
 } = require('../../helpers/managerHelpers');
-// Login route
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 
 router.get('/all', async (req, res) => {
     var page = req.query.page ? req.query.page : 1;
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', adminPermissionCheck, async (req, res) => {
     const { username, email, password, permissions } = req.body;
     try {
         const existingUser = await User.findOne({ email });
@@ -122,32 +122,6 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-// router.get('/reset-password', async (req, res) => {
-//     const token = req.query.token;
-//     try {
-//         // Verify the token
-//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//         console.log('Decoded token:', decoded); // Debug log
-
-//         if (!decoded || !decoded.id) {
-//             return res
-//                 .status(400)
-//                 .json({ message: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية' });
-//         }
-
-//         // Hash the new password
-//         // const hashedPassword = await bcrypt.hash(password, 10);
-
-//         // Update the password in the database
-//         // await User.findByIdAndUpdate(decoded.id, { password: hashedPassword });
-
-//         res.status(200).json({ message: 'تمت إعادة تعيين كلمة المرور بنجاح' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(400).json({ message: 'حدث خطأ ما!' });
-//     }
-// });
-
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
     try {
@@ -165,7 +139,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     let update = {
         username: req.body.username,
@@ -185,7 +159,7 @@ router.put('/:id', async (req, res) => {
         ok: true,
     });
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     const manager = await User.findById(id);
 

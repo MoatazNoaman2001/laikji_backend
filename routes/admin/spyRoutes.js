@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 var ObjectId = require('mongoose').Types.ObjectId;
 const spyModal = require('../../models/spyModal');
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {
@@ -34,7 +35,7 @@ router.get('/:id', async (req, res) => {
     });
 });
 
-router.post('/', async (req, res) => {
+router.post('/', adminPermissionCheck, async (req, res) => {
     var item = new spyModal({
         name: req.body.name,
         password: req.body.password,
@@ -48,7 +49,7 @@ router.post('/', async (req, res) => {
     });
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     let update = {
         name: req.body.name,
@@ -68,7 +69,7 @@ router.put('/:id', async (req, res) => {
     });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     const item = await spyModal.findById(id);
 

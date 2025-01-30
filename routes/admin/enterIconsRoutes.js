@@ -6,6 +6,7 @@ const helpers = require('../../helpers/helpers');
 const path = require('path');
 const multer = require('multer');
 const enterIconModel = require('../../models/enterIconModel');
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {
@@ -22,7 +23,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', multer().any(), async (req, res) => {
+router.post('/', multer().any(), adminPermissionCheck, async (req, res) => {
     await Promise.all(
         req.files.map(async (file) => {
             let key = '';
@@ -63,7 +64,7 @@ router.post('/', multer().any(), async (req, res) => {
     });
 });
 
-router.post('/ordering', multer().any(), async (req, res) => {
+router.post('/ordering', multer().any(), adminPermissionCheck, async (req, res) => {
     for (const key in req.body.orderingData) {
         if (Object.hasOwnProperty.call(req.body.orderingData, key)) {
             const order = req.body.orderingData[key];
@@ -78,7 +79,7 @@ router.post('/ordering', multer().any(), async (req, res) => {
     });
 });
 
-router.delete('/:id', multer().any(), async (req, res) => {
+router.delete('/:id', multer().any(), adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     await enterIconModel
         .find({

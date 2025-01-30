@@ -6,6 +6,7 @@ const helpers = require('../../helpers/helpers');
 const multer = require('multer');
 const path = require('path');
 const roomModel = require('../../models/roomModel');
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 
 const { getMemberRemainingTime, getDefaultRegUser } = require('../../helpers/userHelpers');
 const registeredUserModal = require('../../models/registeredUserModal');
@@ -82,6 +83,7 @@ router.post(
         { name: 'special_shield', maxCount: 1 },
         { name: 'special_text_shield', maxCount: 1 },
     ]),
+    adminPermissionCheck,
     async (req, res) => {
         const same_username_count = await memberModal.count({
             username: req.body.username,
@@ -209,6 +211,7 @@ router.put(
         { name: 'special_text_shield', maxCount: 1 },
         { name: 'background', maxCount: 1 },
     ]),
+    adminPermissionCheck,
     async (req, res) => {
         const id = req.params.id;
         const same_username_count = await memberModal.count({
@@ -355,7 +358,7 @@ router.put(
     },
 );
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminPermissionCheck, async (req, res) => {
     const id = req.params.id;
     const member = await memberModal.findById(id);
 

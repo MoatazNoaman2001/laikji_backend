@@ -13,6 +13,7 @@ const reportModel = require('../../models/reportModel');
 const entryLogModel = require('../../models/entryLogModel');
 const adminLogModel = require('../../models/adminLogModel');
 const bannedModel = require('../../models/bannedModel');
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -21,33 +22,6 @@ var storage = multer.diskStorage({
         cb(null, helpers.generateKey(8) + '-' + Date.now() + path.extname(file.originalname));
     },
 });
-
-const adminPermissionCheck = async (req, res, next) => {
-    try {
-        const token = req.body.token || req.headers['authorization'];
-        if (!token) {
-            return res.status(403).json({ ok: false, data: 'Token is required' });
-        }
-
-        const admin = await helpers.getAdminByToken(token);
-        if (!admin) {
-            return res.status(403).json({ ok: false, data: 'Wrong token' });
-        }
-
-        req.admin = admin;
-
-        if (admin.permissions[1] !== '1') {
-            return res
-                .status(200)
-                .json({ ok: false, message: 'عذراً, لا تملك الصلاحية للقيام بهذا الإجراء' });
-        }
-
-        next();
-    } catch (error) {
-        console.error(`Permission middleware error: ${error.message}`);
-        res.status(500).json({ ok: false, message: 'Internal Server Error' });
-    }
-};
 
 const img_uploader = multer({
     storage: storage,

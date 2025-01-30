@@ -6,6 +6,7 @@ const helpers = require('../../helpers/helpers');
 const path = require('path');
 const multer = require('multer');
 const { getSettings } = require('../../helpers/tools');
+const { adminPermissionCheck } = require('./authCheckMiddleware');
 
 router.get('/', async (req, res) => {
     try {
@@ -22,7 +23,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', multer().any(), async (req, res) => {
+router.post('/', multer().any(), adminPermissionCheck, async (req, res) => {
     for (const key in req.body) {
         if (Object.hasOwnProperty.call(req.body, key)) {
             const obj = req.body[key];
