@@ -11,7 +11,7 @@ const memberPrivateMiddleware = require('./middlewares/memberPrivateMiddleware')
 const { getNowDateTime } = require('./helpers/tools');
 const http = require('http');
 const authCheckMiddleware = require('./middlewares/authCheckMiddleware');
-const group = require('./routes/admin/groupsRoutes');
+const group = require('./routes/admin/groupsRoutes.js');
 //#region if ssl enabled
 // const https = require('https');
 // const fs = require('fs');
