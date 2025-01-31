@@ -19,7 +19,7 @@ async function sendPasswordResetEmail(email, token) {
     });
 
     await transporter.sendMail({
-        from: 'jkrsrvr@gmail.com',
+        from: 'joker@laikji.com',
         to: email,
         subject: 'إعادة تعيين كلمة المرور',
         html: `
