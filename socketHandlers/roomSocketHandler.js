@@ -165,7 +165,7 @@ module.exports = (io) => {
         socket.handshake.query.country_code = country_code;
         socket.handshake.query.flag = flag;
         socket.handshake.query.ip = helpers.ip2num(ip);
-
+        console.log('country code ', country_code);
         var users_in_room = await getUsersInRoom(room_id, true, false);
         var users_in_waiting = await getUsersInWaiting(room_id, true);
 

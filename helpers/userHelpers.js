@@ -449,7 +449,6 @@ const getFlagAndCountryCode = async (ip) => {
             console.error('Error fetching geolocation:', error.message);
         }
     }
-    console.log('country ', country_code);
     return { flag, country_code };
 };
 
