@@ -161,7 +161,7 @@ module.exports = (io) => {
             );
         }
 
-        const { flag, country_code } = getFlagAndCountryCode(ip);
+        const { flag, country_code } = await getFlagAndCountryCode(ip);
         socket.handshake.query.country_code = country_code;
         socket.handshake.query.flag = flag;
         socket.handshake.query.ip = helpers.ip2num(ip);
