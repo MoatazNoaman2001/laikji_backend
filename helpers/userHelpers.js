@@ -441,10 +441,10 @@ const getFlagAndCountryCode = async (ip) => {
             const response = await axios.get(`http://ip-api.com/json/${ip}`);
             if (response.data && response.data.status === 'success') {
                 // country_code = ar_code;
-                country = response.data.country.toUpperCase();
+                country = response.data.country.toLowerCase();
                 country_code = countries.getName(country, 'ar') || 'غير متوفر';
 
-                flag = `${country_code}.svg`;
+                flag = `${country}.svg`;
             }
             console.log('ip result ', response.data);
             console.log('flag', flag, 'country', country_code);
