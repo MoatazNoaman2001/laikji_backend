@@ -443,6 +443,8 @@ const getFlagAndCountryCode = async (ip) => {
                 country_code = response.data.countryCode.toLowerCase();
                 flag = `${country_code}.svg`;
             }
+            console.log('ip result ', response.data);
+            console.log('flag', flag, 'country', country_code);
         } catch (error) {
             console.error('Error fetching geolocation:', error.message);
         }
