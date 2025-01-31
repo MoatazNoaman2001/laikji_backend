@@ -435,25 +435,21 @@ const removeUserFromWaiting = async (xroomId, xuser) => {
 const getFlagAndCountryCode = async (ip) => {
     let flag = 'xx.svg';
     let country_code = '';
-
     if (ip) {
         try {
             const response = await axios.get(`http://ip-api.com/json/${ip}`);
             if (response.data && response.data.status === 'success') {
-                // country_code = ar_code;
                 country = response.data.country.toLowerCase();
                 const code = response.data.countryCode;
-                country_code = countries.getName(code, 'ar') || 'غير متوفر';
+                country_code = countries.getName(code, 'ar');
 
                 flag = `${country}.svg`;
             }
-            console.log('ip result ', response.data);
-            console.log('flag', flag, 'country', country_code);
         } catch (error) {
             console.error('Error fetching geolocation:', error.message);
         }
     }
-
+    console.log('country ', country_code);
     return { flag, country_code };
 };
 
