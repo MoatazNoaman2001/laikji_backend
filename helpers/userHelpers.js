@@ -442,7 +442,8 @@ const getFlagAndCountryCode = async (ip) => {
             if (response.data && response.data.status === 'success') {
                 // country_code = ar_code;
                 country = response.data.country.toLowerCase();
-                country_code = countries.getName(country, 'ar') || 'غير متوفر';
+                const code = response.data.countryCode;
+                country_code = countries.getName(code, 'ar') || 'غير متوفر';
 
                 flag = `${country}.svg`;
             }
