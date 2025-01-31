@@ -144,10 +144,11 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', authCheckMiddleware, async (req, res) => {
     const id = req.params.id;
+    const pass = await bcrypt.hash(req.body.password, 10);
 
     let update = {
         username: req.body.username,
-        password: req.body.password,
+        password: pass,
         email: req.body.email,
         permissions: req.body.permissions,
     };
