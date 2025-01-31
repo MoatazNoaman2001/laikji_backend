@@ -1,4 +1,6 @@
 var geoip = require('geoip-lite');
+const axios = require('axios');
+
 const bannedModel = require('../models/bannedModel');
 const userModal = require('../models/userModal');
 const enums = require('./enums');
@@ -430,18 +432,19 @@ const removeUserFromWaiting = async (xroomId, xuser) => {
     global.waiting_users[xroomId] = [...set];
 };
 
-const getFlagAndCountryCode = (ip) => {
+const getFlagAndCountryCode = async (ip) => {
     let flag = 'xx.svg';
     let country_code = '';
 
     if (ip) {
-        var geo = geoip.lookup(ip);
-        if (geo) {
-            if (geo.country) {
-                const ar_code = countries.getName(geo.country.toLowerCase(), 'ar');
-                country_code = ar_code;
-                flag = geo.country.toLowerCase() + '.svg';
+        try {
+            const response = await axios.get(`http://ip-api.com/json/${ip}`);
+            if (response.data && response.data.status === 'success') {
+                country_code = response.data.countryCode.toLowerCase();
+                flag = `${country_code}.svg`;
             }
+        } catch (error) {
+            console.error('Error fetching geolocation:', error.message);
         }
     }
 
