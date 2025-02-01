@@ -88,7 +88,7 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
+router.post('/ban/:device', async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
     console.log('req body ' + JSON.stringify(req.body, null, 2));
     const device = req.params.device.replace(/[{}]/g, '');
