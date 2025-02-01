@@ -415,6 +415,7 @@ module.exports = (io) => {
         if (!xuser) {
             xuser = await createUser(key, xroomId, member, regUser_id);
         }
+        console.log('new user is ', JSON.stringify(xuser, null, 2));
 
         let os = xclient.handshake.query.os;
         if (
@@ -469,6 +470,7 @@ module.exports = (io) => {
             xuser._id,
             xroomId,
         );
+        console.log('update user is ', JSON.stringify(xuser, null, 2));
 
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
