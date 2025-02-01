@@ -171,8 +171,10 @@ router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
 
 router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
     try {
+        const device = req.params.device.replace(/[{}]/g, '');
+
         await bannedModel.deleteMany({
-            device: req.params.device,
+            device: device,
             type: enums.banTypes.server,
         });
 
