@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
+router.post('/', authCheckMiddleware, multer().any(), async (req, res) => {
     await Promise.all(
         req.files.map(async (file) => {
             let key = '';
