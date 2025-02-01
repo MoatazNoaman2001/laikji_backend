@@ -91,9 +91,11 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
 router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
     console.log('req body ' + JSON.stringify(req.body, null, 2));
+    const device = req.params.device.replace(/[{}]/g, '');
+
     try {
         let user = await userModal.findOne({
-            device: req.params.device,
+            device: device,
             key: req.body.key,
         });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
