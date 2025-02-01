@@ -211,7 +211,8 @@ router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
         ) {
             until = null;
         }
-
+        const find = await userModal.findOne({ device });
+        console.log('finded ', JSON.stringify(find, null, 2));
         const user = await userModal.findOneAndUpdate(
             {
                 device: device,
