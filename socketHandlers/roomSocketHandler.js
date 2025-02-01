@@ -1368,6 +1368,8 @@ module.exports = (io) => {
                             io.to(xroomId).emit('youtube-link-shared', {
                                 link: roomInfo.youtubeLink,
                             });
+                        } else {
+                            // alert
                         }
                     } else {
                         io.to(xuser.socketId).emit('alert-msg', {

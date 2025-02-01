@@ -189,7 +189,7 @@ router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
 router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
     try {
         let until = -1;
-
+        console.log('stop ', req.params.device);
         if (req.body.time && req.body.time != -1) {
             until = getNowDateTime(true) + req.body.time * 3600 * 1000;
             console.log(
