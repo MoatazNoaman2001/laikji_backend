@@ -366,7 +366,6 @@ module.exports = (io) => {
     }).on('connection', async (xclient) => {
         var xroomId;
         var key = xclient.handshake.query.key;
-        var device = xclient.handshake.query.device;
         var loginTime = xclient.handshake.query.time;
 
         console.log('on connection');
@@ -414,7 +413,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, device, xroomId, member, regUser_id);
+            xuser = await createUser(key, xroomId, member, regUser_id);
         }
         console.log('new user is ', JSON.stringify(xuser, null, 2));
 
