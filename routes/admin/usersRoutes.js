@@ -190,10 +190,10 @@ router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
 
 router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
     try {
-        const device = req.params.device.replace(/[{}]/g, '');
+        //const device = req.params.device.replace(/[{}]/g, '');
 
         let until = -1;
-        console.log('stop ', device);
+        //console.log('stop ', device);
         if (req.body.time && req.body.time != -1) {
             until = getNowDateTime(true) + req.body.time * 3600 * 1000;
             console.log(
@@ -213,11 +213,9 @@ router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
         ) {
             until = null;
         }
-        const find = await userModal.findOne({ device });
-        console.log('finded ', JSON.stringify(find, null, 2));
         const user = await userModal.findOneAndUpdate(
             {
-                device: device,
+                device: req.params.device,
                 key: req.body.key,
             },
             {
