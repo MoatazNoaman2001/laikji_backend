@@ -47,7 +47,7 @@ router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
     });
 });
 
-router.post('/ordering', multer().any(), authCheckMiddleware, async (req, res) => {
+router.post('/ordering', multer().any(), async (req, res) => {
     for (const key in req.body.orderingData) {
         if (Object.hasOwnProperty.call(req.body.orderingData, key)) {
             const order = req.body.orderingData[key];

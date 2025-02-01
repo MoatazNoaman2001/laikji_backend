@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
-    // Step 1: Add new emojis to the database
     await Promise.all(
         req.files.map(async (file) => {
             let key = '';
@@ -37,7 +36,7 @@ router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
             let ei = new emojisModel({
                 key: key,
                 path: p,
-                order: 9999999, // Temporary high value
+                order: 9999999,
                 category: req.body.category,
             });
 
@@ -45,11 +44,9 @@ router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
         }),
     );
 
-    // Step 2: Re-order emojis within each category
     const allEmojis = await emojisModel.find({}).sort('order').exec();
     const categories = {};
 
-    // Group by category
     allEmojis.forEach((emoji) => {
         if (!categories[emoji.category]) {
             categories[emoji.category] = [];
@@ -57,7 +54,6 @@ router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
         categories[emoji.category].push(emoji);
     });
 
-    // Update order for each category
     for (const [category, emojis] of Object.entries(categories)) {
         let order = 1;
         for (const emoji of emojis) {
@@ -71,7 +67,7 @@ router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
     });
 });
 
-router.post('/ordering', multer().any(), authCheckMiddleware, async (req, res) => {
+router.post('/ordering', multer().any(), async (req, res) => {
     for (const key in req.body.orderingData) {
         if (Object.hasOwnProperty.call(req.body.orderingData, key)) {
             const order = req.body.orderingData[key];
