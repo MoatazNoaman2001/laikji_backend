@@ -1780,17 +1780,17 @@ module.exports = (io) => {
             });
 
             xclient.on('temp-disconnect', async (data) => {
-                console.log('temp-disconnect called');
-                var date = new Date(loginTime);
-                date.setSeconds(date.getSeconds() + 6);
-                var time = date.toISOString();
-                setInterval(() => {
-                    time -= 1000;
-                    if (time <= 0) {
-                        disconnectFromRoom(data);
-                        xclient.emit('logout');
-                    }
-                }, 1000);
+                // console.log('temp-disconnect called');
+                // var date = new Date(loginTime);
+                // date.setSeconds(date.getSeconds() + 6);
+                // var time = date.toISOString();
+                // setInterval(() => {
+                //     time -= 1000;
+                //     if (time <= 0) {
+                //         disconnectFromRoom(data);
+                //         xclient.emit('logout');
+                //     }
+                // }, 1000);
             });
 
             // Add mic sharing feature
