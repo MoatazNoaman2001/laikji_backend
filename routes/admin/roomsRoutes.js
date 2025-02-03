@@ -612,7 +612,7 @@ router.get('/retrieve/:id', async (req, res) => {
 
         if (!latestBackup) {
             return res
-                .status(404)
+                .status(200)
                 .json({ ok: false, message: 'لا يوجد نسخة احتياطية لهذه الغرفة' });
         }
 
@@ -682,10 +682,10 @@ router.get('/retrieve/:id', async (req, res) => {
         });
 
         if (!updatedRoom) {
-            return res.status(404).json({ ok: false, message: 'Room not found.' });
+            return res.status(200).json({ ok: false, message: 'Room not found.' });
         }
         if (!updatedMeeting) {
-            return res.status(404).json({ ok: false, message: 'Meeting Room not found.' });
+            return res.status(200).json({ ok: false, message: 'Meeting Room not found.' });
         }
         return res.status(200).json({
             ok: true,
@@ -694,12 +694,10 @@ router.get('/retrieve/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('Error retrieving and updating room:', error);
-        return res
-            .status(500)
-            .json({
-                ok: false,
-                message: 'لم نتمكن من استعادة الغرفة الاحتياطية لوجود خطأ, يرجى المحاولة لاحقاً',
-            });
+        return res.status(200).json({
+            ok: false,
+            message: 'لم نتمكن من استعادة الغرفة الاحتياطية لوجود خطأ, يرجى المحاولة لاحقاً',
+        });
     }
 });
 
