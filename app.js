@@ -85,7 +85,16 @@ app.use(
 
 // Private Chat
 app.use('/private-chat', require('./routes/privateChat/privateChatRoutes'));
-
+cron.schedule(
+    '0 0 * * *',
+    () => {
+        console.log('Running rooms backup...');
+        roomsBackup();
+    },
+    {
+        timezone: 'Asia/Riyadh',
+    },
+);
 app.use('/', (req, res) => {
     res.status(200).send({
         serverVersion: 'v1.4.0-beta',
@@ -127,14 +136,5 @@ global = {
     waiting_users,
     filters: new Set(),
 };
-cron.schedule(
-    '0 0 * * *',
-    () => {
-        console.log('Running rooms backup...');
-        roomsBackup();
-    },
-    {
-        timezone: 'Asia/Riyadh',
-    },
-);
+
 require('./helpers/filterHelpers').initFilter();
