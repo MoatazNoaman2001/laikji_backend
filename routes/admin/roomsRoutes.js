@@ -9,11 +9,11 @@ const chatModel = require('../../models/chatModel');
 const memberModal = require('../../models/memberModal');
 const { generateRoomSerial } = require('../../helpers/tools');
 const registeredUserModal = require('../../models/registeredUserModal');
-const reportModel = require('../../models/reportModel');
 const entryLogModel = require('../../models/entryLogModel');
 const adminLogModel = require('../../models/adminLogModel');
 const bannedModel = require('../../models/bannedModel');
 const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
+const roomsBackup = require('../../models/roomsBackup');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -367,11 +367,6 @@ router.put(
                 update.icon = 'rooms/' + req.files.icon[0].filename;
 
                 helpers.resizeImage(update.icon);
-                // const old_item = await roomModel.find({ _id: new ObjectId(id) });
-                // if (old_item.length > 0) {
-                //     const old_icon = old_item[0].icon;
-                //     helpers.removeFile(old_icon);
-                // }
             }
 
             const currentRoom = await roomModel.findById(id);
@@ -606,6 +601,106 @@ router.delete('/:id', authCheckMiddleware, async (req, res) => {
     res.status(200).send({
         ok: true,
     });
+});
+
+// Endpoint to get the latest backup and substitute the room data
+router.get('/retrieve/:id', async (req, res) => {
+    const { roomId } = req.params.id;
+
+    try {
+        const latestBackup = await roomsBackup.findOne({ roomRef: roomId }).sort({ createdAt: -1 });
+
+        if (!latestBackup) {
+            return res
+                .status(404)
+                .json({ ok: false, message: 'لا يوجد نسخة احتياطية لهذه الغرفة' });
+        }
+
+        const insert = {
+            name: latestBackup.name,
+            description: latestBackup.description,
+            groupRef: latestBackup.groupRef,
+            isGold: latestBackup.isGold,
+            isSpecial: latestBackup.isSpecial,
+            icon: latestBackup.icon,
+            endDate: latestBackup.endDate,
+            startDate: latestBackup.startDate,
+            o_name: latestBackup.o_name,
+            o_phone: latestBackup.o_phone,
+            o_email: latestBackup.o_email,
+            o_address: latestBackup.o_address,
+            o_other: latestBackup.o_other,
+            master_count: latestBackup.master_count,
+            super_admin_count: latestBackup.super_admin_count,
+            admin_count: latestBackup.admin_count,
+            member_count: latestBackup.member_count,
+            capacity: latestBackup.capacity,
+            serial: latestBackup.serial,
+            owner: {
+                name: latestBackup.owner_name,
+                email: latestBackup.owner_email,
+            },
+            welcome: {
+                img: latestBackup.welcome.img,
+                text: latestBackup.welcome.text,
+                direction: latestBackup.welcome.direction,
+                color: latestBackup.welcome.color,
+            },
+            outside_style: {
+                background: latestBackup.outside_style.background,
+                font_color: latestBackup.outside_style.font_color,
+            },
+            inside_style: {
+                background_1: latestBackup.inside_style.background_1,
+                background_2: latestBackup.inside_style.background_2,
+                border_1: latestBackup.inside_style.border_1,
+                font_color: latestBackup.inside_style.font_color,
+            },
+        };
+
+        const updatedRoom = await roomModel.findByIdAndUpdate(roomId, insert, { new: true });
+
+        const updatedMeeting = await roomModel.findByIdAndUpdate(updatedRoom.meetingRef, {
+            ...insert,
+            parentRef: doc._id,
+            isMeeting: true,
+            isGold: false,
+            isSpecial: false,
+            groupRef: '606b8f8844e78f128ecbfac2',
+            description: '',
+            outside_style: {
+                background: '255|255|255',
+                font_color: '0|0|0',
+            },
+            inside_style: {
+                background_1: '61|147|185',
+                background_2: '72|170|211',
+                border_1: '72|170|211',
+                font_color: '255|255|255',
+            },
+            meetingPassword: '0000',
+        });
+
+        if (!updatedRoom) {
+            return res.status(404).json({ ok: false, message: 'Room not found.' });
+        }
+        if (!updatedMeeting) {
+            return res.status(404).json({ ok: false, message: 'Meeting Room not found.' });
+        }
+        return res.status(200).json({
+            ok: true,
+            message: 'تمت استعادة الغرفة الاحتياطية بنجاح',
+            updatedRoom,
+        });
+    } catch (error) {
+        console.error('Error retrieving and updating room:', error);
+        return res
+            .status(500)
+            .json({
+                ok: false,
+                message: 'لم نتمكن من استعادة الغرفة الاحتياطية لوجود خطأ, يرجى المحاولة لاحقاً',
+            });
+    }
 });
 
 module.exports = router;

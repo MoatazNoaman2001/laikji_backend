@@ -3,6 +3,7 @@ const socket = require('socket.io');
 const dbConfig = require('./helpers/dbConfig');
 const pkg = require('./package.json');
 const port = process.env.PORT;
+const cron = require('node-cron');
 
 const app = express();
 const roomAdminMiddleware = require('./middlewares/roomAdminMiddleware');
@@ -10,6 +11,7 @@ const memberMiddleware = require('./middlewares/memberMiddleware');
 const memberPrivateMiddleware = require('./middlewares/memberPrivateMiddleware');
 const { getNowDateTime } = require('./helpers/tools');
 const http = require('http');
+const roomsBackup = require('./helpers/roomBackup');
 
 //#region if ssl enabled
 // const https = require('https');
@@ -125,5 +127,14 @@ global = {
     waiting_users,
     filters: new Set(),
 };
-
+cron.schedule(
+    '0 0 * * *',
+    () => {
+        console.log('Running rooms backup...');
+        roomsBackup();
+    },
+    {
+        timezone: 'Asia/Riyadh',
+    },
+);
 require('./helpers/filterHelpers').initFilter();
