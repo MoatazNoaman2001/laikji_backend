@@ -615,7 +615,7 @@ router.get('/retrieve/:id', async (req, res) => {
                 .status(200)
                 .json({ ok: false, message: 'لا يوجد نسخة احتياطية لهذه الغرفة' });
         }
-
+        const backupDate = new Date(latestBackup.createdAt).toISOString();
         const insert = {
             name: latestBackup.name,
             description: latestBackup.description,
@@ -689,7 +689,7 @@ router.get('/retrieve/:id', async (req, res) => {
         }
         return res.status(200).json({
             ok: true,
-            message: 'تمت استعادة الغرفة الاحتياطية بنجاح',
+            message: ` تمت استعادة آخر نسخة احتياطية للغرفة بتاريخ: ${backupDate} بنجاح`,
             updatedRoom,
         });
     } catch (error) {
