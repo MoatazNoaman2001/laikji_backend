@@ -628,11 +628,10 @@ router.get('/backupone/:id', async (req, res) => {
 });
 
 router.get('/retrieve/:id', async (req, res) => {
-    const { roomId } = req.params.id;
+    const roomId = req.params.id;
 
     try {
         const latestBackup = await roomsBackup.findOne({ roomRef: roomId }).sort({ createdAt: -1 });
-
         if (!latestBackup) {
             return res
                 .status(200)
@@ -685,7 +684,7 @@ router.get('/retrieve/:id', async (req, res) => {
 
         const updatedMeeting = await roomModel.findByIdAndUpdate(updatedRoom.meetingRef, {
             ...insert,
-            parentRef: doc._id,
+            parentRef: updatedRoom._id,
             isMeeting: true,
             isGold: false,
             isSpecial: false,

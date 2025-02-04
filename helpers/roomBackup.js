@@ -8,13 +8,17 @@ async function backupRooms() {
 
         const rooms = await roomModel.find({});
         rooms.forEach(async (room) => {
-            const query = { roomRef: room._id };
+            const query = { roomRef: id };
             await roomsBackup.deleteOne(query);
-            const backup = { ...room, roomRef: room._id };
-            await roomsBackup.insertOne(backup);
-        });
+            const backup = room.toObject();
+            backup.roomRef = room._id;
 
-        console.log('Room backup completed successfully.');
+            const newDoc = new roomsBackup(backup);
+            await newDoc.save();
+            // return res
+            //     .status(200)
+            //     .json({ message: 'Room backed up successfully', room: newDoc });;
+        });
     } catch (err) {
         console.error('Error during room backup: ', err);
     }
