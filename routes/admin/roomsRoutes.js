@@ -610,7 +610,11 @@ router.get('/backupone/:id', async (req, res) => {
             const query = { roomRef: id };
             await roomsBackup.deleteOne(query);
             const backup = { ...room, roomRef: room._id };
-            await roomsBackup.insertOne(backup);
+            const newDoc = new roomsBackup(backup);
+            delete newDoc._id;
+
+            await newDoc.save();
+            //  await roomsBackup.insertOne(backup);
             return res.status(200).json({ message: 'room backed up successfully' });
         } else {
             return res.status(404).json({ message: 'room not found' });
