@@ -602,7 +602,23 @@ router.delete('/:id', authCheckMiddleware, async (req, res) => {
         ok: true,
     });
 });
-
+router.get('/backupone/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const room = await roomModel.findById(id);
+        if (room) {
+            const query = { roomRef: id };
+            await roomsBackup.deleteOne(query);
+            const backup = { ...room, roomRef: room._id };
+            await roomsBackup.insertOne(backup);
+            return res.status(200).json({ message: 'room backed up successfully' });
+        } else {
+            return res.status(404).json({ message: 'room not found' });
+        }
+    } catch (err) {
+        console.log('error backup ', err);
+    }
+});
 // Endpoint to get the latest backup and substitute the room data
 router.get('/retrieve/:id', async (req, res) => {
     const { roomId } = req.params.id;
