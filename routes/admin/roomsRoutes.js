@@ -609,21 +609,24 @@ router.get('/backupone/:id', async (req, res) => {
         if (room) {
             const query = { roomRef: id };
             await roomsBackup.deleteOne(query);
-            const backup = { ...room, roomRef: room._id };
+
+            const backup = room.toObject();
+            backup.roomRef = room._id;
+
             const newDoc = new roomsBackup(backup);
-            delete newDoc._id;
 
             await newDoc.save();
-            //  await roomsBackup.insertOne(backup);
-            return res.status(200).json({ message: 'room backed up successfully', room: newDoc });
+
+            return res.status(200).json({ message: 'Room backed up successfully', room: newDoc });
         } else {
-            return res.status(404).json({ message: 'room not found' });
+            return res.status(404).json({ message: 'Room not found' });
         }
     } catch (err) {
-        console.log('error backup ', err);
+        console.error('Error during backup:', err);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 });
-// Endpoint to get the latest backup and substitute the room data
+
 router.get('/retrieve/:id', async (req, res) => {
     const { roomId } = req.params.id;
 
