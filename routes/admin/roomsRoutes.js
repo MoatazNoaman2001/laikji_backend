@@ -615,7 +615,7 @@ router.get('/backupone/:id', async (req, res) => {
 
             await newDoc.save();
             //  await roomsBackup.insertOne(backup);
-            return res.status(200).json({ message: 'room backed up successfully' });
+            return res.status(200).json({ message: 'room backed up successfully', room: newDoc });
         } else {
             return res.status(404).json({ message: 'room not found' });
         }
