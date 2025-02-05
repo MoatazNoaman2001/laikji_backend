@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const roomModel = require('../models/roomModel');
 const roomsBackup = require('../models/roomsBackup');
+const { getNowDateTime } = require('./tools');
 
 async function backupRooms() {
     try {
@@ -15,9 +16,9 @@ async function backupRooms() {
 
             const backup = room.toObject();
             backup.roomRef = roomId;
-            const backupDate = new Date().toISOString();
+            const now = getNowDateTime(true);
 
-            await roomModel.findByIdAndUpdate(roomId, { latestBackup: backupDate });
+            await roomModel.findByIdAndUpdate(roomId, { latestBackup: now });
             const newDoc = new roomsBackup(backup);
             await newDoc.save();
         }
