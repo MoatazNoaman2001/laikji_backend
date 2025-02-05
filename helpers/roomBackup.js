@@ -16,7 +16,7 @@ async function backupRooms() {
 
             const backup = room.toObject();
             backup.roomRef = roomId;
-            const now = getNowDateTime(true);
+            const now = getNowDateTime();
 
             await roomModel.findByIdAndUpdate(roomId, { latestBackup: now });
             const newDoc = new roomsBackup(backup);
