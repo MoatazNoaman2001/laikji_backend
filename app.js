@@ -3,6 +3,7 @@ const socket = require('socket.io');
 const dbConfig = require('./helpers/dbConfig');
 const pkg = require('./package.json');
 const port = process.env.PORT;
+const cron = require('node-cron');
 
 const app = express();
 const roomAdminMiddleware = require('./middlewares/roomAdminMiddleware');
@@ -10,6 +11,7 @@ const memberMiddleware = require('./middlewares/memberMiddleware');
 const memberPrivateMiddleware = require('./middlewares/memberPrivateMiddleware');
 const { getNowDateTime } = require('./helpers/tools');
 const http = require('http');
+const { backupRooms } = require('./helpers/roomBackup');
 
 //#region if ssl enabled
 // const https = require('https');
@@ -94,6 +96,16 @@ app.use('/', (req, res) => {
 server.listen(port, () => {
     console.log(`We are online ${port}`);
     dbConfig();
+    cron.schedule(
+        '23 12 * * *',
+        () => {
+            console.log('Running rooms backup...');
+            backupRooms();
+        },
+        {
+            timezone: 'Asia/Riyadh',
+        },
+    );
 });
 
 const waiting_users = new Set();
