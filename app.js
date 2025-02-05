@@ -96,18 +96,17 @@ app.use('/', (req, res) => {
 server.listen(port, () => {
     console.log(`We are online ${port}`);
     dbConfig();
-    cron.schedule(
-        '23 12 * * *',
-        () => {
-            console.log('Running rooms backup...');
-            backupRooms();
-        },
-        {
-            timezone: 'Asia/Riyadh',
-        },
-    );
 });
-
+cron.schedule(
+    '25 12 * * *',
+    () => {
+        console.log('Running rooms backup...');
+        backupRooms();
+    },
+    {
+        timezone: 'Asia/Riyadh',
+    },
+);
 const waiting_users = new Set();
 const rooms_users = new Set();
 const room_io = socket(server, {
