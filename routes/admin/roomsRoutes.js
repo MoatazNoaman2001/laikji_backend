@@ -7,7 +7,7 @@ const path = require('path');
 const enums = require('../../helpers/enums');
 const chatModel = require('../../models/chatModel');
 const memberModal = require('../../models/memberModal');
-const { generateRoomSerial } = require('../../helpers/tools');
+const { generateRoomSerial, getNowDateTime } = require('../../helpers/tools');
 const registeredUserModal = require('../../models/registeredUserModal');
 const entryLogModel = require('../../models/entryLogModel');
 const adminLogModel = require('../../models/adminLogModel');
@@ -612,7 +612,9 @@ router.get('/backupone/:id', async (req, res) => {
 
             const backup = room.toObject();
             backup.roomRef = room._id;
+            const now = getNowDateTime(true);
 
+            await roomModel.findByIdAndUpdate(id, { latestBackup: now });
             const newDoc = new roomsBackup(backup);
 
             await newDoc.save();
