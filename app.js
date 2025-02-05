@@ -85,9 +85,7 @@ app.use(
 
 // Private Chat
 app.use('/private-chat', require('./routes/privateChat/privateChatRoutes'));
-cron.schedule('9 12 * * *', roomsBackup, {
-    timezone: 'Asia/Riyadh',
-});
+cron.schedule('12 12 * * *', () => backupRooms());
 app.use('/', (req, res) => {
     res.status(200).send({
         serverVersion: 'v1.4.0-beta',
