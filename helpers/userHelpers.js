@@ -432,26 +432,42 @@ const removeUserFromWaiting = async (xroomId, xuser) => {
     global.waiting_users[xroomId] = [...set];
 };
 
-const getFlagAndCountryCode = async (ip) => {
+// const getFlagAndCountryCode = async (ip) => {
+//     let flag = 'xx.svg';
+//     let country_code = '';
+//     if (ip) {
+//         try {
+//             const response = await axios.get(`http://ip-api.com/json/${ip}`);
+//             if (response.data && response.data.status === 'success') {
+//                 country = response.data.country.toLowerCase();
+//                 const code = response.data.countryCode;
+//                 country_code = countries.getName(code, 'ar');
+
+//                 flag = `${country}.svg`;
+//             }
+//         } catch (error) {
+//             console.error('Error fetching geolocation:', error.message);
+//         }
+//     }
+//     return { flag, country_code };
+// };
+const getFlagAndCountryCode = (ip) => {
     let flag = 'xx.svg';
     let country_code = '';
-    if (ip) {
-        try {
-            const response = await axios.get(`http://ip-api.com/json/${ip}`);
-            if (response.data && response.data.status === 'success') {
-                country = response.data.country.toLowerCase();
-                const code = response.data.countryCode;
-                country_code = countries.getName(code, 'ar');
 
-                flag = `${country}.svg`;
+    if (ip) {
+        var geo = geoip.lookup(ip);
+        if (geo) {
+            if (geo.country) {
+                const ar_code = countries.getName(geo.country.toLowerCase(), 'ar');
+                country_code = ar_code;
+                flag = geo.country.toLowerCase() + '.svg';
             }
-        } catch (error) {
-            console.error('Error fetching geolocation:', error.message);
         }
     }
+
     return { flag, country_code };
 };
-
 const getNameInRoom = (name, users) => {
     let same_name_clients = users.filter((item) => {
         return item.name == name;

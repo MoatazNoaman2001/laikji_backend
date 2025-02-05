@@ -86,10 +86,10 @@ app.use(
 // Private Chat
 app.use('/private-chat', require('./routes/privateChat/privateChatRoutes'));
 cron.schedule(
-    '0 0 * * *',
+    '0 12 * * *',
     () => {
         console.log('Running rooms backup...');
-        roomsBackup();
+        backupRooms();
     },
     {
         timezone: 'Asia/Riyadh',

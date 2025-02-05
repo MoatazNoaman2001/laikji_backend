@@ -7,20 +7,30 @@ async function backupRooms() {
         console.log('Starting room backup...');
 
         const rooms = await roomModel.find({});
-        rooms.forEach(async (room) => {
-            const query = { roomRef: id };
-            await roomsBackup.deleteOne(query);
-            const backup = room.toObject();
-            backup.roomRef = room._id;
+        for (const room of rooms) {
+            const roomId = room._id;
+            const query = { roomRef: roomId };
 
+            // Delete old backup if exists
+            await roomsBackup.deleteOne(query);
+
+            // Prepare new backup data
+            const backup = room.toObject();
+            backup.roomRef = roomId;
+            const backupDate = new Date().toISOString();
+
+            // Update the original room's latest backup date
+            await roomModel.findByIdAndUpdate(roomId, { latestBackup: backupDate });
+
+            // Save the new backup document
             const newDoc = new roomsBackup(backup);
             await newDoc.save();
-            // return res
-            //     .status(200)
-            //     .json({ message: 'Room backed up successfully', room: newDoc });;
-        });
+        }
+
+        console.log('Room backup completed successfully.');
     } catch (err) {
         console.error('Error during room backup: ', err);
     }
 }
+
 module.exports = { backupRooms };

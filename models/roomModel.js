@@ -112,6 +112,7 @@ const schema = Schema({
         type: Date,
         default: getNowDateTime,
     },
+    latestBackup: String,
     o_name: String,
     o_phone: String,
     o_email: String,
