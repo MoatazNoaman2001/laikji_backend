@@ -98,7 +98,7 @@ server.listen(port, () => {
     dbConfig();
 });
 cron.schedule(
-    '17 13 * * *',
+    '0 0 * * *',
     () => {
         console.log('Running rooms backup...');
         backupRooms();
