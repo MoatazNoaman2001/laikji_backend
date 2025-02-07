@@ -399,6 +399,7 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
 };
 
 const isUserInAnyRoom = (device) => {
+    console.log('all users are xxxxxxxxxxxxxxxxxx', global.app_users.length);
     return global.app_users.includes(device);
 };
 
@@ -892,10 +893,10 @@ const isDualAllowedManyRooms = async (device) => {
     const settings = await getSettings();
     if (isUserInAnyRoom(device)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
-            return true;
-        } else return false;
+            return false;
+        } else return true;
     }
-    return false;
+    return true;
 };
 
 module.exports = {
