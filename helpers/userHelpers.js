@@ -399,7 +399,7 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
 };
 
 const isUserInAnyRoom = (device) => {
-    return Object.values(global.rooms_users).some((roomUsers) => roomUsers.includes(device));
+    return global.app_users.includes(device);
 };
 
 const addUserToRoom = (xroomId, xuser) => {
@@ -420,12 +420,7 @@ const removeUserFromRoom = async (xroomId, xuser) => {
 
     global.rooms_users[xroomId] = [...set];
 
-    let userId = xuser._id.toString();
-    let userExistsInAnyRoom = Object.values(global.rooms_users).some((roomUsers) =>
-        roomUsers.includes(userId),
-    );
-
-    if (!userExistsInAnyRoom) {
+    if (isUserInAnyRoom) {
         global.app_users = global.app_users.filter((device) => device !== xuser.device);
     }
 };
