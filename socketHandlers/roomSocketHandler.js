@@ -183,7 +183,7 @@ module.exports = (io) => {
 
         users_in_room = [...users_in_room, ...users_in_waiting];
 
-        if (!(await isDualAllowedSameRoom(device, users_in_room))) {
+        if (await isDualAllowedSameRoom(device, users_in_room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -194,7 +194,7 @@ module.exports = (io) => {
                 ),
             );
         }
-        if (!(await isDualAllowedSameName(device))) {
+        if (await isDualAllowedSameName(device)) {
             return next(
                 new Error(
                     JSON.stringify({
