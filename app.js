@@ -109,7 +109,7 @@ cron.schedule(
 );
 const waiting_users = new Set();
 const rooms_users = new Set();
-const app_users = new Array();
+const app_users = new Set();
 const room_io = socket(server, {
     rejectUnauthorized: false,
     cors: {

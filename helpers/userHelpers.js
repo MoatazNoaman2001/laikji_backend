@@ -399,15 +399,22 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
 };
 
 const isUserInAnyRoom = (device) => {
-    console.log('all users are xxxxxxxxxxxxxxxxxx', global.app_users.length);
-    return global.app_users.includes(device);
+    let all_users = [];
+
+    for (const key in global.app_users) {
+        if (Object.hasOwnProperty.call(global.app_users, key)) {
+            all_users = global.app_users[key];
+        }
+    }
+    console.log('all users are xxxxxxxxxxxxxxxxxx', all_users.length);
+    return all_users.includes(device);
 };
 
 const addUserToRoom = (xroomId, xuser) => {
     if (!global.rooms_users[xroomId]) global.rooms_users[xroomId] = [];
     global.rooms_users[xroomId].push(xuser._id.toString());
-    if (!global.app_users) global.app_users = [];
-    global.app_users.push(xuser.device);
+    if (!global.app_users[xroomId]) global.app_users[xroomId] = [];
+    global.app_users[xroomId].push(xuser.device);
 };
 
 const removeUserFromRoom = async (xroomId, xuser) => {
@@ -421,9 +428,15 @@ const removeUserFromRoom = async (xroomId, xuser) => {
 
     global.rooms_users[xroomId] = [...set];
 
-    if (isUserInAnyRoom) {
-        global.app_users = global.app_users.filter((device) => device !== xuser.device);
-    }
+    let all;
+
+    if (!global.app_users[xroomId]) all = [];
+    else all = [...global.app_users[xroomId]];
+
+    const app = new Set(all);
+    app.delete(xuser.device);
+
+    global.app_users[xroomId] = [...app];
 };
 
 const addUserToWaiting = (xroomId, xuser) => {
