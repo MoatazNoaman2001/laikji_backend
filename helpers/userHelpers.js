@@ -885,7 +885,7 @@ const isDualAllowedSameRoom = async (device, users) => {
     });
 
     if (same_device_clients.length > 0) {
-        if (settings && settings.enable_dual_same_room == 1) {
+        if (settings && settings.enable_dual_same_room == 0) {
             return true;
         } else return false;
     }
@@ -896,7 +896,7 @@ const isDualAllowedSameRoom = async (device, users) => {
 const isDualAllowedSameName = async (device) => {
     const settings = await getSettings();
     if (isUserInAnyRoom(device)) {
-        if (settings && settings.enable_dual_many_rooms == 1) {
+        if (settings && settings.enable_dual_many_rooms == 0) {
             return true;
         } else return false;
     }
