@@ -888,9 +888,9 @@ const isDualAllowedSameRoom = async (device, users) => {
     return false;
 };
 
-const isDualAllowedSameName = async (device) => {
+const isDualAllowedManyRooms = async (device) => {
     const settings = await getSettings();
-    if (isUserInAnyRoom(device)) {
+    if (!isUserInAnyRoom(device)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
             return true;
         } else return false;
@@ -929,6 +929,6 @@ module.exports = {
     getDefaultRegUser,
     notifyUserChanged,
     notifyUserChangedByName,
-    isDualAllowedSameName,
+    isDualAllowedManyRooms,
     isDualAllowedSameRoom,
 };

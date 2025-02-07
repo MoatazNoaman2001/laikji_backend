@@ -39,7 +39,7 @@ const {
     getSpyUser,
     isBannedFromServer,
     notifyUserChanged,
-    isDualAllowedSameName,
+    isDualAllowedManyRooms,
     isDualAllowedSameRoom,
 } = require('../helpers/userHelpers');
 const privateChatModel = require('../models/privateChatModel');
@@ -194,7 +194,7 @@ module.exports = (io) => {
                 ),
             );
         }
-        if (await isDualAllowedSameName(device)) {
+        if (await isDualAllowedManyRooms(device)) {
             return next(
                 new Error(
                     JSON.stringify({
