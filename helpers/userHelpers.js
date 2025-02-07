@@ -893,10 +893,10 @@ const isDualAllowedManyRooms = async (device) => {
     const settings = await getSettings();
     if (isUserInAnyRoom(device)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
-            return false;
-        } else return true;
+            return true;
+        } else return false;
     }
-    return true;
+    return false;
 };
 
 module.exports = {
