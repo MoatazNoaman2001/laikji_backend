@@ -109,6 +109,7 @@ cron.schedule(
 );
 const waiting_users = new Set();
 const rooms_users = new Set();
+const app_users = new Array();
 const room_io = socket(server, {
     rejectUnauthorized: false,
     cors: {
@@ -132,6 +133,7 @@ global = {
     io: room_io,
     home_io: home_io,
     rooms_users,
+    app_users,
     waiting_users,
     filters: new Set(),
 };

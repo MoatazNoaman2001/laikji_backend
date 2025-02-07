@@ -39,6 +39,8 @@ const {
     getSpyUser,
     isBannedFromServer,
     notifyUserChanged,
+    isDualAllowedSameName,
+    isDualAllowedSameRoom,
 } = require('../helpers/userHelpers');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
@@ -49,7 +51,7 @@ const registeredUserModal = require('../models/registeredUserModal');
 const roomUsersModel = require('../models/roomUsersModel');
 const { getRoomData } = require('../helpers/mediasoupHelpers');
 
-var allMutedList = new Map(); // list for users whom muted all participarates
+var allMutedList = new Map();
 var mutedSpeakers = new Map();
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -161,13 +163,12 @@ module.exports = (io) => {
             );
         }
 
-        const { flag, country_code } = await getFlagAndCountryCode(ip);
+        const { flag, country_code } = getFlagAndCountryCode(ip);
         socket.handshake.query.country_code = country_code;
         socket.handshake.query.flag = flag;
         socket.handshake.query.ip = helpers.ip2num(ip);
         var users_in_room = await getUsersInRoom(room_id, true, false);
         var users_in_waiting = await getUsersInWaiting(room_id, true);
-
         if (users_in_room.length >= room.capacity) {
             return next(
                 new Error(
@@ -182,6 +183,28 @@ module.exports = (io) => {
 
         users_in_room = [...users_in_room, ...users_in_waiting];
 
+        if (!(await isDualAllowedSameRoom(device, users_in_room))) {
+            return next(
+                new Error(
+                    JSON.stringify({
+                        error_code: 3,
+                        msg_ar: 'يمنع استخدام النواسخ والدخول بأكثر من اسم لنفس الروم',
+                        msg_en: 'Sorry, not allowed to use dual to enter same room from same device',
+                    }),
+                ),
+            );
+        }
+        if (!(await isDualAllowedSameName(device))) {
+            return next(
+                new Error(
+                    JSON.stringify({
+                        error_code: 3,
+                        msg_ar: 'يمنع استخدام النواسخ والدخول لأكثر من روم من نفس الجهاز',
+                        msg_en: 'Sorry, not allowed to use dual to enter many rooms with same device',
+                    }),
+                ),
+            );
+        }
         let is_error = false;
 
         const same_user_name = getNameInRoom(name, users_in_room);

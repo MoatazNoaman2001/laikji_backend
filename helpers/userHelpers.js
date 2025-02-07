@@ -398,9 +398,15 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
     return res;
 };
 
+const isUserInAnyRoom = (device) => {
+    return Object.values(global.rooms_users).some((roomUsers) => roomUsers.includes(device));
+};
+
 const addUserToRoom = (xroomId, xuser) => {
     if (!global.rooms_users[xroomId]) global.rooms_users[xroomId] = [];
     global.rooms_users[xroomId].push(xuser._id.toString());
+    if (!global.app_users) global.app_users = [];
+    global.app_users.push(xuser.device);
 };
 
 const removeUserFromRoom = async (xroomId, xuser) => {
@@ -413,6 +419,15 @@ const removeUserFromRoom = async (xroomId, xuser) => {
     set.delete(xuser._id.toString());
 
     global.rooms_users[xroomId] = [...set];
+
+    let userId = xuser._id.toString();
+    let userExistsInAnyRoom = Object.values(global.rooms_users).some((roomUsers) =>
+        roomUsers.includes(userId),
+    );
+
+    if (!userExistsInAnyRoom) {
+        global.app_users = global.app_users.filter((device) => device !== xuser.device);
+    }
 };
 
 const addUserToWaiting = (xroomId, xuser) => {
@@ -862,6 +877,32 @@ const notifyUserChanged = async (user_id, extras = {}, with_command_stop = false
     }
 };
 
+const isDualAllowedSameRoom = async (device, users) => {
+    const settings = await getSettings();
+
+    let same_device_clients = users.filter((item) => {
+        return item.device == device;
+    });
+
+    if (same_device_clients.length > 0) {
+        if (settings && settings.enable_dual_same_room == 1) {
+            return true;
+        } else return false;
+    }
+
+    return false;
+};
+
+const isDualAllowedSameName = async (device) => {
+    const settings = await getSettings();
+    if (isUserInAnyRoom(device)) {
+        if (settings && settings.enable_dual_many_rooms == 1) {
+            return true;
+        } else return false;
+    }
+    return false;
+};
+
 module.exports = {
     getUserById,
     getUserOfMember,
@@ -893,4 +934,6 @@ module.exports = {
     getDefaultRegUser,
     notifyUserChanged,
     notifyUserChangedByName,
+    isDualAllowedSameName,
+    isDualAllowedSameRoom,
 };
