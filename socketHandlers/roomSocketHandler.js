@@ -183,28 +183,6 @@ module.exports = (io) => {
 
         users_in_room = [...users_in_room, ...users_in_waiting];
 
-        if (await isDualAllowedSameRoom(device, users_in_room)) {
-            return next(
-                new Error(
-                    JSON.stringify({
-                        error_code: 3,
-                        msg_ar: 'يمنع استخدام النواسخ والدخول بأكثر من اسم لنفس الروم',
-                        msg_en: 'Sorry, not allowed to use dual to enter same room from same device',
-                    }),
-                ),
-            );
-        }
-        if (await isDualAllowedManyRooms(device)) {
-            return next(
-                new Error(
-                    JSON.stringify({
-                        error_code: 3,
-                        msg_ar: 'يمنع استخدام النواسخ والدخول لأكثر من روم من نفس الجهاز',
-                        msg_en: 'Sorry, not allowed to use dual to enter many rooms with same device',
-                    }),
-                ),
-            );
-        }
         let is_error = false;
 
         const same_user_name = getNameInRoom(name, users_in_room);
@@ -380,7 +358,28 @@ module.exports = (io) => {
                 );
             }
         }
-
+        if (await isDualAllowedSameRoom(device, users_in_room)) {
+            return next(
+                new Error(
+                    JSON.stringify({
+                        error_code: 3,
+                        msg_ar: 'يمنع استخدام النواسخ والدخول بأكثر من اسم لنفس الروم',
+                        msg_en: 'Sorry, not allowed to use dual to enter same room from same device',
+                    }),
+                ),
+            );
+        }
+        if (await isDualAllowedManyRooms(device)) {
+            return next(
+                new Error(
+                    JSON.stringify({
+                        error_code: 3,
+                        msg_ar: 'يمنع استخدام النواسخ والدخول لأكثر من روم من نفس الجهاز',
+                        msg_en: 'Sorry, not allowed to use dual to enter many rooms with same device',
+                    }),
+                ),
+            );
+        }
         if (!is_error) {
             next();
         }
