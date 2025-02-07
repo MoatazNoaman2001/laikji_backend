@@ -94,6 +94,10 @@ const schema = Schema({
         type: Number,
         default: 0, //(0: none;) (1: all;) (2: members & admins;)
     },
+    allow_send_imgs: {
+        type: Number,
+        default: 0, // 0 false 1 true
+    },
     lock_msg: String,
     inside_style: {
         type: Object,

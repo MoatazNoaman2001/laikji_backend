@@ -117,8 +117,7 @@ router.get('/:id', async (req, res) => {
         if (master_mem) {
             item.master = master_mem;
             item.master_code = master_mem.code;
-            (item.accept_photos = master_mem.accept_photos),
-                (item.master_password = master_mem.password);
+            item.master_password = master_mem.password;
         }
     }
 
@@ -167,6 +166,7 @@ router.post(
             admin_count: req.body.admin_count,
             member_count: req.body.member_count,
             capacity: req.body.capacity,
+            allow_send_imgs: req.body.allow_send_imgs,
             serial: await generateRoomSerial(),
             owner: {
                 name: req.body.owner_name,
@@ -239,7 +239,6 @@ router.post(
                 username: 'MASTER',
                 type: enums.userTypes.mastermain,
                 password: req.body.master_password,
-                accept_photos: req.body.accept_photos,
                 roomRefs: [doc._id, doc.meetingRef],
                 type: enums.userTypes.mastermain,
                 permissions: '11111111111111111',
@@ -251,7 +250,6 @@ router.post(
             var master_mem = new memberModal({
                 username: 'MASTER',
                 password: req.body.master_password,
-                accept_photos: req.body.accept_photos,
                 type: enums.fileTypes.mastermain,
                 roomRefs: [doc._id, meeting_room._id],
                 regUserRef: master._id,
@@ -326,6 +324,7 @@ router.put(
                 'mic_setting',
                 'shared_mic_capacity',
                 'welcome_text',
+                'allow_send_imgs',
             ];
 
             fieldsToUpdate.forEach((field) => {
@@ -431,8 +430,7 @@ router.put(
             if (master_mem) {
                 master_mem.password = req.body.master_password;
                 master_mem.code = req.body.master_code;
-                (master_mem.accept_photos = req.body.accept_photos),
-                    (master_mem.endDate = update.endDate);
+                master_mem.endDate = update.endDate;
                 await master_mem.save();
             }
 
