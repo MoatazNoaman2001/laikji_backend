@@ -967,6 +967,13 @@ module.exports = (io) => {
                 }
             });
 
+            xclient.on('playerbytes', async (data) =>{
+                if (!xuser)return;
+                if (!data) return;
+                console.log(`received data: ${data.toString}`);
+                io.to("audioplayerfeed", data);
+            });
+            
             xclient.on('public-msg', async (data) => {
                 if (!xuser) return;
                 if (!data.text) return;
