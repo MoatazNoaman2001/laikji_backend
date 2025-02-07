@@ -403,10 +403,12 @@ const isUserInAnyRoom = (device) => {
 
     for (const key in global.app_users) {
         if (Object.hasOwnProperty.call(global.app_users, key)) {
-            all_users = global.app_users[key];
+            const all = global.app_users[key];
+            all_users.push(...all); // Spread elements from `all` into `all_users`
         }
     }
-    console.log('all users are xxxxxxxxxxxxxxxxxx', all_users.length);
+
+    console.log('All users are xxxxxxxxxxxxxxxxxx', all_users.length);
     return all_users.includes(device);
 };
 
