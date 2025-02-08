@@ -89,7 +89,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
             });
         } else {
             let room = await roomModel.findById(pc.roomRef);
-            if (room.allow_send_imgs) {
+            if (room && room.allow_send_imgs == 1) {
                 global.io.emit(chat_id, {
                     key: req.body.key,
                     type: 'img',
