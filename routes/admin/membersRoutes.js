@@ -92,7 +92,7 @@ router.post(
         if (same_username_count > 0) {
             return res.status(200).send({
                 ok: false,
-                msg: 'اسم العضو موجود مسبقاً',
+                message: 'اسم العضو موجود مسبقاً',
             });
         }
 
