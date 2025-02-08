@@ -8,9 +8,9 @@ const { Writable } = require('stream');
 const fs = require('fs');
 const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
-const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
+// const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+// ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -1027,7 +1027,7 @@ module.exports = (io) => {
                     console.error('Invalid data received:', data);
                     return;
                 }
-                
+
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
 
                 try {
