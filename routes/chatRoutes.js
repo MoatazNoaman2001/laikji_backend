@@ -7,6 +7,7 @@ const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
 const { public_user, getUserById } = require('../helpers/userHelpers');
 const roomModel = require('../models/roomModel');
+const chatModel = require('../models/chatModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -26,14 +27,15 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
         let img_url = process.env.mediaUrl + 'uploads/' + req.file.filename;
         let chat_id = req.body.chat_id;
         let is_private = req.body.is_private == '1' ? true : false;
-        let pc = await privateChatModel
-            .find({
-                key: chat_id,
-            })
-            .populate(['user1Ref', 'user2Ref']);
 
-        pc = pc[0];
         if (is_private) {
+            let pc = await privateChatModel
+                .find({
+                    key: chat_id,
+                })
+                .populate(['user1Ref', 'user2Ref']);
+
+            pc = pc[0];
             let body = {
                 type: 'img',
                 msg: img_url,
@@ -87,16 +89,19 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
                 msg: msg,
             });
         } else {
-            let room = await roomModel.findById(pc.roomRef);
-            if (room && room.allow_send_imgs == 1) {
-                global.io.emit(chat_id, {
-                    key: req.body.key,
-                    type: 'img',
-                    msg: img_url,
-                    style: req.body.style,
-                    chat: chat_id,
-                    user: await public_user(xuser),
-                });
+            const chat = await chatModel.findById(chat_id);
+            if (roomRef) {
+                let room = await roomModel.findById(chat.roomRef);
+                if (room && room.allow_send_imgs == 1) {
+                    global.io.emit(chat_id, {
+                        key: req.body.key,
+                        type: 'img',
+                        msg: img_url,
+                        style: req.body.style,
+                        chat: chat_id,
+                        user: await public_user(xuser),
+                    });
+                }
             } else {
                 global.io.to(xuser.socketId).emit('new-alert', {
                     msg_ar: `ارسال الصور غير مسموح في هذه الغرفة`,
