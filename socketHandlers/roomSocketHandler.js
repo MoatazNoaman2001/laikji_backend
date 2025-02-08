@@ -63,38 +63,38 @@ var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
 
-const audioStream = new Writable({
-    write(chunk, encoding, callback) {
-        this.ffmpegStream.write(chunk, encoding, callback);
-    }
-});
+// const audioStream = new Writable({
+//     write(chunk, encoding, callback) {
+//         this.ffmpegStream.write(chunk, encoding, callback);
+//     }
+// });
 
-const ffmpegProcess = ffmpeg()
-    .input(audioStream)
-    .inputFormat('mp3')
-    .addOptions([
-        '-profile:v baseline',
-        '-level 3.0',
-        '-start_number 0',
-        '-hls_time 10',
-        '-hls_list_size 0',
-        '-f hls'
-    ])
-    .output(path.join(__dirname, 'uploads', 'output.m3u8'))
-    .on('start', (commandLine) => {
-        console.log(`FFmpeg process started with command: ${commandLine}`);
-    })
-    .on('progress', (progress) => {
-        console.log(`Processing: ${progress.percent}% done`);
-    })
-    .on('end', () => {
-        console.log('HLS conversion completed');
-    })
-    .on('error', (err) => {
-        console.error('Error during HLS conversion:', err);
-    })
-    .run();
-audioStream.ffmpegStream = ffmpegProcess.stdin;
+// const ffmpegProcess = ffmpeg()
+//     .input(audioStream)
+//     .inputFormat('mp3')
+//     .addOptions([
+//         '-profile:v baseline',
+//         '-level 3.0',
+//         '-start_number 0',
+//         '-hls_time 10',
+//         '-hls_list_size 0',
+//         '-f hls'
+//     ])
+//     .output(path.join(__dirname, 'uploads', 'output.m3u8'))
+//     .on('start', (commandLine) => {
+//         console.log(`FFmpeg process started with command: ${commandLine}`);
+//     })
+//     .on('progress', (progress) => {
+//         console.log(`Processing: ${progress.percent}% done`);
+//     })
+//     .on('end', () => {
+//         console.log('HLS conversion completed');
+//     })
+//     .on('error', (err) => {
+//         console.error('Error during HLS conversion:', err);
+//     })
+//     .run();
+// audioStream.ffmpegStream = ffmpegProcess.stdin;
 
 
 module.exports = (io) => {
@@ -1029,61 +1029,48 @@ module.exports = (io) => {
                 }
 
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
+                const sanitizedExt = ext.replace(/[^a-zA-Z0-9]/g, '');
+                const fileName = path.join(uploadsDir, `${userId}_audio.${sanitizedExt}`);
+                fs.appendFileSync(fileName, bytes);
+                console.log(`Received chunk ${index} from user ${userId}`);
 
-                try {
-                    audioStream.write(Buffer.from(bytes));
-                    console.log(`Received chunk ${index} from user ${userId}`);
-                } catch (err) {
-                    console.error('Error writing chunk to stream:', err);
-                }
-            
-                if (isLastChunk) {
-                    console.log(`Last chunk received from user ${userId} in room ${roomId}`);
-                    audioStream.end();
-                }
+                if (index === 0) {
+                    const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
 
-                // const sanitizedExt = ext.replace(/[^a-zA-Z0-9]/g, '');
-                // const fileName = path.join(uploadsDir, `${userId}_audio.${sanitizedExt}`);
-                // fs.appendFileSync(fileName, bytes);
-                // console.log(`Received chunk ${index} from user ${userId}`);
-
-                // if (index === 0) {
-                //     const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
-
-                //     ffmpeg(fileName)
-                //         .addOptions([
-                //             '-profile:v baseline', // Baseline profile for broader compatibility
-                //             '-level 3.0', // H.264 level
-                //             '-start_number 0', // Start segment numbering from 0
-                //             '-hls_time 10', // Segment duration (10 seconds)
-                //             '-hls_list_size 0', // Keep all segments in the playlist
-                //             '-f hls' // Output format
-                //         ])
-                //         .output(outputHlsPath)
-                //         .on('start', (commandLine) => {
-                //             console.log(`FFmpeg process started with command: ${commandLine}`);
-                //         })
-                //         .on('progress', (progress) => {
-                //             console.log(`Processing: ${progress.percent}% done`);
-                //         })
-                //         .on('end', () => {
-                //             console.log('HLS conversion completed');
-                //             // Notify the client that the HLS stream is ready
-                //             xclient.emit('hlsReady', {
-                //                 userId,
-                //                 roomId,
-                //                 hlsUrl: `/uploads/${userId}_audio.m3u8`
-                //             });
-                //         })
-                //         .on('error', (err) => {
-                //             console.error('Error during HLS conversion:', err);
-                //         })
-                //         .run();
+                    ffmpeg(fileName)
+                        .addOptions([
+                            '-profile:v baseline', // Baseline profile for broader compatibility
+                            '-level 3.0', // H.264 level
+                            '-start_number 0', // Start segment numbering from 0
+                            '-hls_time 10', // Segment duration (10 seconds)
+                            '-hls_list_size 0', // Keep all segments in the playlist
+                            '-f hls' // Output format
+                        ])
+                        .output(outputHlsPath)
+                        .on('start', (commandLine) => {
+                            console.log(`FFmpeg process started with command: ${commandLine}`);
+                        })
+                        .on('progress', (progress) => {
+                            console.log(`Processing: ${progress.percent}% done`);
+                        })
+                        .on('end', () => {
+                            console.log('HLS conversion completed');
+                            // Notify the client that the HLS stream is ready
+                            xclient.emit('hlsReady', {
+                                userId,
+                                roomId,
+                                hlsUrl: `/uploads/${userId}_audio.m3u8`
+                            });
+                        })
+                        .on('error', (err) => {
+                            console.error('Error during HLS conversion:', err);
+                        })
+                        .run();
                     
-                // }
-                // if (data.isLastChunk) {
-                //     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
-                // }
+                }
+                if (data.isLastChunk) {
+                    console.log(`Last chunk received from user ${userId} in room ${roomId}`);
+                }
             });
             
             xclient.on('public-msg', async (data) => {
