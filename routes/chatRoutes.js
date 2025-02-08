@@ -8,6 +8,7 @@ const privateMessageModel = require('../models/privateMessageModel');
 const { public_user, getUserById } = require('../helpers/userHelpers');
 const roomModel = require('../models/roomModel');
 const chatModel = require('../models/chatModel');
+const e = require('express');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var storage = multer.diskStorage({
@@ -101,11 +102,16 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
                         chat: chat_id,
                         user: await public_user(xuser),
                     });
+                } else {
+                    global.io.to(xuser.socketId).emit('new-alert', {
+                        msg_ar: `ارسال الصور غير مسموح في هذه الغرفة`,
+                        msg_en: `not allowed to send images in this room`,
+                    });
                 }
             } else {
-                global.io.to(xuser.socketId).emit('new-alert', {
-                    msg_ar: `ارسال الصور غير مسموح في هذه الغرفة`,
-                    msg_en: `not allowed to send images in this room`,
+                res.status(200).send({
+                    ok: false,
+                    message: 'لا يمكن ارسال صورة في هذه الغرفة',
                 });
             }
         }
