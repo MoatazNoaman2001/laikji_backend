@@ -56,14 +56,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    try {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-    } catch (err) {
-        console.error('Error creating uploads directory:', err);
-    }
-}
+
 
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -981,12 +974,21 @@ module.exports = (io) => {
             xclient.on('playerbytes', async (data) =>{
                 if (!xuser)return;
                 if (!data) return;
+                const uploadsDir = path.join(__dirname, 'uploads');
+                if (!fs.existsSync(uploadsDir)) {
+                    try {
+                        fs.mkdirSync(uploadsDir, { recursive: true });
+                    } catch (err) {
+                        console.error('Error creating uploads directory:', err);
+                    }
+                }``
                 console.log(`received data: id: ${data['userId']}, ext: ${data['ext']}`);
                 if (!data.userId || !data.bytes || !data.ext || !data.roomId) {
                     console.error('Invalid data received:', data);
                     return;
                 }
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
+
                 const sanitizedExt = ext.replace(/[^a-zA-Z0-9]/g, '');
                 const fileName = path.join(uploadsDir, `${userId}_audio.${sanitizedExt}`);
                 fs.appendFileSync(fileName, bytes);
