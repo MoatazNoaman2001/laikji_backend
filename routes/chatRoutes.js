@@ -23,6 +23,7 @@ const img_uploader = multer({
 router.post('/send-img', img_uploader.single('img'), async (req, res) => {
     try {
         let xuser = await helpers.getUserByToken(req.headers.token);
+        console.log('img req ', JSON.stringify(req.body, null, 2));
         let img_url = process.env.mediaUrl + 'uploads/' + req.file.filename;
         let chat_id = req.body.chat_id;
         let is_private = req.body.is_private == '1' ? true : false;
