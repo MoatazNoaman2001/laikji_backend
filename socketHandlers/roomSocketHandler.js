@@ -3,6 +3,8 @@ const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const path = require('path');
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -53,6 +55,16 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
+
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    try {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+    } catch (err) {
+        console.error('Error creating uploads directory:', err);
+    }
+}
+
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -969,8 +981,25 @@ module.exports = (io) => {
             xclient.on('playerbytes', async (data) =>{
                 if (!xuser)return;
                 if (!data) return;
-                console.log(`received data: ${data.toString}`);
-                io.to("audioplayerfeed", data);
+                console.log(`received data: id: ${data['userId']}, ext: ${data['ext']}`);
+                if (!data.userId || !data.bytes || !data.ext || !data.roomId) {
+                    console.error('Invalid data received:', data);
+                    return;
+                }
+                const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
+                const sanitizedExt = ext.replace(/[^a-zA-Z0-9]/g, '');
+                const fileName = path.join(uploadsDir, `${userId}_audio.${sanitizedExt}`);
+                fs.appendFileSync(fileName, bytes);
+                console.log(`Received chunk ${index} from user ${userId}`);
+
+                if (index === 0) {
+                    const fileUrl = `http://185.203.118.57.com/uploads/${userId}_audio.${ext}`;
+                    io.to(roomId).emit('audioFileUrl', { userId, fileUrl });
+                    console.log(`File URL sent to user ${userId}: ${fileUrl}`);
+                }
+                if (data.isLastChunk) {
+                    console.log(`Last chunk received from user ${userId} in room ${roomId}`);
+                }
             });
             
             xclient.on('public-msg', async (data) => {
