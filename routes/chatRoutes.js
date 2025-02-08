@@ -23,19 +23,17 @@ const img_uploader = multer({
 router.post('/send-img', img_uploader.single('img'), async (req, res) => {
     try {
         let xuser = await helpers.getUserByToken(req.headers.token);
-        console.log('img req ', JSON.stringify(req.body, null, 2));
         let img_url = process.env.mediaUrl + 'uploads/' + req.file.filename;
         let chat_id = req.body.chat_id;
         let is_private = req.body.is_private == '1' ? true : false;
+        let pc = await privateChatModel
+            .find({
+                key: chat_id,
+            })
+            .populate(['user1Ref', 'user2Ref']);
+
+        pc = pc[0];
         if (is_private) {
-            let pc = await privateChatModel
-                .find({
-                    key: chat_id,
-                })
-                .populate(['user1Ref', 'user2Ref']);
-
-            pc = pc[0];
-
             let body = {
                 type: 'img',
                 msg: img_url,
@@ -100,7 +98,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
                     user: await public_user(xuser),
                 });
             } else {
-                global.io.to(socketId.socketId).emit('new-alert', {
+                global.io.to(xuser.socketId).emit('new-alert', {
                     msg_ar: `ارسال الصور غير مسموح في هذه الغرفة`,
                     msg_en: `not allowed to send images in this room`,
                 });
