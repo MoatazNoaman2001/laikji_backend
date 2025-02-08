@@ -104,7 +104,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
                     });
                 } else {
                     global.io.to(xuser.socketId).emit('new-alert', {
-                        msg_ar: `ارسال الصور غير مسموح في هذه الغرفة`,
+                        msg_ar: 'ميزة إرسال الصور مغلقة في هذا الغرفة',
                         msg_en: `not allowed to send images in this room`,
                     });
                 }
