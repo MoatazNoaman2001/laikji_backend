@@ -9,7 +9,6 @@ module.exports = (io) => {
 
         next();
     }).on('connection', async (xclient) => {
-        // console.log('[home io] welcome');
         xclient.on('send_reports_count', async (data) => {
             await notifyReportChanged();
         });

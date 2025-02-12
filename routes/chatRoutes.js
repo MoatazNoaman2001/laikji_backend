@@ -116,10 +116,10 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
             }
         }
 
-        res.status(200).send({
-            ok: true,
-            data: img_url,
-        });
+        // res.status(200).send({
+        //     ok: true,
+        //     data: img_url,
+        // });
     } catch (e) {
         console.log('error from send img ', e.toString());
         res.status(500).send({
