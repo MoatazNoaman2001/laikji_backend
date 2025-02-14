@@ -1012,6 +1012,8 @@ module.exports = (io) => {
 
             xclient.on('playerbytes', async (data) =>{
                 if (!xuser || !data )return;
+                console.log("received playbytes event");
+                
 
                 const uploadsDir = path.join(__dirname, 'uploads');
                 if (!fs.existsSync(uploadsDir)) {
@@ -1029,8 +1031,7 @@ module.exports = (io) => {
                 }
 
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
-                const sanitizedExt = ext.replace(/[^a-zA-Z0-9]/g, '');
-                const fileName = path.join(uploadsDir, `${userId}_audio.${sanitizedExt}`);
+                const fileName = path.join(uploadsDir, `${userId}_audio.${ext}`);
                 fs.appendFileSync(fileName, bytes);
                 console.log(`Received chunk ${index} from user ${userId}`);
 
