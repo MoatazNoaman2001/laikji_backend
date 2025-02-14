@@ -1034,40 +1034,36 @@ module.exports = (io) => {
                 fs.appendFileSync(fileName, bytes);
                 console.log(`Received chunk ${index} from user ${userId}`);
 
-                if (index === 0) {
-                    const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
+                const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
 
-                    ffmpeg(fileName)
-                        .addOptions([
-                            '-profile:v baseline', // Baseline profile for broader compatibility
-                            '-level 3.0', // H.264 level
-                            '-start_number 0', // Start segment numbering from 0
-                            '-hls_time 10', // Segment duration (10 seconds)
-                            '-hls_list_size 0', // Keep all segments in the playlist
-                            '-f hls' // Output format
-                        ])
-                        .output(outputHlsPath)
-                        .on('start', (commandLine) => {
-                            console.log(`FFmpeg process started with command: ${commandLine}`);
-                        })
-                        .on('progress', (progress) => {
-                            console.log(`Processing: ${progress.percent}% done`);
-                        })
-                        .on('end', () => {
-                            console.log('HLS conversion completed');
-                            // Notify the client that the HLS stream is ready
-                            xclient.emit('hlsReady', {
-                                userId,
-                                roomId,
-                                hlsUrl: `/uploads/${userId}_audio.m3u8`
-                            });
-                        })
-                        .on('error', (err) => {
-                            console.error('Error during HLS conversion:', err);
-                        })
-                        .run();
-                    
-                }
+                ffmpeg(fileName)
+                    .addOptions([
+                        '-profile:v baseline', // Baseline profile for broader compatibility
+                        '-level 3.0', // H.264 level
+                        '-start_number 0', // Start segment numbering from 0
+                        '-hls_time 10', // Segment duration (10 seconds)
+                        '-hls_list_size 0', // Keep all segments in the playlist
+                        '-f hls' // Output format
+                    ])
+                    .output(outputHlsPath)
+                    .on('start', (commandLine) => {
+                        console.log(`FFmpeg process started with command: ${commandLine}`);
+                    })
+                    .on('progress', (progress) => {
+                        console.log(`Processing: ${progress.percent}% done`);
+                    })
+                    .on('end', () => {
+                        console.log('HLS conversion completed');
+                        // Notify the client that the HLS stream is ready
+                        io.to(roomId).emit('hlsReady', {
+                            userId,
+                            hlsUrl: `/uploads/${userId}_audio.m3u8`
+                        });
+                    })
+                    .on('error', (err) => {
+                        console.error('Error during HLS conversion:', err);
+                    })
+                    .run();
                 if (data.isLastChunk) {
                     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
                 }
