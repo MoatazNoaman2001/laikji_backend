@@ -1011,7 +1011,7 @@ module.exports = (io) => {
             });
 
             xclient.on('playerbytes', async (data) =>{
-                if (!xuser || !data )return;
+                if (!data )return;
                 console.log("received playbytes event");
                 
 
