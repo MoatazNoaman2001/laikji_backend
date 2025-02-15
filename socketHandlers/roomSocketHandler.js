@@ -1358,7 +1358,8 @@ module.exports = (io) => {
                                     newRoom,
                                     xroomId,
                                 );
-                            } else {
+                            
+                            } else
                                 if (roomInfo.speakers.has(user._id.toString())) {
                                     releaseMic(roomInfo, user._id.toString(), xroomId);
                                     if (Array.from(roomInfo.speakers).length == 0) {
@@ -1419,7 +1420,7 @@ module.exports = (io) => {
                                 });
                             }
                         }
-                    }
+                    
                 } catch (err) {
                     console.log('error from request mic ' + err.toString());
                 }
@@ -1929,16 +1930,7 @@ module.exports = (io) => {
                                                     'update-speakers',
                                                     Array.from(roomInfo.speakers),
                                                 );
-                                                const userDir = path.join(__dirname, '../uploads', userId);
-
-                                                 if (fs.existsSync(userDir)) {
-                                                    const files = fs.readdirSync(userDir);
-                                                    if (files.length === 0) {
-                                                        const filename = files.last;
-                                                        const fileUrl = `http://localhost:9600/audio/${userId}/${filename}`;
-                                                        io.to(xroomId).emit('audio-file', { fileUrl });
-                                                    }
-                                                 }                
+                                                            
                                             }
                                             addAdminLog(
                                                 xuser,

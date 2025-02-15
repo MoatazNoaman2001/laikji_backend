@@ -35,6 +35,8 @@ public/entericons/*.jpg
 public/entericons/*.gif
 public/entericons/*.webp
 
+uploads
+
 # Logs
 logs
 *.log

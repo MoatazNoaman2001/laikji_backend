@@ -1,7 +1,10 @@
+const { log } = require('console');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
 const { getRoomData } = require('./mediasoupHelpers');
 const { updateUser, getUserById } = require('./userHelpers');
+const fs = require('fs');
+const path = require('path');
 
 let micAssigning = false; // Flag to prevent concurrent mic assignments
 let activeTimers = new Map();
@@ -211,6 +214,25 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
         roomInfo.speakers.add(speakerId);
         global.io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
+        console.log("hello updated speakers");
+                                                
+        const userDir = path.join(__dirname, '../uploads', speakerId);
+
+         if (fs.existsSync(userDir)) {
+            const files = fs.readdirSync(userDir);
+            if (files.length !== 0) {
+
+                const fileUrl = `http://10.177.240.34:9600/uploads/${speakerId}/${files[0]}`;
+                
+                global.io.to(xroomId).emit('audio-file', { fileUrl });
+                console.log("audio sent");
+            }else{
+                console.log("no audio in user file");
+                
+            }
+         }else{
+            console.log("audio dir not exist");
+         }
         // Remove user from micQueue after assigning mic to them
         if (roomInfo.micQueue && roomInfo.micQueue.includes(speakerId)) {
             roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== speakerId);

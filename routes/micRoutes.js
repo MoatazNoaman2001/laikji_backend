@@ -130,5 +130,27 @@ router.post('/upload-audio', upload.single('audio'), (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+router.delete('/audio/:userId', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userDir = path.join(__dirname, '../uploads', userId);
+
+    if (!fs.existsSync(userDir)) {
+      return res.status(404).json({ message: 'User directory not found' });
+    }
+
+    const files = fs.readdirSync(userDir);
+    for (const file of files) {
+      const filePath = path.join(userDir, file);
+      fs.unlinkSync(filePath);
+    }
+
+    fs.rmdirSync(userDir);
+
+    res.json({ message: 'User audio files and directory deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = router;
