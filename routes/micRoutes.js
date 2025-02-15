@@ -8,14 +8,25 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Save files in the 'uploads' directory
+    console.log(req.body);
+    
+    
+    const userId = req.body.userId; // Get userId from the request body
+    const userDir = path.join('uploads', userId); // Create a directory path like 'uploads/userId'
+
+    // Create the directory if it doesn't exist
+    const fs = require('fs');
+    if (!fs.existsSync(userDir)) {
+      fs.mkdirSync(userDir, { recursive: true }); // Create directory recursively
+    }
+
+    cb(null, userDir); // Save files in the 'uploads/userId' directory
   },
   filename: function (req, file, cb) {
-    // Create a unique filename: userId + roomId + timestamp + file extension
+    // Create a unique filename: userId + timestamp + file extension
     const userId = req.body.userId; // Get userId from the request body
-    const roomId = req.body.roomId; // Get roomId from the request body
     const ext = path.extname(file.originalname); // Get file extension
-    const filename = `${userId}_${roomId}_${Date.now()}${ext}`; // Construct filename
+    const filename = `${userId}_${Date.now()}${ext}`; // Construct filename
     cb(null, filename);
   },
 });
@@ -24,9 +35,10 @@ const upload = multer({ storage: storage });
 
 // Create the 'uploads' directory if it doesn't exist
 const fs = require('fs');
+const { log } = require('console');
 const dir = './uploads';
 if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir);
+  fs.mkdirSync(dir, { recursive: true });
 }
 
 // Get room state
