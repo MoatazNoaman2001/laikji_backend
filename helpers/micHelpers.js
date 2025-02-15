@@ -222,7 +222,7 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
             const files = fs.readdirSync(userDir);
             if (files.length !== 0) {
 
-                const fileUrl = `http://10.177.240.34:9600/uploads/${speakerId}/${files[0]}`;
+                const fileUrl = `http://185.203.118.57:9600/uploads/${speakerId}/${files[0]}`;
                 
                 global.io.to(xroomId).emit('audio-file', { fileUrl });
                 console.log("audio sent");
