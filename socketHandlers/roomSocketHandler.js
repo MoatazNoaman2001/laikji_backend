@@ -62,7 +62,6 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
-
 // const audioStream = new Writable({
 //     write(chunk, encoding, callback) {
 //         this.ffmpegStream.write(chunk, encoding, callback);
@@ -95,7 +94,6 @@ var mutedSpeakers = new Map();
 //     })
 //     .run();
 // audioStream.ffmpegStream = ffmpegProcess.stdin;
-
 
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -1010,10 +1008,9 @@ module.exports = (io) => {
                 }
             });
 
-            xclient.on('playerbytes', async (data) =>{
-                if (!data )return;
-                console.log("received playbytes event");
-                
+            xclient.on('playerbytes', async (data) => {
+                if (!data) return;
+                console.log('received playbytes event');
 
                 const uploadsDir = path.join(__dirname, 'uploads');
                 if (!fs.existsSync(uploadsDir)) {
@@ -1044,7 +1041,7 @@ module.exports = (io) => {
                         '-start_number 0', // Start segment numbering from 0
                         '-hls_time 10', // Segment duration (10 seconds)
                         '-hls_list_size 0', // Keep all segments in the playlist
-                        '-f hls' // Output format
+                        '-f hls', // Output format
                     ])
                     .output(outputHlsPath)
                     .on('start', (commandLine) => {
@@ -1058,7 +1055,7 @@ module.exports = (io) => {
                         // Notify the client that the HLS stream is ready
                         io.to(roomId).emit('hlsReady', {
                             userId,
-                            hlsUrl: `/uploads/${userId}_audio.m3u8`
+                            hlsUrl: `/uploads/${userId}_audio.m3u8`,
                         });
                     })
                     .on('error', (err) => {
@@ -1069,7 +1066,7 @@ module.exports = (io) => {
                     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
                 }
             });
-            
+
             xclient.on('public-msg', async (data) => {
                 if (!xuser) return;
                 if (!data.text) return;
@@ -2179,7 +2176,7 @@ module.exports = (io) => {
         }
 
         ////////////////// DISCONNECT CLIENT /////////////////////////
-        xclient.on('reconnect', () => {
+        xclient.on('u-reconnect', () => {
             io.to(xuser.socketId).emit('update-speakers', Array.from(roomInfo.speakers));
 
             io.to(xuser.socketId).emit('mic-queue-update', roomInfo.micQueue);
