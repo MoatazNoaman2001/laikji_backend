@@ -590,7 +590,6 @@ module.exports = (io) => {
             await updateUser(xuser, xuser._id, xroomId);
 
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
-            console.log('started ' + JSON.stringify(roomInfo?.youtubeLink, null, 2));
             xclient.emit('started', {
                 ok: true,
                 user: xuser,
@@ -736,10 +735,11 @@ module.exports = (io) => {
 
             xclient.on('send-msg-private', async (data) => {
                 try {
+                    console.log('type is ', xuser.type);
+
                     if (!xuser) return;
 
                     xuser = await getUserById(xuser._id, xroomId);
-                    console.log('type is ', xuser.type);
 
                     const key = data.key;
                     let pc = await privateChatModel
