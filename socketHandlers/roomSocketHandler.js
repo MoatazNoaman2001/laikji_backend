@@ -813,7 +813,18 @@ module.exports = (io) => {
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
-                            if (xuser.type.toString() == enums.userTypes.guest.toString()) {
+                            if (
+                                ![
+                                    enums.userTypes.mastermain.toString(),
+                                    enums.userTypes.chatmanager.toString(),
+                                    enums.userTypes.root.toString(),
+                                    enums.userTypes.master.toString(),
+                                    enums.userTypes.mastergirl.toString(),
+                                    enums.userTypes.superadmin.toString(),
+                                    enums.userTypes.admin.toString(),
+                                    enums.userTypes.member.toString(),
+                                ].includes(xuser.type.toString())
+                            ) {
                                 io.to(xuser.socketId).emit('new-alert', {
                                     ok: false,
                                     msg_en: 'Private chat is available for admins only',
