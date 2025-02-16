@@ -809,11 +809,12 @@ module.exports = (io) => {
                         }
                     }
                     if (room.private_status == 2) {
+                        console.log('type is ', xuser.type);
                         if (
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
-                            if (xuser.type.toString() === enums.userTypes.guest.toString()) {
+                            if (xuser.type === enums.userTypes.guest) {
                                 io.to(xuser.socketId).emit('new-alert', {
                                     ok: false,
                                     msg_en: 'Private chat is available for admins only',
