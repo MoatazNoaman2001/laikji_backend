@@ -756,7 +756,7 @@ module.exports = (io) => {
 
                     otherUser = await getUserById(otherUser._id, xroomId);
                     const room = await roomModel.findById(xroomId);
-
+                    console.log('room type', room.private_status);
                     if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: 'This user is banned from using private chats',
@@ -814,7 +814,7 @@ module.exports = (io) => {
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
-                            if (xuser.type === enums.userTypes.guest) {
+                            if (xuser.type.toString() === enums.userTypes.guest.toString()) {
                                 io.to(xuser.socketId).emit('new-alert', {
                                     ok: false,
                                     msg_en: 'Private chat is available for admins only',
