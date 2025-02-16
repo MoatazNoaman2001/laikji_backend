@@ -49,6 +49,7 @@ const {
     notifyUserChanged,
     isDualAllowedManyRooms,
     isDualAllowedSameRoom,
+    checkIPAddress,
 } = require('../helpers/userHelpers');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
@@ -62,39 +63,40 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
-// const audioStream = new Writable({
-//     write(chunk, encoding, callback) {
-//         this.ffmpegStream.write(chunk, encoding, callback);
-//     }
-// });
+// // const audioStream = new Writable({
+// //     write(chunk, encoding, callback) {
+// //         this.ffmpegStream.write(chunk, encoding, callback);
+// //     }
+// // });
 
-// const ffmpegProcess = ffmpeg()
-//     .input(audioStream)
-//     .inputFormat('mp3')
-//     .addOptions([
-//         '-profile:v baseline',
-//         '-level 3.0',
-//         '-start_number 0',
-//         '-hls_time 10',
-//         '-hls_list_size 0',
-//         '-f hls'
-//     ])
-//     .output(path.join(__dirname, 'uploads', 'output.m3u8'))
-//     .on('start', (commandLine) => {
-//         console.log(`FFmpeg process started with command: ${commandLine}`);
-//     })
-//     .on('progress', (progress) => {
-//         console.log(`Processing: ${progress.percent}% done`);
-//     })
-//     .on('end', () => {
-//         console.log('HLS conversion completed');
-//     })
-//     .on('error', (err) => {
-//         console.error('Error during HLS conversion:', err);
-//     })
-//     .run();
-// audioStream.ffmpegStream = ffmpegProcess.stdin;
+// // const ffmpegProcess = ffmpeg()
+// //     .input(audioStream)
+// //     .inputFormat('mp3')
+// //     .addOptions([
+// //         '-profile:v baseline',
+// //         '-level 3.0',
+// //         '-start_number 0',
+// //         '-hls_time 10',
+// //         '-hls_list_size 0',
+// //         '-f hls'
+// //     ])
+// //     .output(path.join(__dirname, 'uploads', 'output.m3u8'))
+// //     .on('start', (commandLine) => {
+// //         console.log(`FFmpeg process started with command: ${commandLine}`);
+// //     })
+// //     .on('progress', (progress) => {
+// //         console.log(`Processing: ${progress.percent}% done`);
+// //     })
+// //     .on('end', () => {
+// //         console.log('HLS conversion completed');
+// //     })
+// //     .on('error', (err) => {
+// //         console.error('Error during HLS conversion:', err);
+// //     })
+// //     .run();
+// // audioStream.ffmpegStream = ffmpegProcess.stdin;
 
+// =======
 module.exports = (io) => {
     io.use(async (socket, next) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
@@ -123,7 +125,19 @@ module.exports = (io) => {
         );
 
         if (ip) {
-            ip = ip.split(':').pop();
+            if (checkIPAddress(ip)) {
+                ip = ip.split(':').pop();
+            } else {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 17,
+                            msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
+                            msg_en: 'not allowed to use VPN ',
+                        }),
+                    ),
+                );
+            }
         }
 
         if (!room_id) {
@@ -1390,66 +1404,62 @@ module.exports = (io) => {
                                     newRoom,
                                     xroomId,
                                 );
-                            } else {
-                                if (roomInfo.speakers.has(user._id.toString())) {
-                                    releaseMic(roomInfo, user._id.toString(), xroomId);
-                                    if (Array.from(roomInfo.speakers).length == 0) {
-                                        console.log('clear timer from request mic');
-                                        clearActiveTimers(xroomId);
-                                    }
-                                    if (mutedSpeakers[xroomId].includes(xuser._id.toString())) {
-                                        mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
-                                            (id) => id !== xuser._id.toString(),
-                                        );
-                                        io.to(xroomId).emit('speaker-muted', {
-                                            mutedSpeakers: mutedSpeakers[xroomId],
-                                        });
-                                    }
-                                    console.log('after delete user id', roomInfo.speakers);
-
-                                    console.log(
-                                        `User ${user._id.toString()} has declined the mic.`,
-                                    );
-                                } else if (
-                                    roomInfo.micQueue &&
-                                    !roomInfo.micQueue.includes(user._id.toString())
-                                ) {
-                                    // Add user to the queue if there's an active speaker
-                                    roomInfo.micQueue.push(user._id.toString());
-                                    console.log(
-                                        `User ${user._id} added to the queue. Queue length: ${roomInfo.micQueue.length}`,
-                                    );
-                                    io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-                                } else if (
-                                    roomInfo.micQueue &&
-                                    roomInfo.micQueue.includes(user._id.toString())
-                                ) {
-                                    console.log(`User ${xuser._id} is already in the queue.`);
-                                    roomInfo.micQueue = roomInfo.micQueue.filter(
-                                        (id) => id !== user._id.toString(),
-                                    );
-                                    io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-                                    return;
+                            } else if (roomInfo.speakers.has(user._id.toString())) {
+                                releaseMic(roomInfo, user._id.toString(), xroomId);
+                                if (Array.from(roomInfo.speakers).length == 0) {
+                                    console.log('clear timer from request mic');
+                                    clearActiveTimers(xroomId);
                                 }
+                                if (mutedSpeakers[xroomId].includes(xuser._id.toString())) {
+                                    mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
+                                        (id) => id !== xuser._id.toString(),
+                                    );
+                                    io.to(xroomId).emit('speaker-muted', {
+                                        mutedSpeakers: mutedSpeakers[xroomId],
+                                    });
+                                }
+                                console.log('after delete user id', roomInfo.speakers);
+
+                                console.log(`User ${user._id.toString()} has declined the mic.`);
+                            } else if (
+                                roomInfo.micQueue &&
+                                !roomInfo.micQueue.includes(user._id.toString())
+                            ) {
+                                // Add user to the queue if there's an active speaker
+                                roomInfo.micQueue.push(user._id.toString());
+                                console.log(
+                                    `User ${user._id} added to the queue. Queue length: ${roomInfo.micQueue.length}`,
+                                );
+                                io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                            } else if (
+                                roomInfo.micQueue &&
+                                roomInfo.micQueue.includes(user._id.toString())
+                            ) {
+                                console.log(`User ${xuser._id} is already in the queue.`);
+                                roomInfo.micQueue = roomInfo.micQueue.filter(
+                                    (id) => id !== user._id.toString(),
+                                );
+                                io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                                return;
                             }
-                            console.log('speakers on mic are: ' + Array.from(roomInfo.speakers));
-                        } else {
-                            if (newRoom.mic.mic_permission === 2) {
-                                io.to(user.socketId).emit('alert-msg', {
-                                    msg_en: `mic is allowed only to this room's members and admins`,
-                                    msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
-                                });
-                            } else if (newRoom.mic.mic_permission === 3) {
-                                io.to(user.socketId).emit('alert-msg', {
-                                    msg_en: `mic is allowed only to this room's admins`,
-                                    msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
-                                });
-                            } else if (newRoom.mic.mic_permission === 0) {
-                                io.to(user.socketId).emit('alert-msg', {
-                                    msg_en: 'mic is not allowed in this room',
-                                    msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
-                                });
-                            }
+                        }
+                        console.log('speakers on mic are: ' + Array.from(roomInfo.speakers));
+                    } else {
+                        if (newRoom.mic.mic_permission === 2) {
+                            io.to(user.socketId).emit('alert-msg', {
+                                msg_en: `mic is allowed only to this room's members and admins`,
+                                msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
+                            });
+                        } else if (newRoom.mic.mic_permission === 3) {
+                            io.to(user.socketId).emit('alert-msg', {
+                                msg_en: `mic is allowed only to this room's admins`,
+                                msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
+                            });
+                        } else if (newRoom.mic.mic_permission === 0) {
+                            io.to(user.socketId).emit('alert-msg', {
+                                msg_en: 'mic is not allowed in this room',
+                                msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
+                            });
                         }
                     }
                 } catch (err) {
