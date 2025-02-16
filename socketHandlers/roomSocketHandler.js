@@ -817,7 +817,7 @@ module.exports = (io) => {
                                 io.to(xuser.socketId).emit('new-alert', {
                                     ok: false,
                                     msg_en: 'Private chat is available for admins only',
-                                    msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فققققط',
+                                    msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
                                 });
                                 return;
                             }

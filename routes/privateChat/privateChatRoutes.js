@@ -46,10 +46,7 @@ router.post('/create', async (req, res) => {
 
             const tempUser = await public_user(xuser);
             if (room.private_status == 2) {
-                if (
-                    tempUser.type.toString() == enums.userTypes.guest.toString() ||
-                    tempUser.member == null
-                ) {
+                if (tempUser.type.toString() == enums.userTypes.guest.toString()) {
                     return res.status(200).send({
                         ok: false,
                         msg_en: 'Private chat is available for members and admins only',
