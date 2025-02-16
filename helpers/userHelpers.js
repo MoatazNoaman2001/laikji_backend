@@ -911,6 +911,10 @@ const isDualAllowedManyRooms = async (device) => {
     }
     return false;
 };
+const checkIPAddress = async (ip) => {
+    const privateRanges = [/^10\./, /^172\.(1[6-9]|2[0-9]|3[0-1])\./, /^192\.168\./, /^127\./];
+    return privateRanges.some((range) => range.test(ip));
+};
 
 module.exports = {
     getUserById,
@@ -945,4 +949,5 @@ module.exports = {
     notifyUserChangedByName,
     isDualAllowedManyRooms,
     isDualAllowedSameRoom,
+    checkIPAddress,
 };

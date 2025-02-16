@@ -1,16 +1,11 @@
-// import { v4 as uuidv4, v6 as uuidv6 } from 'uuid';
 const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
 const { v4: uuidv4 } = require('uuid');
 
-const { Writable } = require('stream');
 const fs = require('fs');
 const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
-// const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
-
-// ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
@@ -49,6 +44,7 @@ const {
     notifyUserChanged,
     isDualAllowedManyRooms,
     isDualAllowedSameRoom,
+    checkIPAddress,
 } = require('../helpers/userHelpers');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
@@ -123,7 +119,19 @@ module.exports = (io) => {
         );
 
         if (ip) {
-            ip = ip.split(':').pop();
+            if (checkIPAddress(ip)) {
+                ip = ip.split(':').pop();
+            } else {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 17,
+                            msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
+                            msg_en: 'not allowed to use VPN ',
+                        }),
+                    ),
+                );
+            }
         }
 
         if (!room_id) {
