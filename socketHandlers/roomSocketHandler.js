@@ -739,6 +739,7 @@ module.exports = (io) => {
                     if (!xuser) return;
 
                     xuser = await getUserById(xuser._id, xroomId);
+                    console.log('type is ', xuser.type);
 
                     const key = data.key;
                     let pc = await privateChatModel
@@ -787,7 +788,6 @@ module.exports = (io) => {
                     }
 
                     if (room.private_status == 3) {
-                        console.log('user has deleted his messages');
                         if (
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() &&
@@ -809,12 +809,11 @@ module.exports = (io) => {
                         }
                     }
                     if (room.private_status == 2) {
-                        console.log('type is ', xuser.type);
                         if (
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
-                            if (xuser.type.toString() === enums.userTypes.guest.toString()) {
+                            if (xuser.type.toString() == enums.userTypes.guest.toString()) {
                                 io.to(xuser.socketId).emit('new-alert', {
                                     ok: false,
                                     msg_en: 'Private chat is available for admins only',
