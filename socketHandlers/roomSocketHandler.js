@@ -821,7 +821,7 @@ module.exports = (io) => {
                             return;
                         }
                     }
-                    
+
                     await msg.save();
 
                     pc = { ...pc._doc };
@@ -992,7 +992,6 @@ module.exports = (io) => {
             xclient.on("closeAudioStream", async (data)=>{
                 io.to(xroomId).emit("audioClosed", {});
             });
-
             
             xclient.on("pauseAudioStream", async (data)=>{
                 io.to(xroomId).emit("audioPaused", data);
