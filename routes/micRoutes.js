@@ -18,8 +18,28 @@ const storage = multer.diskStorage({
         cb(null, filename);
     },
 });
-
 const upload = multer({ storage: storage });
+
+const broadcastStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const { userId, roomId } = req.body;
+        const broadcastDir = path.join('broadcasts', userId, roomId); // Create a directory path like 'broadcasts/userId/roomId'
+
+        if (!fs.existsSync(broadcastDir)) {
+            fs.mkdirSync(broadcastDir, { recursive: true });
+        }
+
+        cb(null, broadcastDir);
+    },
+    filename: function (req, file, cb) {
+        const { userId, roomId } = req.body;
+        const ext = path.extname(file.originalname);
+        const filename = `${userId}_${roomId}_${Date.now()}${ext}`;
+        cb(null, filename);
+    },
+});
+
+const broadcastUpload = multer({ storage: broadcastStorage });
 
 // Create the 'uploads' directory if it doesn't exist
 const fs = require('fs');
@@ -136,6 +156,28 @@ router.delete('/audio/:userId', (req, res) => {
         fs.rmdirSync(userDir);
 
         res.json({ message: 'User audio files and directory deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.post('/broadcast/upload', broadcastUpload.single('file'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const { userId, roomId, description } = req.body;
+
+        res.json({
+            message: 'File uploaded to broadcast folder successfully',
+            file: req.file,
+            metadata: {
+                userId,
+                roomId,
+                description,
+            },
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
