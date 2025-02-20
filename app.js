@@ -119,6 +119,7 @@ const room_io = socket(server, {
     cors: {
         credentials: true,
     },
+    maxHttpBufferSize: 1e8,
 });
 
 require('./socketHandlers/roomSocketHandler')(room_io);
