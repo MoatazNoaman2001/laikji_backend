@@ -63,39 +63,6 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
-// // const audioStream = new Writable({
-// //     write(chunk, encoding, callback) {
-// //         this.ffmpegStream.write(chunk, encoding, callback);
-// //     }
-// // });
-
-// // const ffmpegProcess = ffmpeg()
-// //     .input(audioStream)
-// //     .inputFormat('mp3')
-// //     .addOptions([
-// //         '-profile:v baseline',
-// //         '-level 3.0',
-// //         '-start_number 0',
-// //         '-hls_time 10',
-// //         '-hls_list_size 0',
-// //         '-f hls'
-// //     ])
-// //     .output(path.join(__dirname, 'uploads', 'output.m3u8'))
-// //     .on('start', (commandLine) => {
-// //         console.log(`FFmpeg process started with command: ${commandLine}`);
-// //     })
-// //     .on('progress', (progress) => {
-// //         console.log(`Processing: ${progress.percent}% done`);
-// //     })
-// //     .on('end', () => {
-// //         console.log('HLS conversion completed');
-// //     })
-// //     .on('error', (err) => {
-// //         console.error('Error during HLS conversion:', err);
-// //     })
-// //     .run();
-// // audioStream.ffmpegStream = ffmpegProcess.stdin;
-
 // =======
 module.exports = (io) => {
     io.use(async (socket, next) => {
