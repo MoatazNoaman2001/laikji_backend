@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 var ObjectId = require('mongoose').Types.ObjectId;
 const reportModel = require('../../models/reportModel');
-const { notifyReportChanged } = require('../../helpers/helpers');
-const { isBannedFromServer } = require('../../helpers/userHelpers');
+const { notifyReportChanged, getUserByToken } = require('../../helpers/helpers');
+const { isBannedFromServer, getUserById } = require('../../helpers/userHelpers');
 const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
+const roomModel = require('../../models/roomModel');
 
 router.get('/', async (req, res) => {
     try {
