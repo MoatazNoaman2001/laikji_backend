@@ -1521,21 +1521,24 @@ module.exports = (io) => {
                         const userId = xuser._id.toString();
 
                         if (roomInfo.speakers.has(userId)) {
-                            roomInfo.youtubeLink = {
-                                userId: userId,
-                                link: data.link,
-                                paused: false,
-                            };
-                            console.log(
-                                'Sending YouTube link',
-                                JSON.stringify(roomInfo.youtubeLink, null, 2),
-                            );
+                            if (
+                                roomInfo.youtubeLink.link !== null ||
+                                roomInfo.youtubeLink.link !== ''
+                            ) {
+                                roomInfo.youtubeLink = {
+                                    userId: userId,
+                                    link: data.link,
+                                    paused: false,
+                                };
+                                console.log(
+                                    'Sending YouTube link',
+                                    JSON.stringify(roomInfo.youtubeLink, null, 2),
+                                );
 
-                            io.to(xroomId).emit('youtube-link-shared', {
-                                link: roomInfo.youtubeLink,
-                            });
-                        } else {
-                            // alert
+                                io.to(xroomId).emit('youtube-link-shared', {
+                                    link: roomInfo.youtubeLink,
+                                });
+                            }
                         }
                     } else {
                         io.to(xuser.socketId).emit('alert-msg', {
@@ -2048,6 +2051,13 @@ module.exports = (io) => {
                         io.to(xroomId).emit('speaker-muted', {
                             mutedSpeakers: mutedSpeakers[xroomId],
                         });
+                        ///
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            ` قام بكتم صوته على المايك `,
+                            `has muted his mic`,
+                        );
                     } else {
                         mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
                             (id) => id !== xuser._id.toString(),
