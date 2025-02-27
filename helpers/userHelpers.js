@@ -82,6 +82,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'status',
         'enterDate',
         'country_code',
+        'country',
         'flag',
         'ip',
         'device',

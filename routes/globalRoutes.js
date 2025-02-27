@@ -131,7 +131,8 @@ router.post('/report', async (req, res) => {
             user = await getUserById(req.body.user_id, room._id);
             key = user.key.replace(/[{}]/g, '');
             item.userRef = user;
-            (item.ip = user.ip), (item.country = user.country);
+            item.ip = user.ip;
+            item.country = user.country;
             item.key = key;
             if (req.body.member_id) {
                 item.memberRef = user.memberRef;

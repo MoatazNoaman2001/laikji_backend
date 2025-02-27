@@ -7,6 +7,8 @@ const schema = Schema({
     key: String,
     icon: String,
     device: String,
+    ip: String,
+    country: String,
     img_key: String,
     img: String,
     latestRoomRef: {
