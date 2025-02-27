@@ -480,6 +480,7 @@ module.exports = (io) => {
         }
 
         var token = helpers.generateToken(xuser.roomUserRef);
+        console.log('token is ', token);
         xuser = await updateUser(
             {
                 name: xclient.handshake.query.name,

@@ -147,6 +147,7 @@ router.post('/report', async (req, res) => {
 
         return res.status(200).send({
             ok: true,
+            report: item,
         });
     } catch (e) {
         console.log(e);
