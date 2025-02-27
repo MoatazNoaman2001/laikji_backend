@@ -397,7 +397,7 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
     return res;
 };
 
-const isUserInAnyRoom = (device) => {
+const isUserInAnyRoom = (key) => {
     let all_users = [];
 
     for (const key in global.app_users) {
@@ -406,14 +406,14 @@ const isUserInAnyRoom = (device) => {
             all_users.push(...all);
         }
     }
-    return all_users.includes(device);
+    return all_users.includes(key);
 };
 
 const addUserToRoom = (xroomId, xuser) => {
     if (!global.rooms_users[xroomId]) global.rooms_users[xroomId] = [];
     global.rooms_users[xroomId].push(xuser._id.toString());
     if (!global.app_users[xroomId]) global.app_users[xroomId] = [];
-    global.app_users[xroomId].push(xuser.device);
+    global.app_users[xroomId].push(xuser.key);
 };
 
 const removeUserFromRoom = async (xroomId, xuser) => {
@@ -433,7 +433,7 @@ const removeUserFromRoom = async (xroomId, xuser) => {
     else all = [...global.app_users[xroomId]];
 
     const app = new Set(all);
-    app.delete(xuser.device);
+    app.delete(xuser.key);
 
     global.app_users[xroomId] = [...app];
 };
@@ -520,17 +520,17 @@ const isRegisteredName = async (name, room_id) => {
     }
 };
 
-const isBanned = async (device, room) => {
+const isBanned = async (key, room) => {
     const otherRoomId = room.isMeeting ? room.parentRef : room.meetingRef;
 
     const banned = await bannedModel.findOne({
         $or: [
             {
-                device: device,
+                key: key,
                 roomRef: new ObjectId(room._id),
             },
             {
-                device: device,
+                key: key,
                 roomRef: new ObjectId(otherRoomId),
             },
         ],
@@ -540,9 +540,9 @@ const isBanned = async (device, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (device) => {
+const isBannedFromServer = async (key) => {
     const banned = await bannedModel.findOne({
-        device: device,
+        key: key,
 
         type: enums.banTypes.server,
     });
@@ -885,11 +885,11 @@ const notifyUserChanged = async (user_id, extras = {}, with_command_stop = false
     }
 };
 
-const isDualAllowedSameRoom = async (device, users) => {
+const isDualAllowedSameRoom = async (key, users) => {
     const settings = await getSettings();
 
     let same_device_clients = users.filter((item) => {
-        return item.device == device;
+        return item.key == key;
     });
 
     if (same_device_clients.length > 0) {
@@ -901,9 +901,9 @@ const isDualAllowedSameRoom = async (device, users) => {
     return false;
 };
 
-const isDualAllowedManyRooms = async (device) => {
+const isDualAllowedManyRooms = async (key) => {
     const settings = await getSettings();
-    if (isUserInAnyRoom(device)) {
+    if (isUserInAnyRoom(key)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
             return true;
         } else return false;

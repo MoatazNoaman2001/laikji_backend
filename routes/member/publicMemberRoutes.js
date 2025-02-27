@@ -52,7 +52,7 @@ router.get('/info', async (req, res) => {
 
         const old_viewed = await viewModel.find({
             memberRef: new ObjectId(item._id),
-            key: req.user.device,
+            key: req.user.key,
         });
 
         if (!req.user.is_spy) {
@@ -64,7 +64,7 @@ router.get('/info', async (req, res) => {
 
                         const view = new viewModel({
                             memberRef: new ObjectId(item._id),
-                            key: req.user.device,
+                            key: req.user.key,
                         });
                         await view.save();
                     }
@@ -84,7 +84,7 @@ router.get('/info', async (req, res) => {
 
         const old_liked = await likeModel.find({
             memberRef: new ObjectId(item._id),
-            key: req.user.device,
+            key: req.user.key,
         });
 
         item = JSON.parse(JSON.stringify(item));
@@ -132,7 +132,7 @@ router.get('/like', async (req, res) => {
         const item = await memberModal.findById(member._id).select('-password');
         const old_query = {
             memberRef: new ObjectId(item._id),
-            key: req.user.device,
+            key: req.user.key,
         };
 
         const old = await likeModel.find(old_query);
@@ -147,7 +147,7 @@ router.get('/like', async (req, res) => {
             item.save();
             const like = new likeModel({
                 memberRef: new ObjectId(item._id),
-                key: req.user.device,
+                key: req.user.key,
             });
             like.save();
 

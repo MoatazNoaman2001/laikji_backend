@@ -160,7 +160,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(device)) {
+        if (await isBannedFromServer(user_key)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -289,7 +289,7 @@ module.exports = (io) => {
         const registeredUser = await getRegisteredUser(name, rp, room_id);
         if (registeredUser) {
             if (registeredUser.is_locked === true) {
-                if (registeredUser.locked_key && registeredUser.locked_key != device) {
+                if (registeredUser.locked_key && registeredUser.locked_key != user_key) {
                     return next(
                         new Error(
                             JSON.stringify({
@@ -300,7 +300,7 @@ module.exports = (io) => {
                         ),
                     );
                 }
-                registeredUser.locked_key = device;
+                registeredUser.locked_key = user_key;
                 await registeredUser.save();
             }
 
@@ -356,7 +356,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(device, room)) {
+        if (await isBanned(user_key, room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -381,7 +381,7 @@ module.exports = (io) => {
                 );
             }
         }
-        if (await isDualAllowedSameRoom(device, users_in_room)) {
+        if (await isDualAllowedSameRoom(user_key, users_in_room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -392,7 +392,7 @@ module.exports = (io) => {
                 ),
             );
         }
-        if (await isDualAllowedManyRooms(device)) {
+        if (await isDualAllowedManyRooms(user_key)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -1026,19 +1026,18 @@ module.exports = (io) => {
             });
 
             xclient.on('playerbytes', async (data) => {
-                if (!data )return;
-                console.log("received playbytes event");
-                
+                if (!data) return;
+                console.log('received playbytes event');
+
                 console.log(`received data: id: ${data['userId']}, ext: ${data['ext']}`);
                 if (!data.userId || !data.bytes || !data.ext || !data.roomId) {
                     console.error('Invalid data received:', data);
                     return;
                 }
-                
+
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
 
-                io.to(roomId).emit("audioplayerfeed", data);
-                
+                io.to(roomId).emit('audioplayerfeed', data);
 
                 // const uploadsDir = path.join('uploads', data.userId);
                 // if (!fs.existsSync(uploadsDir)) {
@@ -1054,7 +1053,6 @@ module.exports = (io) => {
                 // console.log(`Received chunk ${index} from user ${userId}`);
 
                 // const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
-
 
                 // if (index > 10 ){
                 //     ffmpeg(path.join(uploadsDir, `${userId}_audio.mp3`), {timeout: 432000}).addOptions([
@@ -1076,7 +1074,7 @@ module.exports = (io) => {
                 //         io.to(roomId).emit("audio-file", {"fileUrl" : ""});
                 //     }
                 // }
-                
+
                 // if (data.isLastChunk) {
                 //     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
                 // }

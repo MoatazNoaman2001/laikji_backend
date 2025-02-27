@@ -38,7 +38,7 @@ router.get('/entrylogs', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.device);
+                const isBanned = await isBannedFromServer(item.key);
                 const res_item = {
                     ...item,
                     isBanned,
@@ -88,14 +88,14 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
+router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
     console.log('req body ' + JSON.stringify(req.body, null, 2));
     //const device = req.params.device.replace(/[{}]/g, '');
 
     try {
         let user = await userModal.findOne({
-            device: req.params.device,
+            // device: req.params.device,
             key: req.body.key,
         });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
@@ -120,13 +120,13 @@ router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
 
         await bannedModel.findOneAndUpdate(
             {
-                device: user.device,
+                // device: user.device,
                 key: user.key,
                 type: enums.banTypes.server,
             },
             {
                 name: user.name,
-                device: user.device,
+                // device: user.device,
                 until: until,
                 country: user.country_code ?? '',
                 ip: user.ip ?? '',
@@ -169,11 +169,11 @@ router.post('/ban/:device', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
+router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
     try {
-        console.log('req ', req.params.device);
+        console.log('req ', req.params.key);
         await bannedModel.deleteMany({
-            device: req.params.device,
+            key: req.params.key,
             type: enums.banTypes.server,
         });
 
@@ -189,8 +189,9 @@ router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
+router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     try {
+        console.log('set stop', req.params.key, req.body);
         //const device = req.params.device.replace(/[{}]/g, '');
 
         let until = -1;
@@ -214,10 +215,12 @@ router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
         ) {
             until = null;
         }
+        const u = await userModal.findOne({ key: req.params.key });
+        console.log('first ', u);
         const user = await userModal.findOneAndUpdate(
             {
-                device: req.params.device,
-                key: req.body.key,
+                // device: req.params.device,
+                key: req.params.key,
             },
             {
                 server_can_public_chat: !req.body.server_can_public_chat,
@@ -247,11 +250,11 @@ router.post('/set-stop/:device', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unstop/:device', authCheckMiddleware, async (req, res) => {
+router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
     try {
         const user = await userModal.findOneAndUpdate(
             {
-                device: req.params.device,
+                key: req.params.key,
             },
             {
                 server_can_public_chat: true,
@@ -379,7 +382,7 @@ router.get('/inroom', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.device);
+                const isBanned = await isBannedFromServer(item.key);
                 const res_item = {
                     ...item,
                     isBanned,
