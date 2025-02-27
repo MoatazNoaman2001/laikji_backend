@@ -58,10 +58,13 @@ router.post('/report', async (req, res) => {
             console.log('xxxxxxxxxxxreport user ', user);
             key = user.key.replace(/[{}]/g, '');
             item.userRef = user;
-
+            item.ip = user.ip;
+            item.country = user.country_code;
             item.key = key;
             if (req.body.member_id) {
                 item.memberRef = user.memberRef;
+                item.ip = user.ip;
+                item.country = user.country_code;
             }
         }
 

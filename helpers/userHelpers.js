@@ -15,15 +15,12 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, ip, country, room_id, member = null, regUser_id = null) => {
+const createUser = async (user_key, room_id, member = null, regUser_id = null) => {
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
         },
-        {
-            ip: ip,
-            country: country,
-        },
+        {},
         {
             upsert: true,
             new: true,
@@ -233,6 +230,8 @@ const getUserById = async (user_id, room_id) => {
         ...user._doc,
         server_stop_remaining,
         is_spy,
+        ip: roomUser.ip,
+        country_code: roomUser.country_code,
         is_visible: !is_hidden,
         permissions,
         strong,
