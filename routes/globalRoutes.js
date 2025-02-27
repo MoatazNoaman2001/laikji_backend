@@ -111,5 +111,49 @@ router.get('/image', async (req, res) => {
         return res.sendFile(root + '/public/ui/empty.jpg');
     }
 });
+router.post('/report', async (req, res) => {
+    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxreport sent xxxxxxxxxxxxxxxxxxxx');
+    try {
+        let xuser = await getUserByToken(req.headers.token);
 
+        const room = await roomModel.findById(req.body.room_id);
+        let user = null;
+        let key = null;
+        const item = new reportModel({
+            ownerRef: xuser._id,
+            roomRef: room._id,
+            roomName: room.name,
+            message: req.body.message,
+            type: req.body.type,
+        });
+        if (req.body.user_id) {
+            user = await getUserById(req.body.user_id, room._id);
+            console.log('xxxxxxxxxxxreport user ', user);
+            key = user.key.replace(/[{}]/g, '');
+            item.userRef = user;
+            item.ip = user.ip;
+            item.country = user.country_code;
+            item.key = key;
+            if (req.body.member_id) {
+                item.memberRef = user.memberRef;
+                item.ip = user.ip;
+                item.country = user.country_code;
+            }
+        }
+
+        await item.save();
+
+        await notifyReportChanged();
+
+        return res.status(200).send({
+            ok: true,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
 module.exports = router;
