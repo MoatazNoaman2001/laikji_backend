@@ -63,39 +63,6 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
-// // const audioStream = new Writable({
-// //     write(chunk, encoding, callback) {
-// //         this.ffmpegStream.write(chunk, encoding, callback);
-// //     }
-// // });
-
-// // const ffmpegProcess = ffmpeg()
-// //     .input(audioStream)
-// //     .inputFormat('mp3')
-// //     .addOptions([
-// //         '-profile:v baseline',
-// //         '-level 3.0',
-// //         '-start_number 0',
-// //         '-hls_time 10',
-// //         '-hls_list_size 0',
-// //         '-f hls'
-// //     ])
-// //     .output(path.join(__dirname, 'uploads', 'output.m3u8'))
-// //     .on('start', (commandLine) => {
-// //         console.log(`FFmpeg process started with command: ${commandLine}`);
-// //     })
-// //     .on('progress', (progress) => {
-// //         console.log(`Processing: ${progress.percent}% done`);
-// //     })
-// //     .on('end', () => {
-// //         console.log('HLS conversion completed');
-// //     })
-// //     .on('error', (err) => {
-// //         console.error('Error during HLS conversion:', err);
-// //     })
-// //     .run();
-// // audioStream.ffmpegStream = ffmpegProcess.stdin;
-
 // =======
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -1059,62 +1026,60 @@ module.exports = (io) => {
             });
 
             xclient.on('playerbytes', async (data) => {
-                if (!data) return;
-                console.log('received playbytes event');
-
-                const uploadsDir = path.join(__dirname, 'uploads');
-                if (!fs.existsSync(uploadsDir)) {
-                    try {
-                        fs.mkdirSync(uploadsDir, { recursive: true });
-                    } catch (err) {
-                        console.error('Error creating uploads directory:', err);
-                    }
-                }
-
+                if (!data )return;
+                console.log("received playbytes event");
+                
                 console.log(`received data: id: ${data['userId']}, ext: ${data['ext']}`);
                 if (!data.userId || !data.bytes || !data.ext || !data.roomId) {
                     console.error('Invalid data received:', data);
                     return;
                 }
-
+                
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
-                const fileName = path.join(uploadsDir, `${userId}_audio.${ext}`);
-                fs.appendFileSync(fileName, bytes);
-                console.log(`Received chunk ${index} from user ${userId}`);
 
-                const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
+                io.to(roomId).emit("audioplayerfeed", data);
+                
 
-                ffmpeg(fileName)
-                    .addOptions([
-                        '-profile:v baseline', // Baseline profile for broader compatibility
-                        '-level 3.0', // H.264 level
-                        '-start_number 0', // Start segment numbering from 0
-                        '-hls_time 10', // Segment duration (10 seconds)
-                        '-hls_list_size 0', // Keep all segments in the playlist
-                        '-f hls', // Output format
-                    ])
-                    .output(outputHlsPath)
-                    .on('start', (commandLine) => {
-                        console.log(`FFmpeg process started with command: ${commandLine}`);
-                    })
-                    .on('progress', (progress) => {
-                        console.log(`Processing: ${progress.percent}% done`);
-                    })
-                    .on('end', () => {
-                        console.log('HLS conversion completed');
-                        // Notify the client that the HLS stream is ready
-                        io.to(roomId).emit('hlsReady', {
-                            userId,
-                            hlsUrl: `/uploads/${userId}_audio.m3u8`,
-                        });
-                    })
-                    .on('error', (err) => {
-                        console.error('Error during HLS conversion:', err);
-                    })
-                    .run();
-                if (data.isLastChunk) {
-                    console.log(`Last chunk received from user ${userId} in room ${roomId}`);
-                }
+                // const uploadsDir = path.join('uploads', data.userId);
+                // if (!fs.existsSync(uploadsDir)) {
+                //     try {
+                //         fs.mkdirSync(uploadsDir, { recursive: true });
+                //     } catch (err) {
+                //         console.error('Error creating uploads directory:', err);
+                //     }
+                // }
+
+                // const fileName = path.join(uploadsDir, `${userId}_audio.${ext}`);
+                // fs.appendFileSync(fileName, Buffer.from(bytes));
+                // console.log(`Received chunk ${index} from user ${userId}`);
+
+                // const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
+
+
+                // if (index > 10 ){
+                //     ffmpeg(path.join(uploadsDir, `${userId}_audio.mp3`), {timeout: 432000}).addOptions([
+                //         '-map 0:a',
+                //         '-c:a aac',
+                //         '-b:a 128k',
+                //         '-f hls',
+                //         '-hls_time 2',
+                //         '-hls_list_size 0'
+                //       ])
+                //       .output(outputHlsPath)
+                //       .on("end", ()=>{
+                //         const fileUrl = `http://192.168.1.3:9600/uploads/${userId}_audio.m3u8}`;
+                //         io.to(roomId).emit("audio-file", {fileUrl: fileUrl})
+                //       })
+                //       .run();
+                // }else{
+                //     if (index === 0){
+                //         io.to(roomId).emit("audio-file", {"fileUrl" : ""});
+                //     }
+                // }
+                
+                // if (data.isLastChunk) {
+                //     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
+                // }
             });
 
             xclient.on('public-msg', async (data) => {
