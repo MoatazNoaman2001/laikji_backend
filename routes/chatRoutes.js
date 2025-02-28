@@ -28,6 +28,7 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
         let img_url = process.env.mediaUrl + 'uploads/' + req.file.filename;
         let chat_id = req.body.chat_id;
         let is_private = req.body.is_private == '1' ? true : false;
+        let allowImgs = req.body.allow_send_imgs;
 
         if (is_private) {
             let pc = await privateChatModel
@@ -92,8 +93,8 @@ router.post('/send-img', img_uploader.single('img'), async (req, res) => {
         } else {
             const chat = await chatModel.findById(chat_id);
             if (chat) {
-                let room = await roomModel.findById(chat.roomRef);
-                if (room && room.allow_send_imgs == 1) {
+                //let room = await roomModel.findById(chat.roomRef);
+                if (allowImgs == 1) {
                     global.io.emit(chat_id, {
                         key: req.body.key,
                         type: 'img',
