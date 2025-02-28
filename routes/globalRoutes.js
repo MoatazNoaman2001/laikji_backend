@@ -112,7 +112,6 @@ router.get('/image', async (req, res) => {
     }
 });
 router.post('/report', async (req, res) => {
-    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxreport sent xxxxxxxxxxxxxxxxxxxx');
     try {
         let xuser = await getUserByToken(req.headers.token);
 
@@ -128,7 +127,6 @@ router.post('/report', async (req, res) => {
         });
         if (req.body.user_id) {
             user = await getUserById(req.body.user_id, room._id);
-            console.log('xxxxxxxxxxxreport user ', user);
             key = user.key.replace(/[{}]/g, '');
             item.userRef = user;
             item.ip = user.ip;

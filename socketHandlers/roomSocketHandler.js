@@ -1469,26 +1469,24 @@ module.exports = (io) => {
 
             xclient.on('share-youtube-link', (data) => {
                 try {
-                    if (
-                        xuser.type === enums.userTypes.root ||
-                        xuser.type === enums.userTypes.chatmanager ||
-                        xuser.type === enums.userTypes.master ||
-                        xuser.type === enums.userTypes.mastergirl ||
-                        xuser.type === enums.userTypes.mastermain ||
-                        member
-                    ) {
-                        if (!xuser || !xuser._id) {
-                            console.log('Invalid xuser or xuser._id');
-                            return;
-                        }
+                    console.log('fixed youtube sharing');
+                    if (roomInfo.youtubeLink.link !== null || roomInfo.youtubeLink.link !== '') {
+                        if (
+                            xuser.type === enums.userTypes.root ||
+                            xuser.type === enums.userTypes.chatmanager ||
+                            xuser.type === enums.userTypes.master ||
+                            xuser.type === enums.userTypes.mastergirl ||
+                            xuser.type === enums.userTypes.mastermain ||
+                            member
+                        ) {
+                            if (!xuser || !xuser._id) {
+                                console.log('Invalid xuser or xuser._id');
+                                return;
+                            }
 
-                        const userId = xuser._id.toString();
+                            const userId = xuser._id.toString();
 
-                        if (roomInfo.speakers.has(userId)) {
-                            if (
-                                roomInfo.youtubeLink.link !== null ||
-                                roomInfo.youtubeLink.link !== ''
-                            ) {
+                            if (roomInfo.speakers.has(userId)) {
                                 roomInfo.youtubeLink = {
                                     userId: userId,
                                     link: data.link,
@@ -1503,11 +1501,11 @@ module.exports = (io) => {
                                     link: roomInfo.youtubeLink,
                                 });
                             }
+                        } else {
+                            io.to(xuser.socketId).emit('alert-msg', {
+                                msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
+                            });
                         }
-                    } else {
-                        io.to(xuser.socketId).emit('alert-msg', {
-                            msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
-                        });
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
