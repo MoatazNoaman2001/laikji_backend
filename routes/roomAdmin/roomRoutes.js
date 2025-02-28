@@ -55,7 +55,7 @@ const getRoomInfo = async (room) => {
         inside_style: room.inside_style,
         lock_status: room.lock_status,
         lock_msg: room.lock_msg,
-
+        allow_send_imgs: room.allow_send_imgs,
         welcome: {
             img: room.welcome.img ? helpers.simg(room.welcome.img) : '',
             text: room.welcome.text,
@@ -498,6 +498,7 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
                 shared_mic_capacity: micObject.shared_mic_capacity ?? room.mic.shared_mic_capacity,
             },
             title: req.body.title ?? room.title,
+            allow_send_imgs: req.body.allow_send_imgs ?? room.allow_send_imgs,
             description: req.body.description ?? room.description,
             lock_msg: req.body.lock_msg ?? room.lock_msg,
             private_status:

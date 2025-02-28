@@ -25,7 +25,6 @@ function getRoomData(roomId) {
             micQueue: new Array(),
             youtubeLink: { userId: '', link: '', paused: false },
             holdMic: new Set(),
-            allow_send_imgs: 1,
         });
     }
     return roomData.get(roomId);
