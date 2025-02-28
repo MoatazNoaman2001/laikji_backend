@@ -2,7 +2,7 @@ const express = require('express');
 const socket = require('socket.io');
 const dbConfig = require('./helpers/dbConfig');
 const pkg = require('./package.json');
-const path = require("path");
+const path = require('path');
 const port = process.env.PORT;
 const cron = require('node-cron');
 
@@ -42,7 +42,7 @@ app.use(
     }),
 );
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static('public'));
 app.use(express.json());
 
@@ -95,7 +95,6 @@ app.use('/', (req, res) => {
         date: getNowDateTime(),
     });
 });
-
 
 server.listen(port, () => {
     console.log(`We are online ${port}`);
