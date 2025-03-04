@@ -63,6 +63,10 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
 
+// Track active audio streams
+const activeAudioStreams = {};
+                    
+
 // =======
 module.exports = (io) => {
     io.use(async (socket, next) => {
@@ -1013,72 +1017,230 @@ module.exports = (io) => {
                 }
             });
 
-            xclient.on('closeAudioStream', async (data) => {
-                io.to(xroomId).emit('audioClosed', {});
-            });
+            // Add these new event handlers to your server.js file
 
-            xclient.on('pauseAudioStream', async (data) => {
-                io.to(xroomId).emit('audioPaused', data);
+            // Handle new audio stream announcement
+            xclient.on('newAudioStream', async (data) => {
+                const { audioId, userId, ext, roomId } = data;
+                
+                // Store info about this stream
+                activeAudioStreams[audioId] = {
+                    userId: userId,
+                    ext: ext,
+                    roomId: roomId,
+                    currentChunkIndex: 0,
+                    isPaused: false
+                };
+                
+                // Announce to everyone in the room that a new stream is starting
+                io.to(roomId).emit('audioStreamInfo', {
+                    action: 'new',
+                    audioId: audioId,
+                    userId: userId
+                });
             });
-
-            xclient.on('resumeAudioStream', async (data) => {
-                io.to(xroomId).emit('audioResume', data);
+            
+            // Handle audio sync requests (for users who just joined)
+            xclient.on('requestAudioSync', async () => {
+                const roomId = xroomId; // Assuming xroomId is available in this scope
+                
+                // Broadcast sync request to the room (the host will respond)
+                io.to(roomId).emit('audioStreamInfo', {
+                    action: 'sync',
+                    roomId: roomId
+                });
             });
-
+            
+            // Handle sync info from host
+            xclient.on('audioSyncInfo', async (data) => {
+                const { audioId, currentChunkIndex, isPaused, position, volume } = data;
+                
+                if (audioId && activeAudioStreams[audioId]) {
+                    // Update our tracking info
+                    activeAudioStreams[audioId].currentChunkIndex = currentChunkIndex;
+                    activeAudioStreams[audioId].isPaused = isPaused;
+                    
+                    // Forward to clients in the room
+                    const roomId = activeAudioStreams[audioId].roomId;
+                    io.to(roomId).emit('audioSyncData', {
+                        audioId: audioId,
+                        currentChunkIndex: currentChunkIndex,
+                        isPaused: isPaused,
+                        position: position,
+                        volume: volume
+                    });
+                }
+            });
+            
+            // Handle specific chunk requests (for rejoining users)
+            xclient.on('requestCurrentAudio', async (data) => {
+                const { audioId, fromIndex } = data;
+                
+                // Note: In a real implementation, you might want to buffer recent chunks
+                // for this purpose. Here we're just setting up the infrastructure.
+                
+                if (audioId && activeAudioStreams[audioId]) {
+                    // The host would need to resend chunks from this index
+                    // This would require more complex buffering logic
+                    const roomId = activeAudioStreams[audioId].roomId;
+                    const hostId = activeAudioStreams[audioId].userId;
+                    
+                    // Notify the host to resend chunks
+                    // You'll need to implement this part based on your app architecture
+                    io.to(hostId).emit('resendAudioChunks', {
+                        audioId: audioId,
+                        fromIndex: fromIndex
+                    });
+                }
+            });
+            
+            // Handle volume changes
+            xclient.on('setAudioVolume', async (data) => {
+                const { volume } = data;
+                const roomId = xroomId;
+                
+                // Forward volume change to all clients in the room
+                io.to(roomId).emit('audioVolumeChange', {
+                    volume: volume
+                });
+            });
+            
+            // Modify existing playerbytes handler
             xclient.on('playerbytes', async (data) => {
-                if (!data) return;
-                console.log('received playbytes event');
-
-                console.log(`received data: id: ${data['userId']}, ext: ${data['ext']}`);
-                if (!data.userId || !data.bytes || !data.ext || !data.roomId) {
-                    console.error('Invalid data received:', data);
+                if (!data || !data.userId || !data.bytes || !data.ext || !data.roomId || !data.audioId) {
+                    console.log('Invalid data received');
                     return;
                 }
-
-                const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
-
+                
+                const { userId, bytes, ext, bitrate, chunkSize, index, roomId, audioId } = data;
+                
+                // Update our tracking of the current chunk for this stream
+                if (activeAudioStreams[audioId]) {
+                    activeAudioStreams[audioId].currentChunkIndex = index;
+                }
+                
+                // Forward the audio chunk to clients in the room with minimal delay
                 io.to(roomId).emit('audioplayerfeed', data);
-
-                // const uploadsDir = path.join('uploads', data.userId);
-                // if (!fs.existsSync(uploadsDir)) {
-                //     try {
-                //         fs.mkdirSync(uploadsDir, { recursive: true });
-                //     } catch (err) {
-                //         console.error('Error creating uploads directory:', err);
-                //     }
-                // }
-
-                // const fileName = path.join(uploadsDir, `${userId}_audio.${ext}`);
-                // fs.appendFileSync(fileName, Buffer.from(bytes));
-                // console.log(`Received chunk ${index} from user ${userId}`);
-
-                // const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
-
-                // if (index > 10 ){
-                //     ffmpeg(path.join(uploadsDir, `${userId}_audio.mp3`), {timeout: 432000}).addOptions([
-                //         '-map 0:a',
-                //         '-c:a aac',
-                //         '-b:a 128k',
-                //         '-f hls',
-                //         '-hls_time 2',
-                //         '-hls_list_size 0'
-                //       ])
-                //       .output(outputHlsPath)
-                //       .on("end", ()=>{
-                //         const fileUrl = `http://192.168.1.3:9600/uploads/${userId}_audio.m3u8}`;
-                //         io.to(roomId).emit("audio-file", {fileUrl: fileUrl})
-                //       })
-                //       .run();
-                // }else{
-                //     if (index === 0){
-                //         io.to(roomId).emit("audio-file", {"fileUrl" : ""});
-                //     }
-                // }
-
-                // if (data.isLastChunk) {
-                //     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
-                // }
             });
+            
+            // Update close/pause/resume handlers
+            xclient.on('closeAudioStream', async (data) => {
+                const roomId = xroomId;
+                
+                // Find and clean up any streams owned by this client
+                for (const audioId in activeAudioStreams) {
+                    if (activeAudioStreams[audioId].userId === xclient.id) {
+                        delete activeAudioStreams[audioId];
+                    }
+                }
+                
+                io.to(roomId).emit('audioClosed', {});
+            });
+            
+            xclient.on('pauseAudioStream', async (data) => {
+                const roomId = xroomId;
+                
+                // Update pause state for any streams owned by this client
+                for (const audioId in activeAudioStreams) {
+                    if (activeAudioStreams[audioId].userId === xclient.id) {
+                        activeAudioStreams[audioId].isPaused = true;
+                    }
+                }
+                
+                io.to(roomId).emit('audioPaused', data);
+            });
+            
+            xclient.on('resumeAudioStream', async (data) => {
+                const roomId = xroomId;
+                
+                // Update pause state for any streams owned by this client
+                for (const audioId in activeAudioStreams) {
+                    if (activeAudioStreams[audioId].userId === xclient.id) {
+                        activeAudioStreams[audioId].isPaused = false;
+                    }
+                }
+                
+                io.to(roomId).emit('audioResume', data);
+            });
+            
+            // Handle disconnection to clean up resources
+            xclient.on('disconnect', () => {
+                // Clean up any streams owned by this client
+                for (const audioId in activeAudioStreams) {
+                    if (activeAudioStreams[audioId].userId === xclient.id) {
+                        const roomId = activeAudioStreams[audioId].roomId;
+                        io.to(roomId).emit('audioClosed', {});
+                        delete activeAudioStreams[audioId];
+                    }
+                }
+            });
+
+            // xclient.on('closeAudioStream', async (data) => {
+            //     io.to(xroomId).emit('audioClosed', {});
+            // });
+
+            // xclient.on('pauseAudioStream', async (data) => {
+            //     io.to(xroomId).emit('audioPaused', data);
+            // });
+
+            // xclient.on('resumeAudioStream', async (data) => {
+            //     io.to(xroomId).emit('audioResume', data);
+            // });
+
+            // xclient.on('playerbytes', async (data) => {
+            //     if (!data) return;
+            //     console.log('received playbytes event');
+
+            //     console.log(`received data: id: ${data['userId']}, ext: ${data['ext']}`);
+            //     if (!data.userId || !data.bytes || !data.ext || !data.roomId) {
+            //         console.error('Invalid data received:', data);
+            //         return;
+            //     }
+
+            //     const { userId, bytes, ext, bitrate, chunkSize, index, roomId } = data;
+
+            //     io.to(roomId).emit('audioplayerfeed', data);
+
+            //     // const uploadsDir = path.join('uploads', data.userId);
+            //     // if (!fs.existsSync(uploadsDir)) {
+            //     //     try {
+            //     //         fs.mkdirSync(uploadsDir, { recursive: true });
+            //     //     } catch (err) {
+            //     //         console.error('Error creating uploads directory:', err);
+            //     //     }
+            //     // }
+
+            //     // const fileName = path.join(uploadsDir, `${userId}_audio.${ext}`);
+            //     // fs.appendFileSync(fileName, Buffer.from(bytes));
+            //     // console.log(`Received chunk ${index} from user ${userId}`);
+
+            //     // const outputHlsPath = path.join(uploadsDir, `${userId}_audio.m3u8`);
+
+            //     // if (index > 10 ){
+            //     //     ffmpeg(path.join(uploadsDir, `${userId}_audio.mp3`), {timeout: 432000}).addOptions([
+            //     //         '-map 0:a',
+            //     //         '-c:a aac',
+            //     //         '-b:a 128k',
+            //     //         '-f hls',
+            //     //         '-hls_time 2',
+            //     //         '-hls_list_size 0'
+            //     //       ])
+            //     //       .output(outputHlsPath)
+            //     //       .on("end", ()=>{
+            //     //         const fileUrl = `http://192.168.1.3:9600/uploads/${userId}_audio.m3u8}`;
+            //     //         io.to(roomId).emit("audio-file", {fileUrl: fileUrl})
+            //     //       })
+            //     //       .run();
+            //     // }else{
+            //     //     if (index === 0){
+            //     //         io.to(roomId).emit("audio-file", {"fileUrl" : ""});
+            //     //     }
+            //     // }
+
+            //     // if (data.isLastChunk) {
+            //     //     console.log(`Last chunk received from user ${userId} in room ${roomId}`);
+            //     // }
+            // });
 
             xclient.on('public-msg', async (data) => {
                 if (!xuser) return;
