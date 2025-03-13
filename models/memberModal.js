@@ -173,6 +173,11 @@ const schema = Schema({
     special_shield: String,
     special_text_shield: String,
     special_color: String,
+    is_sahder_banner: {
+        type: Boolean,
+        default: false
+    }
+
 });
 
 module.exports = mongoose.model('Members', schema);
