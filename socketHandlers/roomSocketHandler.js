@@ -1643,8 +1643,9 @@ module.exports = (io) => {
                     }
 
                     const userId = xuser._id.toString();
+                    const userSokcet = xuser.socketId;
                     if (isYoutubeRunning) {
-                        io.to(userId.socketId).emit('alert-msg', {
+                        io.to(userSokcet.socketId).emit('alert-msg', {
                             msg_en: 'this feature is running by another participant',
                             msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
                         });
@@ -1673,7 +1674,7 @@ module.exports = (io) => {
                                 });
                             }
                         } else {
-                            io.to(userId.socketId).emit('alert-msg', {
+                            io.to(userSokcet.socketId).emit('alert-msg', {
                                 msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                             });
                         }
