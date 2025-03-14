@@ -511,7 +511,7 @@ module.exports = (io) => {
             xuser._id,
             xroomId,
         );
-
+        console.log('user ', xuser);
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
 
