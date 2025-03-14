@@ -62,7 +62,7 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
-
+var isYoutubeRunning = false;
 // Track active audio streams
 const activeAudioStreams = {};
 
@@ -1636,7 +1636,9 @@ module.exports = (io) => {
             xclient.on('share-youtube-link', (data) => {
                 try {
                     console.log('fixed youtube sharing');
-                    if (roomInfo.youtubeLink !== null || roomInfo.youtubeLink.link !== '') {
+                    if (
+                        /*roomInfo.youtubeLink != {} || roomInfo.youtubeLink.link !== ''*/ !isYoutubeRunning
+                    ) {
                         if (
                             xuser.type === enums.userTypes.root ||
                             xuser.type === enums.userTypes.chatmanager ||
@@ -1662,7 +1664,7 @@ module.exports = (io) => {
                                     'Sending YouTube link',
                                     JSON.stringify(roomInfo.youtubeLink, null, 2),
                                 );
-
+                                isYoutubeRunning = true;
                                 io.to(xroomId).emit('youtube-link-shared', {
                                     link: roomInfo.youtubeLink,
                                 });
@@ -2261,6 +2263,7 @@ module.exports = (io) => {
             }
             if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
                 roomInfo.youtubeLink = {};
+                isYoutubeRunning = false;
             }
 
             io.to(xroomId).emit('user-left', xuser._id.toString());
