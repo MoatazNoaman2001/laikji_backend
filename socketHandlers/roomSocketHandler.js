@@ -65,7 +65,6 @@ var mutedSpeakers = new Map();
 
 // Track active audio streams
 const activeAudioStreams = {};
-                    
 
 // =======
 module.exports = (io) => {
@@ -1022,44 +1021,44 @@ module.exports = (io) => {
             // Handle new audio stream announcement
             xclient.on('newAudioStream', async (data) => {
                 const { audioId, userId, ext, roomId } = data;
-                
+
                 // Store info about this stream
                 activeAudioStreams[audioId] = {
                     userId: userId,
                     ext: ext,
                     roomId: roomId,
                     currentChunkIndex: 0,
-                    isPaused: false
+                    isPaused: false,
                 };
-                
+
                 // Announce to everyone in the room that a new stream is starting
                 io.to(roomId).emit('audioStreamInfo', {
                     action: 'new',
                     audioId: audioId,
-                    userId: userId
+                    userId: userId,
                 });
             });
-            
+
             // Handle audio sync requests (for users who just joined)
             xclient.on('requestAudioSync', async () => {
                 const roomId = xroomId; // Assuming xroomId is available in this scope
-                
+
                 // Broadcast sync request to the room (the host will respond)
                 io.to(roomId).emit('audioStreamInfo', {
                     action: 'sync',
-                    roomId: roomId
+                    roomId: roomId,
                 });
             });
-            
+
             // Handle sync info from host
             xclient.on('audioSyncInfo', async (data) => {
                 const { audioId, currentChunkIndex, isPaused, position, volume } = data;
-                
+
                 if (audioId && activeAudioStreams[audioId]) {
                     // Update our tracking info
                     activeAudioStreams[audioId].currentChunkIndex = currentChunkIndex;
                     activeAudioStreams[audioId].isPaused = isPaused;
-                    
+
                     // Forward to clients in the room
                     const roomId = activeAudioStreams[audioId].roomId;
                     io.to(roomId).emit('audioSyncData', {
@@ -1067,102 +1066,109 @@ module.exports = (io) => {
                         currentChunkIndex: currentChunkIndex,
                         isPaused: isPaused,
                         position: position,
-                        volume: volume
+                        volume: volume,
                     });
                 }
             });
-            
+
             // Handle specific chunk requests (for rejoining users)
             xclient.on('requestCurrentAudio', async (data) => {
                 const { audioId, fromIndex } = data;
-                
+
                 // Note: In a real implementation, you might want to buffer recent chunks
                 // for this purpose. Here we're just setting up the infrastructure.
-                
+
                 if (audioId && activeAudioStreams[audioId]) {
                     // The host would need to resend chunks from this index
                     // This would require more complex buffering logic
                     const roomId = activeAudioStreams[audioId].roomId;
                     const hostId = activeAudioStreams[audioId].userId;
-                    
+
                     // Notify the host to resend chunks
                     // You'll need to implement this part based on your app architecture
                     io.to(hostId).emit('resendAudioChunks', {
                         audioId: audioId,
-                        fromIndex: fromIndex
+                        fromIndex: fromIndex,
                     });
                 }
             });
-            
+
             // Handle volume changes
             xclient.on('setAudioVolume', async (data) => {
                 const { volume } = data;
                 const roomId = xroomId;
-                
+
                 // Forward volume change to all clients in the room
                 io.to(roomId).emit('audioVolumeChange', {
-                    volume: volume
+                    volume: volume,
                 });
             });
-            
+
             // Modify existing playerbytes handler
             xclient.on('playerbytes', async (data) => {
-                if (!data || !data.userId || !data.bytes || !data.ext || !data.roomId || !data.audioId) {
+                if (
+                    !data ||
+                    !data.userId ||
+                    !data.bytes ||
+                    !data.ext ||
+                    !data.roomId ||
+                    !data.audioId
+                ) {
                     console.log('Invalid data received');
                     return;
                 }
-                
+
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId, audioId } = data;
-                
+
                 // Update our tracking of the current chunk for this stream
                 if (activeAudioStreams[audioId]) {
                     activeAudioStreams[audioId].currentChunkIndex = index;
                 }
-                
+
                 // Forward the audio chunk to clients in the room with minimal delay
                 io.to(roomId).emit('audioplayerfeed', data);
             });
-            
+
             // Update close/pause/resume handlers
             xclient.on('closeAudioStream', async (data) => {
                 const roomId = xroomId;
-                
+
                 // Find and clean up any streams owned by this client
                 for (const audioId in activeAudioStreams) {
                     if (activeAudioStreams[audioId].userId === xclient.id) {
                         delete activeAudioStreams[audioId];
                     }
                 }
-                
+
                 io.to(roomId).emit('audioClosed', {});
             });
-            
+
             xclient.on('pauseAudioStream', async (data) => {
                 const roomId = xroomId;
-                
+
                 // Update pause state for any streams owned by this client
                 for (const audioId in activeAudioStreams) {
                     if (activeAudioStreams[audioId].userId === xclient.id) {
                         activeAudioStreams[audioId].isPaused = true;
                     }
                 }
-                
+
                 io.to(roomId).emit('audioPaused', data);
             });
-            
+
             xclient.on('resumeAudioStream', async (data) => {
                 const roomId = xroomId;
-                
+
                 // Update pause state for any streams owned by this client
                 for (const audioId in activeAudioStreams) {
                     if (activeAudioStreams[audioId].userId === xclient.id) {
                         activeAudioStreams[audioId].isPaused = false;
                     }
                 }
-                
+
                 io.to(roomId).emit('audioResume', data);
             });
-            
+
             // Handle disconnection to clean up resources
             xclient.on('disconnect', () => {
                 // Clean up any streams owned by this client
@@ -1603,24 +1609,23 @@ module.exports = (io) => {
                                 io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                                 return;
                             }
-                        }
-                        console.log('speakers on mic are: ' + Array.from(roomInfo.speakers));
-                    } else {
-                        if (newRoom.mic.mic_permission === 2) {
-                            io.to(user.socketId).emit('alert-msg', {
-                                msg_en: `mic is allowed only to this room's members and admins`,
-                                msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
-                            });
-                        } else if (newRoom.mic.mic_permission === 3) {
-                            io.to(user.socketId).emit('alert-msg', {
-                                msg_en: `mic is allowed only to this room's admins`,
-                                msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
-                            });
-                        } else if (newRoom.mic.mic_permission === 0) {
-                            io.to(user.socketId).emit('alert-msg', {
-                                msg_en: 'mic is not allowed in this room',
-                                msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
-                            });
+                        } else {
+                            if (newRoom.mic.mic_permission === 2) {
+                                io.to(user.socketId).emit('alert-msg', {
+                                    msg_en: `mic is allowed only to this room's members and admins`,
+                                    msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
+                                });
+                            } else if (newRoom.mic.mic_permission === 3) {
+                                io.to(user.socketId).emit('alert-msg', {
+                                    msg_en: `mic is allowed only to this room's admins`,
+                                    msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
+                                });
+                            } else if (newRoom.mic.mic_permission === 0) {
+                                io.to(user.socketId).emit('alert-msg', {
+                                    msg_en: 'mic is not allowed in this room',
+                                    msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
+                                });
+                            }
                         }
                     }
                 } catch (err) {
