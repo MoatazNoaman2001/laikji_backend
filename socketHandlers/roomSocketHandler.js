@@ -1636,7 +1636,12 @@ module.exports = (io) => {
             xclient.on('share-youtube-link', (data) => {
                 try {
                     console.log('fixed youtube sharing');
-                    if (roomInfo.youtubeLink != {} || roomInfo.youtubeLink.link !== '') {
+                    if (isYoutubeRunning) {
+                        io.to(xuser.socketId).emit('alert-msg', {
+                            msg_en: 'this feature is running by another participant',
+                            msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
+                        });
+                    } else {
                         if (
                             xuser.type === enums.userTypes.root ||
                             xuser.type === enums.userTypes.chatmanager ||
@@ -1672,11 +1677,6 @@ module.exports = (io) => {
                                 msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                             });
                         }
-                    } else {
-                        io.to(xuser.socketId).emit('alert-msg', {
-                            msg_en: 'this feature is running by another participant',
-                            msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
-                        });
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
