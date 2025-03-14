@@ -1645,14 +1645,17 @@ module.exports = (io) => {
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
 
-                    if (roomInfo.youtubeLink && Object.keys(roomInfo.youtubeLink).length === 0) {
-                        console.log(roomInfo.youtubeLink);
-                        xclient.emit('alert-msg', {
-                            msg_en: 'This feature is running by another participant',
-                            msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
-                        });
-                        return;
-                    }
+                    // if (
+                    //     roomInfo.youtubeLink &&
+                    //    Object.keys(roomInfo.youtubeLink).length === 0
+                    // ) {
+                    //     console.log(roomInfo.youtubeLink)
+                    //     xclient.emit('alert-msg', {
+                    //         msg_en: 'This feature is running by another participant',
+                    //         msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
+                    //     });
+                    //     return;
+                    // }
 
                     if (
                         xuser.type === enums.userTypes.root ||
