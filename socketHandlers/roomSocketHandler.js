@@ -1644,43 +1644,43 @@ module.exports = (io) => {
 
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
-                    if (
-                        roomInfo.youtubeLink &&
-                        roomInfo.youtubeLink != { userId: '', link: '', paused: false }
-                    ) {
-                        io.to(socketId).emit('alert-msg', {
-                            msg_en: 'this feature is running by another participant',
+
+                    // Check if YouTube feature is already running
+                    if (isYoutubeRunning) {
+                        xclient.emit('alert-msg', {
+                            msg_en: 'This feature is running by another participant',
                             msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
                         });
-                    } else {
-                        if (
-                            xuser.type === enums.userTypes.root ||
-                            xuser.type === enums.userTypes.chatmanager ||
-                            xuser.type === enums.userTypes.master ||
-                            xuser.type === enums.userTypes.mastergirl ||
-                            xuser.type === enums.userTypes.mastermain ||
-                            member
-                        ) {
-                            if (roomInfo.speakers.has(userId)) {
-                                roomInfo.youtubeLink = {
-                                    userId: userId,
-                                    link: data.link,
-                                    paused: false,
-                                };
-                                console.log(
-                                    'Sending YouTube link',
-                                    JSON.stringify(roomInfo.youtubeLink, null, 2),
-                                );
-                                isYoutubeRunning = true;
-                                io.to(xroomId).emit('youtube-link-shared', {
-                                    link: roomInfo.youtubeLink,
-                                });
-                            }
-                        } else {
-                            io.to(socketId).emit('alert-msg', {
-                                msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
+                        return;
+                    }
+
+                    if (
+                        xuser.type === enums.userTypes.root ||
+                        xuser.type === enums.userTypes.chatmanager ||
+                        xuser.type === enums.userTypes.master ||
+                        xuser.type === enums.userTypes.mastergirl ||
+                        xuser.type === enums.userTypes.mastermain ||
+                        member
+                    ) {
+                        if (roomInfo.speakers.has(userId)) {
+                            roomInfo.youtubeLink = {
+                                userId: userId,
+                                link: data.link,
+                                paused: false,
+                            };
+                            console.log(
+                                'Sending YouTube link',
+                                JSON.stringify(roomInfo.youtubeLink, null, 2),
+                            );
+                            isYoutubeRunning = true;
+                            io.to(xroomId).emit('youtube-link-shared', {
+                                link: roomInfo.youtubeLink,
                             });
                         }
+                    } else {
+                        io.to(socketId).emit('alert-msg', {
+                            msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
+                        });
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
