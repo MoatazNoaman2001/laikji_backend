@@ -1637,7 +1637,8 @@ module.exports = (io) => {
                 try {
                     console.log('fixed youtube sharing');
                     if (
-                        /*roomInfo.youtubeLink != {} || roomInfo.youtubeLink.link !== ''*/ !isYoutubeRunning
+                        /*roomInfo.youtubeLink != {} || roomInfo.youtubeLink.link !== ''*/ isYoutubeRunning ===
+                        false
                     ) {
                         if (
                             xuser.type === enums.userTypes.root ||
