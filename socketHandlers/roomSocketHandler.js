@@ -1645,10 +1645,7 @@ module.exports = (io) => {
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
 
-                    if (
-                        (roomInfo.youtubeLink && roomInfo.youtubeLink.link !== '') ||
-                        roomInfo.youtubeLink != {}
-                    ) {
+                    if (roomInfo.youtubeLink && Object.keys(roomInfo.youtubeLink).length === 0) {
                         console.log(roomInfo.youtubeLink);
                         xclient.emit('alert-msg', {
                             msg_en: 'This feature is running by another participant',
