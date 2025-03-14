@@ -1672,6 +1672,11 @@ module.exports = (io) => {
                                 msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                             });
                         }
+                    } else {
+                        io.to(xuser.socketId).emit('alert-msg', {
+                            msg_en: 'this feature is running by another participant',
+                            msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
+                        });
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
