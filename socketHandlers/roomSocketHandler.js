@@ -1646,13 +1646,7 @@ module.exports = (io) => {
                     const socketId = xuser.socketId;
 
                     if (
-                        (roomInfo.youtubeLink &&
-                            roomInfo.youtubeLink !=
-                                {
-                                    userId: '',
-                                    paused: false,
-                                    link: '',
-                                }) ||
+                        (roomInfo.youtubeLink && roomInfo.youtubeLink.link !== '') ||
                         roomInfo.youtubeLink != {}
                     ) {
                         console.log(roomInfo.youtubeLink);
