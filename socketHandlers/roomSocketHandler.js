@@ -1644,7 +1644,10 @@ module.exports = (io) => {
 
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
-                    if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId != '') {
+                    if (
+                        roomInfo.youtubeLink &&
+                        roomInfo.youtubeLink != { userId: '', link: '', paused: false }
+                    ) {
                         io.to(socketId).emit('alert-msg', {
                             msg_en: 'this feature is running by another participant',
                             msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
