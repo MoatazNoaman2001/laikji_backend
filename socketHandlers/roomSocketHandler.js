@@ -1635,9 +1635,16 @@ module.exports = (io) => {
 
             xclient.on('share-youtube-link', (data) => {
                 try {
-                    console.log('fixed youtube sharing');
+                    console.log('share youtube event triggered ');
+
+                    if (!xuser || !xuser._id) {
+                        console.log('Invalid xuser or xuser._id');
+                        return;
+                    }
+
+                    const userId = xuser._id.toString();
                     if (isYoutubeRunning) {
-                        io.to(xuser.socketId).emit('alert-msg', {
+                        io.to(userId.socketId).emit('alert-msg', {
                             msg_en: 'this feature is running by another participant',
                             msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
                         });
@@ -1650,13 +1657,6 @@ module.exports = (io) => {
                             xuser.type === enums.userTypes.mastermain ||
                             member
                         ) {
-                            if (!xuser || !xuser._id) {
-                                console.log('Invalid xuser or xuser._id');
-                                return;
-                            }
-
-                            const userId = xuser._id.toString();
-
                             if (roomInfo.speakers.has(userId)) {
                                 roomInfo.youtubeLink = {
                                     userId: userId,
@@ -1673,7 +1673,7 @@ module.exports = (io) => {
                                 });
                             }
                         } else {
-                            io.to(xuser.socketId).emit('alert-msg', {
+                            io.to(userId.socketId).emit('alert-msg', {
                                 msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                             });
                         }
