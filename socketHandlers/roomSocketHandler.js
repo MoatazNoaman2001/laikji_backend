@@ -1636,10 +1636,7 @@ module.exports = (io) => {
             xclient.on('share-youtube-link', (data) => {
                 try {
                     console.log('fixed youtube sharing');
-                    if (
-                        /*roomInfo.youtubeLink != {} || roomInfo.youtubeLink.link !== ''*/ isYoutubeRunning ===
-                        false
-                    ) {
+                    if (roomInfo.youtubeLink != {} || roomInfo.youtubeLink.link !== '') {
                         if (
                             xuser.type === enums.userTypes.root ||
                             xuser.type === enums.userTypes.chatmanager ||
