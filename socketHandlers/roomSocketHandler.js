@@ -1635,7 +1635,7 @@ module.exports = (io) => {
 
             xclient.on('share-youtube-link', (data) => {
                 try {
-                    console.log('share youtube event triggered ');
+                    console.log('share youtube event triggered ', roomInfo.youtubeLink);
 
                     if (!xuser || !xuser._id) {
                         console.log('Invalid xuser or xuser._id');
