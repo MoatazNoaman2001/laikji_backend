@@ -769,7 +769,7 @@ async function public_user(xuser, withMember = true) {
     }
 
     if (member){
-        console.log(`member isShaderBanner: ${member}`);
+        console.log(`member isShaderBanner: ${member.isShaderBanner}`);
     }
     return {
         _id: xuser._id,
@@ -831,7 +831,7 @@ async function public_user(xuser, withMember = true) {
                   img: member.img,
                   background: member.background,
                   type: member.type,
-                  is_shader_baner: member.is_shader_baner,
+                  is_shader_baner: member.isShaderBanner,
                   time_to_end: getMemberRemainingTime(member),
                   imageUpdatedDate: member.imageUpdatedDate,
                   ...(await getMemberShields(member, xuser)),
