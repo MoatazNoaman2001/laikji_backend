@@ -51,6 +51,8 @@ router.post('/update', async (req, res) => {
         item.is_shader_banner = req.body.is_shader_banner;
         
         console.log(`item isShaderBanner: ${item.is_shader_banner}`);
+        console.log(`room: ${req.room}`);
+        
 
         item.save();
 
