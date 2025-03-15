@@ -445,7 +445,7 @@ module.exports = (io) => {
                         roomRef: room._id,
                     };
                     console.log(`member keys: ${Object.keys(member)}`);
-                    console.log(`keys begin with is: ${Object.keys(member).map(e=> e.startsWith('is'))}`);
+                    console.log(`keys begin with is: ${Object.keys(member).filter(e=> e.startsWith('is'))}`);
                     
                 } else {
                     member = null;
