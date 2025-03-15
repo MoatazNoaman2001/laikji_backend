@@ -25,7 +25,6 @@ const img_uploader = multer({
 
 router.post('/update', async (req, res) => {
     try {
-        console.log();
         
         let member = req.member;
 
@@ -49,7 +48,9 @@ router.post('/update', async (req, res) => {
         item.screenshot = req.body.screenshot;
         item.accept_photos = req.body.accept_photos;
         item.showCountry = req.body.showCountry;
-        item.is_shader_banner=req.body.is_shader_banner;
+        item.isShaderBanner = req.body.is_shader_banner;
+        
+        console.log(`item isShaderBanner: ${item.isShaderBanner}`);
 
         item.save();
 
