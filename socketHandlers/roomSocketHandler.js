@@ -446,6 +446,7 @@ module.exports = (io) => {
                     };
                     console.log(`member keys: ${Object.keys(member)}`);
                     console.log(`keys begin with is: ${Object.keys(member).filter(e=> e.startsWith('is'))}`);
+                    console.log(`keys begin with is: ${member['isShaderBanner']}`);
                     
                 } else {
                     member = null;
