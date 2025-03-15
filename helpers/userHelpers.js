@@ -69,6 +69,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'is_typing',
         'is_meeting_typing',
         'is_joker',
+        'is_shader_banner',
         'game_number',
         'game_number_color',
         'can_public_chat',

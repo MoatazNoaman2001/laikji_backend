@@ -25,6 +25,8 @@ const img_uploader = multer({
 
 router.post('/update', async (req, res) => {
     try {
+        console.log();
+        
         let member = req.member;
 
         const item = await memberModal.findById(member._id);
@@ -47,6 +49,7 @@ router.post('/update', async (req, res) => {
         item.screenshot = req.body.screenshot;
         item.accept_photos = req.body.accept_photos;
         item.showCountry = req.body.showCountry;
+        item.is_shader_banner=req.body.is_shader_banner;
 
         item.save();
 

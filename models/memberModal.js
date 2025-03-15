@@ -173,7 +173,7 @@ const schema = Schema({
     special_shield: String,
     special_text_shield: String,
     special_color: String,
-    is_sahder_banner: {
+    is_shader_banner: {
         type: Boolean,
         default: false
     }
