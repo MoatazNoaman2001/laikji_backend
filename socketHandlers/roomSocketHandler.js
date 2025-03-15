@@ -444,6 +444,7 @@ module.exports = (io) => {
                         ...member._doc,
                         roomRef: room._id,
                     };
+                    console.log(`member keys: ${Object.keys(member)}`);
                 } else {
                     member = null;
                 }
@@ -452,7 +453,6 @@ module.exports = (io) => {
             }
         }
 
-        console.log(`member keys: ${Object.keys(member)}`);
         var xuser;
 
         let regUser_id = null;
