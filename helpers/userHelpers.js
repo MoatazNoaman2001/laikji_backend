@@ -828,6 +828,7 @@ async function public_user(xuser, withMember = true) {
                   img: member.img,
                   background: member.background,
                   type: member.type,
+                  is_shader_baner: member.is_shader_baner,
                   time_to_end: getMemberRemainingTime(member),
                   imageUpdatedDate: member.imageUpdatedDate,
                   ...(await getMemberShields(member, xuser)),
