@@ -768,8 +768,9 @@ async function public_user(xuser, withMember = true) {
         });
     }
 
-    // console.log(`member isShaderBanner: ${Object.keys(member)}`);
-    
+    if (member){
+        console.log(`member isShaderBanner: ${Object.keys(member)}`);
+    }
     return {
         _id: xuser._id,
         name: xuser.name,
