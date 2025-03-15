@@ -509,7 +509,7 @@ module.exports = (io) => {
                 room_name: xclient.handshake.query.name,
                 memberRef: member ? member._id : null,
                 latestRoomRef: xroomId,
-                is_shader_banner : member.is_shader_banner,
+                is_shader_banner : false,
                 isMain: xclient.handshake.query.isMain,
                 userRef: xuser._id,
                 ...update,
