@@ -69,6 +69,7 @@ const updateUser = async (xuser, user_id, room_id) => {
         'is_typing',
         'is_meeting_typing',
         'is_joker',
+        'is_shader_banner',
         'game_number',
         'game_number_color',
         'can_public_chat',
@@ -767,6 +768,9 @@ async function public_user(xuser, withMember = true) {
         });
     }
 
+    if (member){
+        console.log(`member: ${member}`);
+    }
     return {
         _id: xuser._id,
         name: xuser.name,
@@ -827,6 +831,7 @@ async function public_user(xuser, withMember = true) {
                   img: member.img,
                   background: member.background,
                   type: member.type,
+                  is_shader_baner: member.isShaderBanner,
                   time_to_end: getMemberRemainingTime(member),
                   imageUpdatedDate: member.imageUpdatedDate,
                   ...(await getMemberShields(member, xuser)),
