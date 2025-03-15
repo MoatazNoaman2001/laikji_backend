@@ -437,6 +437,7 @@ module.exports = (io) => {
 
         if (xclient.handshake.query.fp) {
             member = await memberModal.findOne(member_query);
+            console.log(`member keys: ${Object.keys(member)}`);
 
             if (member) {
                 if (!member.isMain || (member.isMain && xclient.handshake.query.isMain)) {
