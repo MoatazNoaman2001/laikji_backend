@@ -445,6 +445,8 @@ module.exports = (io) => {
                         roomRef: room._id,
                     };
                     console.log(`member keys: ${Object.keys(member)}`);
+                    console.log(`keys begin with is: ${Object.keys(member).map(e=> e.startsWith('is'))}`);
+                    
                 } else {
                     member = null;
                 }
@@ -509,7 +511,7 @@ module.exports = (io) => {
                 room_name: xclient.handshake.query.name,
                 memberRef: member ? member._id : null,
                 latestRoomRef: xroomId,
-                is_shader_banner : member.isShaderBanner,
+                // is_shader_banner : member.isShaderBanner,
                 isMain: xclient.handshake.query.isMain,
                 userRef: xuser._id,
                 ...update,
