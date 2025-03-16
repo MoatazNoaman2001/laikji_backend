@@ -482,6 +482,8 @@ router.delete('/word-filters/:id', async (req, res) => {
 router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
     try {
         let room = req.room;
+        console.log('request xxxxxxx', req.body);
+        console.log('request room xxxxxxx', req.room);
         if (req.file && req.file.filename) {
             helpers.resizeImage('rooms/' + req.file.filename, true, 900);
         }
