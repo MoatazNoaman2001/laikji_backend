@@ -768,7 +768,7 @@ async function public_user(xuser, withMember = true) {
         });
     }
 
-    if (member){
+    if (member) {
         console.log(`member: ${member}`);
     }
     return {
@@ -831,7 +831,7 @@ async function public_user(xuser, withMember = true) {
                   img: member.img,
                   background: member.background,
                   type: member.type,
-                  is_shader_baner: member.is_shader_baner,
+                  is_shader_banner: member.is_shader_banner,
                   time_to_end: getMemberRemainingTime(member),
                   imageUpdatedDate: member.imageUpdatedDate,
                   ...(await getMemberShields(member, xuser)),
