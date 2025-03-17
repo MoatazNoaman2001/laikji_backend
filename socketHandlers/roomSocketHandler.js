@@ -444,8 +444,11 @@ module.exports = (io) => {
                         roomRef: room._id,
                     };
                     console.log(`member keys: ${Object.keys(member)}`);
-                    console.log(`keys begin with is: ${Object.keys(member).filter(e=> e.startsWith('is'))}`);
-                    
+                    console.log(
+                        `keys begin with is: ${Object.keys(member).filter((e) =>
+                            e.startsWith('is'),
+                        )}`,
+                    );
                 } else {
                     member = null;
                 }
@@ -1647,19 +1650,19 @@ module.exports = (io) => {
 
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
-                    if (
-                        roomInfo.youtubeLink &&
-                        (Object.keys(roomInfo.youtubeLink).length > 0 ||
-                            roomInfo.youtubeLink.userId.trim() !== '' ||
-                            roomInfo.youtubeLink.link.trim() !== '')
-                    ) {
-                        console.log(roomInfo.youtubeLink);
-                        xclient.emit('alert-msg', {
-                            msg_en: 'This feature is running by another participant',
-                            msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
-                        });
-                        return;
-                    }
+                    // if (
+                    //     roomInfo.youtubeLink &&
+                    //     (Object.keys(roomInfo.youtubeLink).length > 0 ||
+                    //         roomInfo.youtubeLink.userId.trim() !== '' ||
+                    //         roomInfo.youtubeLink.link.trim() !== '')
+                    // ) {
+                    //     console.log(roomInfo.youtubeLink);
+                    //     xclient.emit('alert-msg', {
+                    //         msg_en: 'This feature is running by another participant',
+                    //         msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
+                    //     });
+                    //     return;
+                    // }
 
                     if (
                         xuser.type === enums.userTypes.root ||
