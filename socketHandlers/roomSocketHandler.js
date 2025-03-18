@@ -564,7 +564,7 @@ module.exports = (io) => {
             }
 
             await updateUser(xuser, xuser._id, xroomId);
-
+            console.log('xxuser,', xuser);
             const private_chats = await getMyPrivateChats(xroomId, xuser._id, true);
             xclient.emit('started', {
                 ok: true,
