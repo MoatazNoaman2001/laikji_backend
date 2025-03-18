@@ -991,6 +991,7 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('is_typing')) {
                             xuser.is_typing = data.user.is_typing;
                         }
+
                         if (data.user.hasOwnProperty('is_meeting_typing')) {
                             xuser.is_meeting_typing = data.user.is_meeting_typing;
                         }
