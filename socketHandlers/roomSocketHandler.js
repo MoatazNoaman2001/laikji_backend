@@ -716,7 +716,6 @@ module.exports = (io) => {
                     xuser = await getUserById(xuser._id, xroomId);
 
                     const key = data.key;
-                    console.log('key from send msg ', key);
                     let pc = await privateChatModel
                         .find({
                             key: key,
@@ -1444,7 +1443,6 @@ module.exports = (io) => {
 
             xclient.on('delete-private-msg', async (data) => {
                 if (!xuser) return;
-                console.log('xxxxxxxxx chat key', data);
                 const key = data.chat_key;
                 const msg_id = data.msg_id;
 
@@ -1455,7 +1453,6 @@ module.exports = (io) => {
                     .populate(['user1Ref', 'user2Ref']);
 
                 pc = pc[0];
-                console.log('psssss', pc[0]);
                 //const id = mongoose.Types.ObjectId(msg_id.trim());
                 const msg = await privateMessageModel.find({
                     _id: msg_id,
@@ -1651,11 +1648,7 @@ module.exports = (io) => {
 
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
-                    if (
-                        roomInfo.youtubeLink &&
-                        (Object.keys(roomInfo.youtubeLink).length > 0 ||
-                            roomInfo.youtubeLink.link.trim() !== '')
-                    ) {
+                    if (roomInfo.youtubeLink && roomInfo.youtubeLink.link.trim() !== '') {
                         console.log(roomInfo.youtubeLink);
                         xclient.emit('alert-msg', {
                             msg_en: 'This feature is running by another participant',
