@@ -711,13 +711,12 @@ module.exports = (io) => {
 
             xclient.on('send-msg-private', async (data) => {
                 try {
-                    console.log('type is ', xuser.type);
-
                     if (!xuser) return;
 
                     xuser = await getUserById(xuser._id, xroomId);
 
                     const key = data.key;
+                    console.log('key from send msg ', key);
                     let pc = await privateChatModel
                         .find({
                             key: key,
@@ -1449,13 +1448,14 @@ module.exports = (io) => {
                 const key = data.chat_key;
                 const msg_id = data.msg_id;
 
-                let pc_res = await privateChatModel
+                let pc = await privateChatModel
                     .find({
                         key: key,
                     })
                     .populate(['user1Ref', 'user2Ref']);
-                console.log('psssss', pc_res);
-                var pc = pc_res[0];
+
+                pc = pc[0];
+                console.log('psssss', pc[0]);
                 //const id = mongoose.Types.ObjectId(msg_id.trim());
                 const msg = await privateMessageModel.find({
                     _id: msg_id,
