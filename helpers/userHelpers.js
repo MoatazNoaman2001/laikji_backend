@@ -618,6 +618,7 @@ const getMemberSettings = async (member) => {
     const settings = await getSettings();
 
     if (settings[`mem${member.type}${member.is_girl ? '1' : '0'}`]) {
+        console.log(settings[`mem${member.type}${member.is_girl ? '1' : '0'}`]);
         return JSON.parse(settings[`mem${member.type}${member.is_girl ? '1' : '0'}`]);
     }
 

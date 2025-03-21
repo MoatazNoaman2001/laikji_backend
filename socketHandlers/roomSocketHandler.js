@@ -1648,14 +1648,6 @@ module.exports = (io) => {
 
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
-                    if (roomInfo.youtubeLink && roomInfo.youtubeLink.link.trim() !== '') {
-                        console.log(roomInfo.youtubeLink);
-                        xclient.emit('alert-msg', {
-                            msg_en: 'This feature is running by another participant',
-                            msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
-                        });
-                        return;
-                    }
 
                     if (
                         xuser.type === enums.userTypes.root ||
@@ -1666,6 +1658,14 @@ module.exports = (io) => {
                         member
                     ) {
                         if (roomInfo.speakers.has(userId)) {
+                            if (roomInfo.youtubeLink && roomInfo.youtubeLink.link.trim() !== '') {
+                                console.log(roomInfo.youtubeLink);
+                                xclient.emit('alert-msg', {
+                                    msg_en: 'This feature is running by another participant',
+                                    msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
+                                });
+                                return;
+                            }
                             roomInfo.youtubeLink = {
                                 userId: userId,
                                 link: data.link,
