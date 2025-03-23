@@ -24,6 +24,7 @@ function getRoomData(roomId) {
             listeners: new Set(),
             micQueue: new Array(),
             youtubeLink: { userId: '', link: '', paused: false },
+            spotifyTrack: { userId: '', uri: '', paused: false  },
             holdMic: new Set(),
         });
     }

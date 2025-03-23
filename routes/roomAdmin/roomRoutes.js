@@ -40,6 +40,8 @@ const img_uploader = multer({
 });
 
 const getRoomInfo = async (room) => {
+    console.log(`room allow_send_imgs: ${room.allow_send_imgs}`);
+    
     return {
         name: room.name,
         serial: room.serial,
@@ -55,7 +57,6 @@ const getRoomInfo = async (room) => {
         inside_style: room.inside_style,
         lock_status: room.lock_status,
         lock_msg: room.lock_msg,
-        allow_send_imgs: room.allow_send_imgs,
         welcome: {
             img: room.welcome.img ? helpers.simg(room.welcome.img) : '',
             text: room.welcome.text,
@@ -73,6 +74,7 @@ const getRoomInfo = async (room) => {
         admin_count: room.admin_count,
         member_count: room.member_count,
         colors: await getAppUsersColors(),
+        allow_send_imgs: room.allow_send_imgs,
     };
 };
 
@@ -81,6 +83,8 @@ router.get('/info', async (req, res) => {
     try {
         let room = req.room;
         response = await getRoomInfo(room);
+        console.log(`room keys: ${Object.keys(response)}`);
+        
         return res.status(200).send({
             ok: true,
             data: response,
