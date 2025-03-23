@@ -214,25 +214,23 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
         roomInfo.speakers.add(speakerId);
         global.io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
-        console.log("hello updated speakers");
-                                                
+        console.log('hello updated speakers');
+
         const userDir = path.join(__dirname, '../uploads', speakerId);
 
-         if (fs.existsSync(userDir)) {
+        if (fs.existsSync(userDir)) {
             const files = fs.readdirSync(userDir);
             if (files.length !== 0) {
-
                 const fileUrl = `http://185.203.118.57:9600/uploads/${speakerId}/${files[0]}`;
-                
+
                 global.io.to(xroomId).emit('audio-file', { fileUrl });
-                console.log("audio sent");
-            }else{
-                console.log("no audio in user file");
-                
+                console.log('audio sent');
+            } else {
+                console.log('no audio in user file');
             }
-         }else{
-            console.log("audio dir not exist");
-         }
+        } else {
+            console.log('audio dir not exist');
+        }
         // Remove user from micQueue after assigning mic to them
         if (roomInfo.micQueue && roomInfo.micQueue.includes(speakerId)) {
             roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== speakerId);

@@ -618,6 +618,7 @@ const getMemberSettings = async (member) => {
     const settings = await getSettings();
 
     if (settings[`mem${member.type}${member.is_girl ? '1' : '0'}`]) {
+        console.log(settings[`mem${member.type}${member.is_girl ? '1' : '0'}`]);
         return JSON.parse(settings[`mem${member.type}${member.is_girl ? '1' : '0'}`]);
     }
 
@@ -768,9 +769,6 @@ async function public_user(xuser, withMember = true) {
         });
     }
 
-    if (member){
-        console.log(`member: ${member}`);
-    }
     return {
         _id: xuser._id,
         name: xuser.name,
@@ -831,7 +829,7 @@ async function public_user(xuser, withMember = true) {
                   img: member.img,
                   background: member.background,
                   type: member.type,
-                  is_shader_baner: member.is_shader_baner,
+                  is_shader_banner: member.is_shader_banner,
                   time_to_end: getMemberRemainingTime(member),
                   imageUpdatedDate: member.imageUpdatedDate,
                   ...(await getMemberShields(member, xuser)),

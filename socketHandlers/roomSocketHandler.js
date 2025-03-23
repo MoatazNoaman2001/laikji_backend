@@ -62,10 +62,9 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
-
+var isYoutubeRunning = false;
 // Track active audio streams
 const activeAudioStreams = {};
-                    
 
 // =======
 module.exports = (io) => {
@@ -445,8 +444,11 @@ module.exports = (io) => {
                         roomRef: room._id,
                     };
                     console.log(`member keys: ${Object.keys(member)}`);
-                    console.log(`keys begin with is: ${Object.keys(member).filter(e=> e.startsWith('is'))}`);
-                    
+                    console.log(
+                        `keys begin with is: ${Object.keys(member).filter((e) =>
+                            e.startsWith('is'),
+                        )}`,
+                    );
                 } else {
                     member = null;
                 }
@@ -519,7 +521,6 @@ module.exports = (io) => {
             xuser._id,
             xroomId,
         );
-
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
 
@@ -711,8 +712,6 @@ module.exports = (io) => {
 
             xclient.on('send-msg-private', async (data) => {
                 try {
-                    console.log('type is ', xuser.type);
-
                     if (!xuser) return;
 
                     xuser = await getUserById(xuser._id, xroomId);
@@ -991,6 +990,7 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('is_typing')) {
                             xuser.is_typing = data.user.is_typing;
                         }
+
                         if (data.user.hasOwnProperty('is_meeting_typing')) {
                             xuser.is_meeting_typing = data.user.is_meeting_typing;
                         }
@@ -1027,44 +1027,44 @@ module.exports = (io) => {
             // Handle new audio stream announcement
             xclient.on('newAudioStream', async (data) => {
                 const { audioId, userId, ext, roomId } = data;
-                
+
                 // Store info about this stream
                 activeAudioStreams[audioId] = {
                     userId: userId,
                     ext: ext,
                     roomId: roomId,
                     currentChunkIndex: 0,
-                    isPaused: false
+                    isPaused: false,
                 };
-                
+
                 // Announce to everyone in the room that a new stream is starting
                 io.to(roomId).emit('audioStreamInfo', {
                     action: 'new',
                     audioId: audioId,
-                    userId: userId
+                    userId: userId,
                 });
             });
-            
+
             // Handle audio sync requests (for users who just joined)
             xclient.on('requestAudioSync', async () => {
                 const roomId = xroomId; // Assuming xroomId is available in this scope
-                
+
                 // Broadcast sync request to the room (the host will respond)
                 io.to(roomId).emit('audioStreamInfo', {
                     action: 'sync',
-                    roomId: roomId
+                    roomId: roomId,
                 });
             });
-            
+
             // Handle sync info from host
             xclient.on('audioSyncInfo', async (data) => {
                 const { audioId, currentChunkIndex, isPaused, position, volume } = data;
-                
+
                 if (audioId && activeAudioStreams[audioId]) {
                     // Update our tracking info
                     activeAudioStreams[audioId].currentChunkIndex = currentChunkIndex;
                     activeAudioStreams[audioId].isPaused = isPaused;
-                    
+
                     // Forward to clients in the room
                     const roomId = activeAudioStreams[audioId].roomId;
                     io.to(roomId).emit('audioSyncData', {
@@ -1072,102 +1072,109 @@ module.exports = (io) => {
                         currentChunkIndex: currentChunkIndex,
                         isPaused: isPaused,
                         position: position,
-                        volume: volume
+                        volume: volume,
                     });
                 }
             });
-            
+
             // Handle specific chunk requests (for rejoining users)
             xclient.on('requestCurrentAudio', async (data) => {
                 const { audioId, fromIndex } = data;
-                
+
                 // Note: In a real implementation, you might want to buffer recent chunks
                 // for this purpose. Here we're just setting up the infrastructure.
-                
+
                 if (audioId && activeAudioStreams[audioId]) {
                     // The host would need to resend chunks from this index
                     // This would require more complex buffering logic
                     const roomId = activeAudioStreams[audioId].roomId;
                     const hostId = activeAudioStreams[audioId].userId;
-                    
+
                     // Notify the host to resend chunks
                     // You'll need to implement this part based on your app architecture
                     io.to(hostId).emit('resendAudioChunks', {
                         audioId: audioId,
-                        fromIndex: fromIndex
+                        fromIndex: fromIndex,
                     });
                 }
             });
-            
+
             // Handle volume changes
             xclient.on('setAudioVolume', async (data) => {
                 const { volume } = data;
                 const roomId = xroomId;
-                
+
                 // Forward volume change to all clients in the room
                 io.to(roomId).emit('audioVolumeChange', {
-                    volume: volume
+                    volume: volume,
                 });
             });
-            
+
             // Modify existing playerbytes handler
             xclient.on('playerbytes', async (data) => {
-                if (!data || !data.userId || !data.bytes || !data.ext || !data.roomId || !data.audioId) {
+                if (
+                    !data ||
+                    !data.userId ||
+                    !data.bytes ||
+                    !data.ext ||
+                    !data.roomId ||
+                    !data.audioId
+                ) {
                     console.log('Invalid data received');
                     return;
                 }
-                
+
                 const { userId, bytes, ext, bitrate, chunkSize, index, roomId, audioId } = data;
-                
+
                 // Update our tracking of the current chunk for this stream
                 if (activeAudioStreams[audioId]) {
                     activeAudioStreams[audioId].currentChunkIndex = index;
                 }
-                
+
                 // Forward the audio chunk to clients in the room with minimal delay
                 io.to(roomId).emit('audioplayerfeed', data);
             });
-            
+
             // Update close/pause/resume handlers
             xclient.on('closeAudioStream', async (data) => {
                 const roomId = xroomId;
-                
+
                 // Find and clean up any streams owned by this client
                 for (const audioId in activeAudioStreams) {
                     if (activeAudioStreams[audioId].userId === xclient.id) {
                         delete activeAudioStreams[audioId];
                     }
                 }
-                
+
                 io.to(roomId).emit('audioClosed', {});
             });
-            
+
             xclient.on('pauseAudioStream', async (data) => {
                 const roomId = xroomId;
-                
+
                 // Update pause state for any streams owned by this client
                 for (const audioId in activeAudioStreams) {
                     if (activeAudioStreams[audioId].userId === xclient.id) {
                         activeAudioStreams[audioId].isPaused = true;
                     }
                 }
-                
+
                 io.to(roomId).emit('audioPaused', data);
             });
-            
+
             xclient.on('resumeAudioStream', async (data) => {
                 const roomId = xroomId;
-                
+
                 // Update pause state for any streams owned by this client
                 for (const audioId in activeAudioStreams) {
                     if (activeAudioStreams[audioId].userId === xclient.id) {
                         activeAudioStreams[audioId].isPaused = false;
                     }
                 }
-                
+
                 io.to(roomId).emit('audioResume', data);
             });
-            
+
             // Handle disconnection to clean up resources
             xclient.on('disconnect', () => {
                 // Clean up any streams owned by this client
@@ -1437,17 +1444,16 @@ module.exports = (io) => {
 
             xclient.on('delete-private-msg', async (data) => {
                 if (!xuser) return;
-
                 const key = data.chat_key;
                 const msg_id = data.msg_id;
 
-                let pc_res = await privateChatModel
+                let pc = await privateChatModel
                     .find({
                         key: key,
                     })
                     .populate(['user1Ref', 'user2Ref']);
 
-                var pc = pc_res[0];
+                pc = pc[0];
                 //const id = mongoose.Types.ObjectId(msg_id.trim());
                 const msg = await privateMessageModel.find({
                     _id: msg_id,
@@ -1608,24 +1614,23 @@ module.exports = (io) => {
                                 io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                                 return;
                             }
-                        }
-                        console.log('speakers on mic are: ' + Array.from(roomInfo.speakers));
-                    } else {
-                        if (newRoom.mic.mic_permission === 2) {
-                            io.to(user.socketId).emit('alert-msg', {
-                                msg_en: `mic is allowed only to this room's members and admins`,
-                                msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
-                            });
-                        } else if (newRoom.mic.mic_permission === 3) {
-                            io.to(user.socketId).emit('alert-msg', {
-                                msg_en: `mic is allowed only to this room's admins`,
-                                msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
-                            });
-                        } else if (newRoom.mic.mic_permission === 0) {
-                            io.to(user.socketId).emit('alert-msg', {
-                                msg_en: 'mic is not allowed in this room',
-                                msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
-                            });
+                        } else {
+                            if (newRoom.mic.mic_permission === 2) {
+                                io.to(user.socketId).emit('alert-msg', {
+                                    msg_en: `mic is allowed only to this room's members and admins`,
+                                    msg_ar: 'التحدث في هذه الغرفة متاح فقط للمشرفين والأعضاء.',
+                                });
+                            } else if (newRoom.mic.mic_permission === 3) {
+                                io.to(user.socketId).emit('alert-msg', {
+                                    msg_en: `mic is allowed only to this room's admins`,
+                                    msg_ar: 'التحدث في هذه الغرفة متاح  للمشرفين فقط',
+                                });
+                            } else if (newRoom.mic.mic_permission === 0) {
+                                io.to(user.socketId).emit('alert-msg', {
+                                    msg_en: 'mic is not allowed in this room',
+                                    msg_ar: 'التحدث معطل في هذه الغرفة للجميع',
+                                });
+                            }
                         }
                     }
                 } catch (err) {
@@ -1635,43 +1640,51 @@ module.exports = (io) => {
 
             xclient.on('share-youtube-link', (data) => {
                 try {
-                    console.log('fixed youtube sharing');
-                    if (roomInfo.youtubeLink.link !== null || roomInfo.youtubeLink.link !== '') {
-                        if (
-                            xuser.type === enums.userTypes.root ||
-                            xuser.type === enums.userTypes.chatmanager ||
-                            xuser.type === enums.userTypes.master ||
-                            xuser.type === enums.userTypes.mastergirl ||
-                            xuser.type === enums.userTypes.mastermain ||
-                            member
-                        ) {
-                            if (!xuser || !xuser._id) {
-                                console.log('Invalid xuser or xuser._id');
+                    console.log('share youtube event triggered ', roomInfo.youtubeLink);
+
+                    if (!xuser || !xuser._id) {
+                        console.log('Invalid xuser or xuser._id');
+                        return;
+                    }
+
+                    const userId = xuser._id.toString();
+                    const socketId = xuser.socketId;
+
+                    if (
+                        xuser.type === enums.userTypes.root ||
+                        xuser.type === enums.userTypes.chatmanager ||
+                        xuser.type === enums.userTypes.master ||
+                        xuser.type === enums.userTypes.mastergirl ||
+                        xuser.type === enums.userTypes.mastermain ||
+                        member
+                    ) {
+                        if (roomInfo.speakers.has(userId)) {
+                            if (roomInfo.youtubeLink && roomInfo.youtubeLink.link.trim() !== '') {
+                                console.log(roomInfo.youtubeLink);
+                                xclient.emit('alert-msg', {
+                                    msg_en: 'This feature is running by another participant',
+                                    msg_ar: 'يتم استخدام الميزة حاليًا بواسطة مشترك آخر',
+                                });
                                 return;
                             }
-
-                            const userId = xuser._id.toString();
-
-                            if (roomInfo.speakers.has(userId)) {
-                                roomInfo.youtubeLink = {
-                                    userId: userId,
-                                    link: data.link,
-                                    paused: false,
-                                };
-                                console.log(
-                                    'Sending YouTube link',
-                                    JSON.stringify(roomInfo.youtubeLink, null, 2),
-                                );
-
-                                io.to(xroomId).emit('youtube-link-shared', {
-                                    link: roomInfo.youtubeLink,
-                                });
-                            }
-                        } else {
-                            io.to(xuser.socketId).emit('alert-msg', {
-                                msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
+                            roomInfo.youtubeLink = {
+                                userId: userId,
+                                link: data.link,
+                                paused: false,
+                            };
+                            console.log(
+                                'Sending YouTube link',
+                                JSON.stringify(roomInfo.youtubeLink, null, 2),
+                            );
+                            isYoutubeRunning = true;
+                            io.to(xroomId).emit('youtube-link-shared', {
+                                link: roomInfo.youtubeLink,
                             });
                         }
+                    } else {
+                        io.to(socketId).emit('alert-msg', {
+                            msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
+                        });
                     }
                 } catch (err) {
                     console.log('Error from share YouTube link:', err.message);
@@ -2340,6 +2353,7 @@ module.exports = (io) => {
             }
             if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
                 roomInfo.youtubeLink = {};
+                isYoutubeRunning = false;
             }
             if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId == xuser._id.toString()) {
                 roomInfo.spotifyTrack = {};
