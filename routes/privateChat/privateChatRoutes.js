@@ -143,7 +143,7 @@ router.post('/create', async (req, res) => {
                 },
             ];
 
-            if (room.isMeeting) {
+            if (!room.isMeeting) {
                 filters.push({
                     user1Ref: new ObjectId(req.body.to),
                     user2Ref: new ObjectId(xuser._id),
@@ -204,6 +204,8 @@ router.post('/create', async (req, res) => {
                     msgs: msgs,
                 },
             });
+        } else {
+            console.log('wrong room or user');
         }
     } catch (e) {
         console.error(e);
