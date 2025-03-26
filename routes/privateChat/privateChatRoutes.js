@@ -216,7 +216,7 @@ router.post('/create', async (req, res) => {
 
 router.get('/get-msgs/:key', async (req, res) => {
     try {
-        console.log('/get-msgs/:key');
+        console.log('/get-msgs/:key', req.params.key);
         let xuser = await helpers.getUserByToken(req.headers.token);
 
         if (xuser) {
@@ -253,6 +253,8 @@ router.get('/get-msgs/:key', async (req, res) => {
                     msgs: msgs,
                 });
             }
+        } else {
+            console.log('user not found');
         }
     } catch (e) {
         console.log(e);
