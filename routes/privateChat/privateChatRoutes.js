@@ -252,6 +252,8 @@ router.get('/get-msgs/:key', async (req, res) => {
                     ok: true,
                     msgs: msgs,
                 });
+            } else {
+                console.log('private chat not found');
             }
         } else {
             console.log('user not found');
