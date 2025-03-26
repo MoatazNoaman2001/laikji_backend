@@ -578,6 +578,7 @@ module.exports = (io) => {
                 micQueue: roomInfo != null ? roomInfo.micQueue : [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
                 link: roomInfo != null ? roomInfo.youtubeLink : {},
+                spotifyTrack: roomInfo != null ? roomInfo.spotifyTrack : {}, 
             });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
@@ -1710,6 +1711,90 @@ module.exports = (io) => {
                     console.log('Error from pause YouTube event:', err.message);
                 }
             });
+            xclient.on('share-spotify-track', (data) => {
+                try {
+                    console.log('Spotify track sharing');
+                    if (!xuser) return;
+                    
+                    const userId = xuser._id.toString();
+                    
+                    if (
+                        xuser.type === enums.userTypes.root ||
+                        xuser.type === enums.userTypes.chatmanager ||
+                        xuser.type === enums.userTypes.master ||
+                        xuser.type === enums.userTypes.mastergirl ||
+                        xuser.type === enums.userTypes.mastermain ||
+                        member
+                    ) {
+                        if (roomInfo.speakers.has(userId)) {
+                            roomInfo.spotifyTrack = {
+                                userId: userId,
+                                uri: data.uri,
+                                paused: false,
+                                trackName: data.trackName,
+                                artistName: data.artistName,
+                                albumArtUrl: data.albumArtUrl,
+                                durationMs: data.durationMs,
+                                positionMs: 0
+                            };
+                            
+                            console.log('Sending Spotify track', JSON.stringify(roomInfo.spotifyTrack, null, 2));
+                            
+                            io.to(xroomId).emit('spotify-track-shared', {
+                                track: roomInfo.spotifyTrack
+                            });
+                        } else {
+                            io.to(xuser.socketId).emit('alert-msg', {
+                                msg_ar: 'يجب أن تكون على المايك لمشاركة تراك سبوتيفاي',
+                                msg_en: 'You need to be on mic to share a Spotify track'
+                            });
+                        }
+                    } else {
+                        io.to(xuser.socketId).emit('alert-msg', {
+                            msg_ar: 'ميزة سبوتيفاي متاحة للأسماء والملفات المسجلة فقط',
+                            msg_en: 'Spotify feature is only available for registered profiles'
+                        });
+                    }
+                } catch (err) {
+                    console.log('Error from share Spotify track:', err.message);
+                }
+            });
+
+            xclient.on('pause-spotify', (data) => {
+                try {
+                    const userId = xuser._id.toString();
+                    console.log('pause or resume spotify track');
+                    console.log(`current track state ${JSON.stringify(roomInfo.spotifyTrack)}`);
+                    
+                    if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId === userId) {
+                        console.log(`Pausing Spotify for room ${xroomId}`);
+                        roomInfo.spotifyTrack.paused = !roomInfo.spotifyTrack.paused;
+                        roomInfo.spotifyTrack.positionMs = data.positionMs || 0;
+                        
+                        io.to(xroomId).emit('spotify-paused', {
+                            track: roomInfo.spotifyTrack
+                        });
+                    }
+                } catch (err) {
+                    console.log('Error from pause Spotify event:', err.message);
+                }
+            });
+
+            xclient.on('spotify-position', (data) => {
+                try {
+                    const userId = xuser._id.toString();
+                    
+                    if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId === userId) {
+                        roomInfo.spotifyTrack.positionMs = data.positionMs || 0;
+                        
+                        io.to(xroomId).emit('spotify-position', {
+                            track: roomInfo.spotifyTrack
+                        });
+                    }
+                } catch (err) {
+                    console.log('Error from Spotify position event:', err.message);
+                }
+            });
 
             // سحب المايك
             xclient.on('disable-mic', async (data) => {
@@ -2269,6 +2354,9 @@ module.exports = (io) => {
             if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
                 roomInfo.youtubeLink = {};
                 isYoutubeRunning = false;
+            }
+            if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId == xuser._id.toString()) {
+                roomInfo.spotifyTrack = {};
             }
 
             io.to(xroomId).emit('user-left', xuser._id.toString());
