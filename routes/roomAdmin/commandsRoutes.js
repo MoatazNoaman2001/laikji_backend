@@ -319,252 +319,130 @@ router.post('/kick', userInRoomMiddleware, async (req, res) => {
 router.post('/stop', userInRoomMiddleware, async (req, res) => {
     try {
         let room = req.room;
-
         let user = await getUserById(req.body.user_id, room._id);
 
-        let isStoppedBefore = false;
+        let isStoppedBefore =
+            !user.can_private_chat ||
+            !user.can_public_chat ||
+            !user.can_use_camera ||
+            !user.can_use_mic;
         let isStoppedAfter = false;
 
-        if (req.user.is_spy) {
-            let until = -1;
+        let updatedUser = {
+            can_public_chat: !req.body.public_chat,
+            can_private_chat: !req.body.private_chat,
+            can_use_mic: !req.body.mic,
+            can_use_camera: !req.body.camera,
+            stop_strong_public_chat: req.body.public_chat ? req.user.strong : 0,
+            stop_strong_private_chat: req.body.private_chat ? req.user.strong : 0,
+            stop_strong_use_mic: req.body.mic ? req.user.strong : 0,
+            stop_strong_use_camera: req.body.camera ? req.user.strong : 0,
+        };
 
-            if (
-                !req.body.public_chat &&
-                !req.body.private_chat &&
-                !req.body.mic &&
-                !req.body.camera
-            ) {
-                until = null;
-            }
-
-            await userModal.findByIdAndUpdate(user._id, {
-                server_can_public_chat: !req.body.public_chat,
-                server_can_private_chat: !req.body.private_chat,
-                server_can_use_mic: !req.body.mic,
-                server_can_use_camera: !req.body.camera,
-                server_stop_until: until == -1 ? null : until,
-                server_stop_time: null,
-            });
-
-            user = await getUserById(user._id, room._id);
+        await updateUser(updatedUser, user._id, room._id);
+        if (room.isMeeting) {
+            await updateUser(updatedUser, user._id, room.parentRef);
         } else {
-            if (
-                !user.can_private_chat ||
-                !user.can_public_chat ||
-                !user.can_use_camera ||
-                !user.can_use_mic
-            ) {
-                isStoppedBefore = true;
-            }
-
-            if (req.user.strong >= user.stop_strong_public_chat) {
-                if (req.body.public_chat == true) {
-                    user.can_public_chat = false;
-                    user.stop_strong_public_chat = req.user.strong;
-                } else if (req.body.public_chat == false) {
-                    user.can_public_chat = true;
-                    user.stop_strong_public_chat = 0;
-                }
-            }
-
-            if (req.user.strong >= user.stop_strong_private_chat) {
-                if (req.body.private_chat == true) {
-                    user.can_private_chat = false;
-                    user.stop_strong_private_chat = req.user.strong;
-                } else if (req.body.private_chat == false) {
-                    user.can_private_chat = true;
-                    user.stop_strong_private_chat = 0;
-                }
-            }
-
-            if (req.user.strong >= user.stop_strong_use_mic) {
-                if (req.body.mic == true) {
-                    user.can_use_mic = false;
-                    user.stop_strong_use_mic = req.user.strong;
-                } else if (req.body.mic == false) {
-                    user.can_use_mic = true;
-                    user.stop_strong_use_mic = 0;
-                }
-            }
-
-            if (req.user.strong >= user.stop_strong_use_camera) {
-                if (req.body.camera == true) {
-                    user.can_use_camera = false;
-                    user.stop_strong_use_camera = req.user.strong;
-                } else if (req.body.camera == false) {
-                    user.can_use_camera = true;
-                    user.stop_strong_use_camera = 0;
-                }
-            }
-
-            await updateUser(user, user._id, room._id);
-            await updateUser(user, user._id, room.meetingRef);
-
-            if (
-                !user.can_private_chat ||
-                !user.can_public_chat ||
-                !user.can_use_camera ||
-                !user.can_use_mic
-            ) {
-                isStoppedAfter = true;
-            }
+            await updateUser(updatedUser, user._id, room.meetingRef);
         }
 
-        const meeting_user = await getUserById(
+        let meetingUser = await getUserById(
             req.body.user_id,
             room.isMeeting ? room.parentRef : room.meetingRef,
         );
+        isStoppedAfter =
+            !meetingUser.can_private_chat ||
+            !meetingUser.can_public_chat ||
+            !meetingUser.can_use_camera ||
+            !meetingUser.can_use_mic;
 
-        global.io.emit(room._id, {
-            type: 'info-change',
-            data: await public_user(user),
-            from: !req.user.is_spy ? req.user.name : 'سيرفر',
-        });
-
-        global.io.emit(room._id, {
-            type: 'command-stop',
-            data: {
-                user_id: req.body.user_id,
-                user: await public_user(user),
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
-
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'info-change',
-            data: await public_user(meeting_user),
-            from: !req.user.is_spy ? req.user.name : 'سيرفر',
-        });
-
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'command-stop',
-            data: {
-                user_id: req.body.user_id,
-                user: await public_user(meeting_user),
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
-        if (req.body.mic == true) {
-            stopMic(req.body.user_id, room._id.toString());
-        }
-        let msg_ar = `قام بإيقاف عضو`;
-        let msg_en = `has stopped a user`;
-
-        if (isStoppedBefore && isStoppedAfter) {
-            msg_ar = `قام بتعديل إيقاف عضو`;
-            msg_en = `has edited stop a user`;
-        } else if (isStoppedBefore && !isStoppedAfter) {
-            msg_ar = `قام بإلغاء إيقاف عضو`;
-            msg_en = `has unstopped a user`;
-        } else if (!isStoppedBefore && isStoppedAfter) {
-            msg_ar = `قام بإيقاف عضو`;
-            msg_en = `has stopped a user`;
-        }
-
-        addAdminLog(req.user, room._id, msg_ar, msg_en, user.name);
-
-        if (!user.can_private_chat || !user.server_can_private_chat) {
-            let condition = [
-                {
-                    user1Ref: new ObjectId(user._id),
-                },
-                {
-                    user2Ref: new ObjectId(user._id),
-                },
-            ];
-            let pcs = await privateChatModel.find({
-                $or: condition,
+        let roomsToNotify = [room._id, room.isMeeting ? room.parentRef : room.meetingRef];
+        roomsToNotify.forEach(async (roomId) => {
+            global.io.emit(roomId, {
+                type: 'info-change',
+                data: await public_user(meetingUser),
+                from: req.user.is_spy ? 'سيرفر' : req.user.name,
             });
 
-            if (pcs.length > 0) {
-                for (let i = 0; i < pcs.length; i++) {
-                    const pc = pcs[i];
-                    await privateChatModel.findByIdAndDelete(pc._id);
-                    await privateMessageModel.deleteMany({
-                        chatRef: new ObjectId(pc._id),
-                    });
-                }
-            }
+            global.io.emit(roomId, {
+                type: 'command-stop',
+                data: {
+                    user_id: req.body.user_id,
+                    user: await public_user(meetingUser),
+                    from: req.user.is_spy ? 'سيرفر' : req.user.name,
+                },
+            });
+        });
+
+        if (req.body.mic) {
+            stopMic(req.body.user_id, room._id.toString());
         }
 
-        return res.status(200).send({
-            ok: true,
-        });
+        let logMsgAr =
+            isStoppedBefore && !isStoppedAfter ? `قام بإلغاء إيقاف عضو` : `قام بإيقاف عضو`;
+        let logMsgEn =
+            isStoppedBefore && !isStoppedAfter ? `has unstopped a user` : `has stopped a user`;
+        addAdminLog(req.user, room._id, logMsgAr, logMsgEn, user.name);
+
+        return res.status(200).send({ ok: true });
     } catch (e) {
         console.error(e);
-        return res.status(500).send({
-            ok: false,
-            error: e.message,
-        });
+        return res.status(500).send({ ok: false, error: e.message });
     }
 });
 
 router.post('/unstop', userInRoomMiddleware, async (req, res) => {
     try {
         let room = req.room;
+        let user = await getUserById(req.body.user_id, room._id);
 
-        const user = await getUserById(req.body.user_id, room._id);
+        let updatedUser = {
+            can_public_chat: true,
+            can_private_chat: true,
+            can_use_mic: true,
+            can_use_camera: true,
+            stop_strong_public_chat: 0,
+            stop_strong_private_chat: 0,
+            stop_strong_use_mic: 0,
+            stop_strong_use_camera: 0,
+        };
 
-        await updateUser(
-            {
-                can_public_chat: true,
-                can_private_chat: true,
-                can_use_mic: true,
-                can_use_camera: true,
-                stop_strong_public_chat: 0,
-                stop_strong_private_chat: 0,
-                stop_strong_use_mic: 0,
-                stop_strong_use_camera: 0,
-            },
-            user._id,
-            room._id,
-        );
+        await updateUser(updatedUser, user._id, room._id);
+        if (room.isMeeting) {
+            await updateUser(updatedUser, user._id, room.parentRef);
+        } else {
+            await updateUser(updatedUser, user._id, room.meetingRef);
+        }
 
-        const meeting_user = await getUserById(
+        let meetingUser = await getUserById(
             req.body.user_id,
             room.isMeeting ? room.parentRef : room.meetingRef,
         );
 
-        global.io.emit(room._id, {
-            type: 'info-change',
-            data: await public_user(user),
-            from: !req.user.is_spy ? req.user.name : 'سيرفر',
-        });
+        let roomsToNotify = [room._id, room.isMeeting ? room.parentRef : room.meetingRef];
+        roomsToNotify.forEach(async (roomId) => {
+            global.io.emit(roomId, {
+                type: 'info-change',
+                data: await public_user(meetingUser),
+                from: req.user.is_spy ? 'سيرفر' : req.user.name,
+            });
 
-        global.io.emit(room._id, {
-            type: 'command-stop',
-            data: {
-                user_id: req.body.user_id,
-                user: await public_user(user),
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
-
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'info-change',
-            data: await public_user(meeting_user),
-            from: !req.user.is_spy ? req.user.name : 'سيرفر',
-        });
-
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'command-stop',
-            data: {
-                user_id: req.body.user_id,
-                user: await public_user(meeting_user),
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
+            global.io.emit(roomId, {
+                type: 'command-stop',
+                data: {
+                    user_id: req.body.user_id,
+                    user: await public_user(meetingUser),
+                    from: req.user.is_spy ? 'سيرفر' : req.user.name,
+                },
+            });
         });
 
         addAdminLog(req.user, room._id, `قام بإلغاء إيقاف عضو`, `has unstopped a user`, user.name);
 
-        return res.status(200).send({
-            ok: true,
-        });
+        return res.status(200).send({ ok: true });
     } catch (e) {
-        return res.status(500).send({
-            ok: false,
-            error: e.message,
-        });
+        console.error(e);
+        return res.status(500).send({ ok: false, error: e.message });
     }
 });
 

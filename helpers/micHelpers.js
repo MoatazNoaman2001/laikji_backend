@@ -23,28 +23,32 @@ function convertToMilliseconds(time) {
     }
 }
 const getUserTimeLeft = (userType, xroom) => {
-    const talk_dur = xroom.isMeeting ? 3000 : xroom.mic.talk_dur;
-    switch (userType) {
-        case enums.userTypes.guest:
-            return convertToMilliseconds(talk_dur[0]);
-        case enums.userTypes.member:
-            return convertToMilliseconds(talk_dur[1]);
-        case enums.userTypes.admin:
-            return convertToMilliseconds(talk_dur[2]);
-        case enums.userTypes.superadmin:
-            return convertToMilliseconds(talk_dur[3]);
-        case enums.userTypes.master:
-            return convertToMilliseconds(talk_dur[4]);
-        case enums.userTypes.mastermain:
-            return convertToMilliseconds(talk_dur[4]);
-        case enums.userTypes.mastergirl:
-            return convertToMilliseconds(talk_dur[4]);
-        case enums.userTypes.chatmanager:
-            return convertToMilliseconds(talk_dur[4]);
-        case enums.userTypes.root:
-            return convertToMilliseconds(talk_dur[4]);
-        default:
-            return 0;
+    const talk_dur = xroom.mic.talk_dur;
+    if (xroom.isMeeting) {
+        return convertToMilliseconds(3000);
+    } else {
+        switch (userType) {
+            case enums.userTypes.guest:
+                return convertToMilliseconds(talk_dur[0]);
+            case enums.userTypes.member:
+                return convertToMilliseconds(talk_dur[1]);
+            case enums.userTypes.admin:
+                return convertToMilliseconds(talk_dur[2]);
+            case enums.userTypes.superadmin:
+                return convertToMilliseconds(talk_dur[3]);
+            case enums.userTypes.master:
+                return convertToMilliseconds(talk_dur[4]);
+            case enums.userTypes.mastermain:
+                return convertToMilliseconds(talk_dur[4]);
+            case enums.userTypes.mastergirl:
+                return convertToMilliseconds(talk_dur[4]);
+            case enums.userTypes.chatmanager:
+                return convertToMilliseconds(talk_dur[4]);
+            case enums.userTypes.root:
+                return convertToMilliseconds(talk_dur[4]);
+            default:
+                return 0;
+        }
     }
 };
 
