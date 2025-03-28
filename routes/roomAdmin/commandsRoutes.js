@@ -398,6 +398,7 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             }
 
             await updateUser(user, user._id, room._id);
+            await updateUser(user, user._id, room.meetingRef);
 
             if (
                 !user.can_private_chat ||

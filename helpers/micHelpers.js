@@ -23,7 +23,7 @@ function convertToMilliseconds(time) {
     }
 }
 const getUserTimeLeft = (userType, xroom) => {
-    const talk_dur = xroom.mic.talk_dur;
+    const talk_dur = xroom.isMeeting ? 3000 : xroom.mic.talk_dur;
     switch (userType) {
         case enums.userTypes.guest:
             return convertToMilliseconds(talk_dur[0]);
