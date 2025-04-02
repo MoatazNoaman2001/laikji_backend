@@ -578,7 +578,7 @@ module.exports = (io) => {
                 micQueue: roomInfo != null ? roomInfo.micQueue : [],
                 speakers: roomInfo != null ? Array.from(roomInfo.speakers) : {},
                 link: roomInfo != null ? roomInfo.youtubeLink : {},
-                spotifyTrack: roomInfo != null ? roomInfo.spotifyTrack : {}, 
+                spotifyTrack: roomInfo != null ? roomInfo.spotifyTrack : {},
             });
             if (xuser.is_visible) {
                 io.emit(xroomId, {
@@ -1659,7 +1659,11 @@ module.exports = (io) => {
                         member
                     ) {
                         if (roomInfo.speakers.has(userId)) {
-                            if (roomInfo.youtubeLink && roomInfo.youtubeLink.link.trim() !== '') {
+                            if (
+                                roomInfo.youtubeLink &&
+                                roomInfo.youtubeLink.link.trim() !== '' &&
+                                data.link.trim() !== ''
+                            ) {
                                 console.log(roomInfo.youtubeLink);
                                 xclient.emit('alert-msg', {
                                     msg_en: 'This feature is running by another participant',
@@ -1715,9 +1719,9 @@ module.exports = (io) => {
                 try {
                     console.log('Spotify track sharing');
                     if (!xuser) return;
-                    
+
                     const userId = xuser._id.toString();
-                    
+
                     if (
                         xuser.type === enums.userTypes.root ||
                         xuser.type === enums.userTypes.chatmanager ||
@@ -1735,24 +1739,27 @@ module.exports = (io) => {
                                 artistName: data.artistName,
                                 albumArtUrl: data.albumArtUrl,
                                 durationMs: data.durationMs,
-                                positionMs: 0
+                                positionMs: 0,
                             };
-                            
-                            console.log('Sending Spotify track', JSON.stringify(roomInfo.spotifyTrack, null, 2));
-                            
+
+                            console.log(
+                                'Sending Spotify track',
+                                JSON.stringify(roomInfo.spotifyTrack, null, 2),
+                            );
+
                             io.to(xroomId).emit('spotify-track-shared', {
-                                track: roomInfo.spotifyTrack
+                                track: roomInfo.spotifyTrack,
                             });
                         } else {
                             io.to(xuser.socketId).emit('alert-msg', {
                                 msg_ar: 'يجب أن تكون على المايك لمشاركة تراك سبوتيفاي',
-                                msg_en: 'You need to be on mic to share a Spotify track'
+                                msg_en: 'You need to be on mic to share a Spotify track',
                             });
                         }
                     } else {
                         io.to(xuser.socketId).emit('alert-msg', {
                             msg_ar: 'ميزة سبوتيفاي متاحة للأسماء والملفات المسجلة فقط',
-                            msg_en: 'Spotify feature is only available for registered profiles'
+                            msg_en: 'Spotify feature is only available for registered profiles',
                         });
                     }
                 } catch (err) {
@@ -1765,14 +1772,14 @@ module.exports = (io) => {
                     const userId = xuser._id.toString();
                     console.log('pause or resume spotify track');
                     console.log(`current track state ${JSON.stringify(roomInfo.spotifyTrack)}`);
-                    
+
                     if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId === userId) {
                         console.log(`Pausing Spotify for room ${xroomId}`);
                         roomInfo.spotifyTrack.paused = !roomInfo.spotifyTrack.paused;
                         roomInfo.spotifyTrack.positionMs = data.positionMs || 0;
-                        
+
                         io.to(xroomId).emit('spotify-paused', {
-                            track: roomInfo.spotifyTrack
+                            track: roomInfo.spotifyTrack,
                         });
                     }
                 } catch (err) {
@@ -1783,12 +1790,12 @@ module.exports = (io) => {
             xclient.on('spotify-position', (data) => {
                 try {
                     const userId = xuser._id.toString();
-                    
+
                     if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId === userId) {
                         roomInfo.spotifyTrack.positionMs = data.positionMs || 0;
-                        
+
                         io.to(xroomId).emit('spotify-position', {
-                            track: roomInfo.spotifyTrack
+                            track: roomInfo.spotifyTrack,
                         });
                     }
                 } catch (err) {
