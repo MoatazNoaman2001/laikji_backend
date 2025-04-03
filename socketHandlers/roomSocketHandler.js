@@ -1650,8 +1650,11 @@ module.exports = (io) => {
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
                     const meetingRoomInfo = await getRoomData(room.meetingRef);
-                    console.log('room info', roomInfo.speakers.length);
-                    console.log('meetin room info', meetingRoomInfo.speakers.length);
+                    console.log('room info', JSON.stringify(roomInfo.speakers, null, 2));
+                    console.log(
+                        'meetin room info',
+                        JSON.stringify(meetingRoomInfo.speakers, null, 2),
+                    );
                     if (
                         xuser.type === enums.userTypes.root ||
                         xuser.type === enums.userTypes.chatmanager ||
