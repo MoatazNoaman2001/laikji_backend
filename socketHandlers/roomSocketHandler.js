@@ -1684,8 +1684,9 @@ module.exports = (io) => {
                             io.to(xroomId).emit('youtube-link-shared', {
                                 link: roomInfo.youtubeLink,
                             });
-                        }
+                        } else console.log('not speaker');
                     } else {
+                        console.log('perm issue');
                         io.to(socketId).emit('alert-msg', {
                             msg_ar: 'ميزة اليوتيوب متاحة للأسماء والملفات المسجلة فقط',
                         });
