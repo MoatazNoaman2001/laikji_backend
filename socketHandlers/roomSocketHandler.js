@@ -1650,8 +1650,8 @@ module.exports = (io) => {
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
                     const meetingRoomInfo = await getRoomData(room.meetingRef);
-                    console.log('room info', roomInfo.speakers.toString());
-                    console.log('meetin room info', meetingRoomInfo.speakers.toString());
+                    console.log('room info', roomInfo.speakers.length);
+                    console.log('meetin room info', meetingRoomInfo.speakers.length);
                     if (
                         xuser.type === enums.userTypes.root ||
                         xuser.type === enums.userTypes.chatmanager ||
@@ -1660,7 +1660,7 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastermain ||
                         member
                     ) {
-                        if (roomInfo.speakers.has(userId) || meetingRoomInfo.speaker.has(userId)) {
+                        if (roomInfo.speakers.has(userId) || meetingRoomInfo.speakers.has(userId)) {
                             if (
                                 roomInfo.youtubeLink &&
                                 roomInfo.youtubeLink.link.trim() !== '' &&
