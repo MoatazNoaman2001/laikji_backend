@@ -41,7 +41,7 @@ const img_uploader = multer({
 
 const getRoomInfo = async (room) => {
     console.log(`room allow_send_imgs: ${room.allow_send_imgs}`);
-    
+
     return {
         name: room.name,
         serial: room.serial,
@@ -84,7 +84,7 @@ router.get('/info', async (req, res) => {
         let room = req.room;
         response = await getRoomInfo(room);
         console.log(`room keys: ${Object.keys(response)}`);
-        
+
         return res.status(200).send({
             ok: true,
             data: response,
@@ -538,7 +538,18 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             },
             update,
         );
-
+        let meetingUpdate = {
+            private_status:
+                req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
+                    ? parseInt(req.body.private_status)
+                    : room.private_status,
+        };
+        const updatedMeeting = await roomModel.findOneAndUpdate(
+            {
+                _id: new ObjectId(room.meetingRef),
+            },
+            meetingUpdate,
+        );
         let room_after_update = await roomModel.findOne({
             _id: new ObjectId(room._id),
         });
@@ -546,6 +557,10 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
         global.io.emit(room._id, {
             type: 'room-update',
             data: await helpers.public_room(room_after_update),
+        });
+        global.io.emit(room.meetingRef, {
+            type: 'room-update',
+            data: await helpers.public_room(updatedMeeting),
         });
 
         await helpers.notifyRoomChanged(room._id, false, true);
