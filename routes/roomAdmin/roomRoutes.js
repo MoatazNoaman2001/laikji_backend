@@ -539,6 +539,13 @@ router.post('/update', img_uploader.single('welcome_img'), async (req, res) => {
             update,
         );
         let meetingUpdate = {
+            mic: {
+                mic_permission: micObject.mic_permission ?? room.mic.mic_permission,
+                talk_dur: micObject.talk_dur ?? room.mic.talk_dur,
+                mic_setting: micObject.mic_setting ?? room.mic.mic_setting,
+                shared_mic_capacity: micObject.shared_mic_capacity ?? room.mic.shared_mic_capacity,
+            },
+            allow_send_imgs: req.body.allow_send_imgs ?? room.allow_send_imgs,
             private_status:
                 req.body.private_status && req.body.private_status in ['0', '1', '2', '3']
                     ? parseInt(req.body.private_status)

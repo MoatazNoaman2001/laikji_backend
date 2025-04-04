@@ -25,7 +25,6 @@ const img_uploader = multer({
 
 router.post('/update', async (req, res) => {
     try {
-        
         let member = req.member;
 
         const item = await memberModal.findById(member._id);
@@ -49,15 +48,19 @@ router.post('/update', async (req, res) => {
         item.accept_photos = req.body.accept_photos;
         item.showCountry = req.body.showCountry;
         item.is_shader_banner = req.body.is_shader_banner;
-        
+
         console.log(`item isShaderBanner: ${item.is_shader_banner}`);
         console.log(`room: ${req.room}`);
-        
 
         item.save();
 
         if (req.room) {
             global.io.emit(req.room._id, {
+                type: 'info-change',
+                data: await public_user(req.user),
+            });
+
+            global.io.emit(req.room.meetingRef, {
                 type: 'info-change',
                 data: await public_user(req.user),
             });

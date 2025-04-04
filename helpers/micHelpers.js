@@ -1,4 +1,3 @@
-const { log } = require('console');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
 const { getRoomData } = require('./mediasoupHelpers');

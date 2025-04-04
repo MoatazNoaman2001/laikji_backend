@@ -62,7 +62,6 @@ const { getRoomData } = require('../helpers/mediasoupHelpers');
 
 var allMutedList = new Map();
 var mutedSpeakers = new Map();
-var isYoutubeRunning = false;
 // Track active audio streams
 const activeAudioStreams = {};
 
@@ -1549,7 +1548,7 @@ module.exports = (io) => {
             // Function to handle mic request
             xclient.on('request-mic', async (data) => {
                 try {
-                    console.log(`Mic request received from user ${xuser._id}`);
+                    console.log(`Mic request received from user ${xuser._id} data is ${data}`);
                     // if (!xuser) return;
                     const user = await getUserById(data.userId, xroomId);
                     const newRoom = await roomModel.findById(xroomId);
@@ -2212,8 +2211,6 @@ module.exports = (io) => {
                                 Array.from(roomInfo.speakers).length <
                                 newRoom.mic.shared_mic_capacity
                             ) {
-                                //  if (!xuser || !xuser.can_use_mic) return; // Ensure the current user has the mic
-
                                 let { userId } = data;
                                 const userToShareWith = await getUserById(userId, xroomId);
 
