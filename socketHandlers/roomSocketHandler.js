@@ -442,14 +442,10 @@ module.exports = (io) => {
                         ...member._doc,
                         roomRef: room._id,
                     };
-                    console.log(`member keys: ${Object.keys(member)}`);
-                    console.log(
-                        `keys begin with is: ${Object.keys(member).filter((e) =>
-                            e.startsWith('is'),
-                        )}`,
-                    );
                 } else {
-                    member = null;
+                    member = {
+                        ...member._doc,
+                    };
                 }
             } else {
                 member = null;
@@ -1659,12 +1655,12 @@ module.exports = (io) => {
                     console.log('room info', JSON.stringify(roomInfo.speakers, null, 2));
 
                     if (
+                        member ||
                         xuser.type === enums.userTypes.root ||
                         xuser.type === enums.userTypes.chatmanager ||
                         xuser.type === enums.userTypes.master ||
                         xuser.type === enums.userTypes.mastergirl ||
-                        xuser.type === enums.userTypes.mastermain ||
-                        member
+                        xuser.type === enums.userTypes.mastermain
                     ) {
                         if (roomInfo.speakers.has(userId)) {
                             if (
