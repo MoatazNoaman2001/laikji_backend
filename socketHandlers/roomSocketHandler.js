@@ -631,6 +631,14 @@ module.exports = (io) => {
                 }
             }, 60 * 60 * 1000 * 9);
 
+            xclient.on('switchedToMeeting', async (data) => {
+                xroomId = data.roomId;
+                room = await roomModel.findById(data.roomId);
+            });
+            xclient.on('meetingLogout', async (data) => {
+                room = await roomModel.findById(room.parentRef);
+                xroomId = room._id.toString();
+            });
             xclient.on('send-msg', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
@@ -1648,12 +1656,8 @@ module.exports = (io) => {
 
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
-                    const meetingRoomInfo = await getRoomData(room.meetingRef);
                     console.log('room info', JSON.stringify(roomInfo.speakers, null, 2));
-                    console.log(
-                        'meetin room info',
-                        JSON.stringify(meetingRoomInfo.speakers, null, 2),
-                    );
+
                     if (
                         xuser.type === enums.userTypes.root ||
                         xuser.type === enums.userTypes.chatmanager ||
@@ -1662,7 +1666,7 @@ module.exports = (io) => {
                         xuser.type === enums.userTypes.mastermain ||
                         member
                     ) {
-                        if (roomInfo.speakers.has(userId) || meetingRoomInfo.speakers.has(userId)) {
+                        if (roomInfo.speakers.has(userId)) {
                             if (
                                 roomInfo.youtubeLink &&
                                 roomInfo.youtubeLink.link.trim() !== '' &&
@@ -1811,16 +1815,7 @@ module.exports = (io) => {
             // سحب المايك
             xclient.on('disable-mic', async (data) => {
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     if (xuser.permissions[10] == 0) {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: `you don't have a permission to do this action`,
@@ -1863,16 +1858,7 @@ module.exports = (io) => {
             // سحب المايك من الجميع
             xclient.on('disable-mic-for-all', async (data) => {
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     if (xuser.permissions[10] == 0) {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: `you don't have a permission to do this action`,
@@ -1910,16 +1896,7 @@ module.exports = (io) => {
             // سحب المايك من الجميع إلا هذا
             xclient.on('disable-mic-but-user', async (data) => {
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     if (xuser.permissions[10] == 0) {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: `you don't have a permission to do this action`,
@@ -1960,16 +1937,7 @@ module.exports = (io) => {
             xclient.on('remove-from-mic-queue', async (data) => {
                 console.log('remove from mic queue');
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     const userId = data.userId;
                     const user = await getUserById(userId, xroomId);
 
@@ -1997,16 +1965,7 @@ module.exports = (io) => {
             // data = {userId}
             xclient.on('remove-all-from-mic-queue-but-user', async (data) => {
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     const userId = data.userId;
                     const user = await getUserById(userId, xroomId);
 
@@ -2029,16 +1988,7 @@ module.exports = (io) => {
             // no data
             xclient.on('remove-all-from-mic-queue', async () => {
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     if (roomInfo.micQueue && roomInfo.micQueue.length !== 0) {
                         for (const id of roomInfo.micQueue) {
                         }
@@ -2062,16 +2012,7 @@ module.exports = (io) => {
             // data = {userId}
             xclient.on('enable-mic-for-user', async (data) => {
                 try {
-                    if (
-                        !xuser ||
-                        (xuser.type !== enums.userTypes.root &&
-                            xuser.type !== enums.userTypes.chatmanager &&
-                            xuser.type !== enums.userTypes.master &&
-                            xuser.type !== enums.userTypes.mastermain &&
-                            xuser.type !== enums.userTypes.mastergirl &&
-                            0)
-                    )
-                        return;
+                    if (!xuser || xuser.type == enums.userTypes.guest) return;
                     const userId = data.userId;
                     if (roomInfo.micQueue && roomInfo.micQueue.includes(userId)) {
                         const user = await getUserById(userId, xroomId);

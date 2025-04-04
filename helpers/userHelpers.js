@@ -130,14 +130,14 @@ const updateUser = async (xuser, user_id, room_id) => {
         update,
         options,
     );
-    // let room = await roomModel.findById(room_id);
-    // if (room) {
-    //     await roomUsersModel.findOneAndUpdate(
-    //         { userRef: new ObjectId(user_id), roomRef: new ObjectId(room.meetingRef) },
-    //         update,
-    //         options,
-    //     );
-    // }
+    let room = await roomModel.findById(room_id);
+    if (room) {
+        await roomUsersModel.findOneAndUpdate(
+            { userRef: new ObjectId(user_id), roomRef: new ObjectId(room.meetingRef) },
+            update,
+            options,
+        );
+    }
     const user = await getUserById(user_id, room_id);
     return user;
 };
