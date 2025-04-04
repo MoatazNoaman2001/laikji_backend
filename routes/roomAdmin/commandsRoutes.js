@@ -374,7 +374,7 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
             });
 
             if (req.body.mic) {
-                stopMic(req.body.user_id, room._id.toString());
+                stopMic(req.body.user_id, roomId.toString());
             }
         });
 
