@@ -372,11 +372,11 @@ router.post('/stop', userInRoomMiddleware, async (req, res) => {
                     from: req.user.is_spy ? 'سيرفر' : req.user.name,
                 },
             });
-        });
 
-        if (req.body.mic) {
-            stopMic(req.body.user_id, room._id.toString());
-        }
+            if (req.body.mic) {
+                stopMic(req.body.user_id, room._id.toString());
+            }
+        });
 
         let logMsgAr =
             isStoppedBefore && !isStoppedAfter ? `قام بإلغاء إيقاف عضو` : `قام بإيقاف عضو`;
