@@ -627,12 +627,12 @@ module.exports = (io) => {
                 }
             }, 60 * 60 * 1000 * 9);
 
-            xclient.on('switchedToMeeting', async (data) => {
-                xroomId = data.roomId;
-                room = await roomModel.findById(data.roomId);
+            xclient.on('join-meeting', async (data) => {
+                room = await roomModel.findById(xroomId);
+                xroomId = room.meetingRef;
             });
-            xclient.on('meetingLogout', async (data) => {
-                room = await roomModel.findById(room.parentRef);
+            xclient.on('leave-meeting', async (data) => {
+                room = await roomModel.findById(xroomId);
                 xroomId = room._id.toString();
             });
             xclient.on('send-msg', async (data) => {
