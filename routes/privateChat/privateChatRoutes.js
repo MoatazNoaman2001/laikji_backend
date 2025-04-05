@@ -33,6 +33,7 @@ router.post('/create', async (req, res) => {
     try {
         let xuser = await helpers.getUserByToken(req.headers.token);
         let room = await roomModel.findById(req.headers.room_id);
+        console.log('private room id ', room._id);
         if (xuser && room) {
             let otherUser = await getUserById(req.body.to, room._id);
 
