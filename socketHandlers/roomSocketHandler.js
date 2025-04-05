@@ -630,10 +630,12 @@ module.exports = (io) => {
             xclient.on('join-meeting', async (data) => {
                 room = await roomModel.findById(xroomId);
                 xroomId = room.meetingRef;
+                console.log('xxxxxxxroom id ', xroomId);
             });
             xclient.on('leave-meeting', async (data) => {
                 room = await roomModel.findById(xroomId);
                 xroomId = room._id.toString();
+                console.log('xxxxxxxroom id ', xroomId);
             });
             xclient.on('send-msg', async (data) => {
                 if (!xuser) return;
