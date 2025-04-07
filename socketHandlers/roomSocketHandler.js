@@ -496,10 +496,10 @@ module.exports = (io) => {
                 is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
                 device: xclient.handshake.query.device ?? xclient.handshake.query.key,
-                private_status:
-                    xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
-                        ? parseInt(xclient.handshake.query.ps)
-                        : 1,
+                // private_status:
+                //     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
+                //         ? parseInt(xclient.handshake.query.ps)
+                //         : 1,
                 flag: process.env.mediaUrl + 'flags/' + xclient.handshake.query.flag,
                 country_code: xclient.handshake.query.country_code,
                 token: token,
@@ -2305,7 +2305,7 @@ module.exports = (io) => {
                     data: await public_user(xuser),
                 });
 
-                if (!room.isMeeting) {
+                if (room.isMeeting) {
                     io.emit(room.meetingRef, {
                         type: 'dis-user',
                         data: await public_user(xuser),
