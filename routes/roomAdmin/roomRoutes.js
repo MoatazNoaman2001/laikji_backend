@@ -40,8 +40,6 @@ const img_uploader = multer({
 });
 
 const getRoomInfo = async (room) => {
-    console.log(`room allow_send_imgs: ${room.allow_send_imgs}`);
-
     return {
         name: room.name,
         serial: room.serial,
@@ -83,8 +81,6 @@ router.get('/info', async (req, res) => {
     try {
         let room = req.room;
         response = await getRoomInfo(room);
-        console.log(`room keys: ${Object.keys(response)}`);
-
         return res.status(200).send({
             ok: true,
             data: response,
