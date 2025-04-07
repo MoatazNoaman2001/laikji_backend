@@ -726,10 +726,10 @@ module.exports = (io) => {
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
-                            io.to(xuser.socketId).emit('new-alert', {
-                                msg_en: "This user doesn't receive private chats",
-                                msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
-                            });
+                            // io.to(xuser.socketId).emit('new-alert', {
+                            //     msg_en: "This user doesn't receive private chats",
+                            //     msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
+                            // });
                             global.io.to(otherUser.socketId).emit(xroomId, {
                                 type: 'admin-changes',
                                 target: xroomId,
