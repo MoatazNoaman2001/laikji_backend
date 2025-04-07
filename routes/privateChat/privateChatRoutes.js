@@ -36,6 +36,12 @@ router.post('/create', async (req, res) => {
         console.log('private room id ', room._id);
         if (xuser && room) {
             let otherUser = await getUserById(req.body.to, room._id);
+            const otherRoom = await roomModel.findById(
+                room.isMeeting ? room.meetingRef : room.parentRef,
+            );
+            if (otherRoom) {
+                otherUser = await getUserById(otherUser._id, otherRoom._id);
+            }
             console.log('other socket ', otherUser.socketId);
 
             if (room.private_status == 0) {
