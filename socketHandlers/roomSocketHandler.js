@@ -503,7 +503,7 @@ module.exports = (io) => {
                 flag: process.env.mediaUrl + 'flags/' + xclient.handshake.query.flag,
                 country_code: xclient.handshake.query.country_code,
                 token: token,
-                socketId: xclient.id,
+                //socketId: xclient.id,
                 invited_to_meeting: false,
                 room_password: xclient.handshake.query.rp ?? null,
                 room_name: xclient.handshake.query.name,

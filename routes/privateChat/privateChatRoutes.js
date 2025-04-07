@@ -103,11 +103,6 @@ router.post('/create', async (req, res) => {
                 } catch (e) {
                     console.log('error sending');
                 }
-                return res.status(200).send({
-                    ok: false,
-                    msg_en: "This user doesn't receive private chats",
-                    msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة ',
-                });
             }
 
             const myChats = await privateChatModel.find({
