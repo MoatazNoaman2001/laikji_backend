@@ -582,43 +582,6 @@ module.exports = (io) => {
                 });
             }
 
-            // let joinTime = null;
-
-            // const { clientJoinTime } = xclient.handshake.query.time; // Client's original join time
-            // const currentTime = Date.now();
-
-            // if (joinTime === null) {
-            //     // First-time connection
-            //     joinTime = clientJoinTime || currentTime;
-            // } else {
-            //     var date = new Date(joinTime);
-            //     date.setSeconds(date.getSeconds() + 6);
-            //     var time = date.toISOString();
-            //     setInterval(() => {
-            //         time -= 1000;
-            //         if (time <= 0) {
-            //             disconnectFromRoom(data);
-            //             xclient.emit('logout');
-            //         }
-            //     }, 1000);
-            //     // Reconnection logic
-            //     const disconnectTime = currentTime;
-            //     const disconnectDuration =
-            //         disconnectTime - (socket.disconnectTime || disconnectTime);
-
-            //     console.log(
-            //         `Client ${socket.id} reconnected. Disconnected for ${disconnectDuration}ms`,
-            //     );
-
-            //     if (disconnectDuration > 6000) {
-            //         // Disconnected for more than 6 seconds
-            //         socket.emit('disconnect-now', {
-            //             message: 'Disconnected for too long. Rejoin required.',
-            //         });
-            //     } else {
-            //         console.log(`Client ${socket.id} reconnected in time.`);
-            //     }
-            // }
             setInterval(async () => {
                 const m = await memberModal.findOne(member_query);
                 if (m) {
