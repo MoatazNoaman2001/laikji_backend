@@ -704,7 +704,6 @@ module.exports = (io) => {
 
                     otherUser = await getUserById(otherUser._id, xroomId);
                     const room = await roomModel.findById(xroomId);
-                    console.log('room type', room.private_status);
                     if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
                         io.to(xuser.socketId).emit('new-alert', {
                             msg_en: 'This user is banned from using private chats',
@@ -726,6 +725,14 @@ module.exports = (io) => {
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
+                            global.io.to(otherUser.socketId).emit(xroomId, {
+                                type: 'admin-changes',
+                                target: xroomId,
+                                data: {
+                                    ar: xuser.name + ' يحاول إرسال رسالة خاصة لك',
+                                    en: xuser.name + ' is trying to send a private message',
+                                },
+                            });
                             io.to(xuser.socketId).emit('new-alert', {
                                 msg_en: "This user doesn't receive private chats",
                                 msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
