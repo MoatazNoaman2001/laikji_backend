@@ -730,6 +730,14 @@ module.exports = (io) => {
                                 msg_en: "This user doesn't receive private chats",
                                 msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
                             });
+                            global.io.to(otherUser.socketId).emit(xroomId, {
+                                type: 'admin-changes',
+                                target: xroomId,
+                                data: {
+                                    ar: xuser.name + ' يحاول إرسال رسالة خاصة لك',
+                                    en: xuser.name + ' is trying to send a private message',
+                                },
+                            });
                             return;
                         }
                     }
