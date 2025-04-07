@@ -415,7 +415,7 @@ module.exports = (io) => {
 
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
-        console.log('on connection for room', room._id.toString());
+        console.log('on connection for room');
 
         if (!room) {
             xclient.disconnect();
@@ -726,17 +726,9 @@ module.exports = (io) => {
                             (otherUser._id == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
                             (otherUser._id == pc.user2Ref._id.toString() && pc.isUser2Deleted)
                         ) {
-                            // io.to(xuser.socketId).emit('new-alert', {
-                            //     msg_en: "This user doesn't receive private chats",
-                            //     msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
-                            // });
-                            global.io.to(otherUser.socketId).emit(xroomId, {
-                                type: 'admin-changes',
-                                target: xroomId,
-                                data: {
-                                    ar: xuser.name + ' يحاول إرسال رسالة خاصة لك',
-                                    en: xuser.name + ' is trying to send a private message',
-                                },
+                            io.to(xuser.socketId).emit('new-alert', {
+                                msg_en: "This user doesn't receive private chats",
+                                msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
                             });
                             return;
                         }

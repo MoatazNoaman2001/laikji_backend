@@ -36,13 +36,6 @@ router.post('/create', async (req, res) => {
         console.log('private room id ', room._id);
         if (xuser && room) {
             let otherUser = await getUserById(req.body.to, room._id);
-            const otherRoom = await roomModel.findById(
-                room.isMeeting ? room.meetingRef : room.parentRef,
-            );
-            if (otherRoom) {
-                otherUser = await getUserById(otherUser._id, otherRoom._id);
-            }
-            console.log('other socket ', otherUser.socketId);
 
             if (room.private_status == 0) {
                 return res.status(200).send({
@@ -98,6 +91,16 @@ router.post('/create', async (req, res) => {
             }
 
             if (otherUser.private_status == 0) {
+                try {
+                    global.io.to(otherUser.socketId).emit(room._id, {
+                        type: 'admin-changes',
+                        target: room._id,
+                        data: {
+                            ar: xuser.name + ' يحاول إرسال رسالة خاصة لك',
+                            en: xuser.name + ' is trying to send a private message',
+                        },
+                    });
+                } catch (e) {}
                 return res.status(200).send({
                     ok: false,
                     msg_en: "This user doesn't receive private chats",
