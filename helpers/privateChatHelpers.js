@@ -3,8 +3,7 @@ const privateMessageModel = require('../models/privateMessageModel');
 const roomModel = require('../models/roomModel');
 const { public_user } = require('./userHelpers');
 var ObjectId = require('mongoose').Types.ObjectId;
-const ignoredUsers = new Map();
-
+const enums = require('./enums');
 const getMyPrivateChats = async (room_id, user_id, only_meeting = true) => {
     let room = await roomModel.findById(room_id);
 
@@ -136,8 +135,137 @@ const deleteMyChat = async (xuser, key = null, room_id = null) => {
     });
 };
 
+async function canStartPrivateChat(user, room) {
+    const tempUser = await public_user(user);
+
+    // if (!user.can_private_chat || !user.server_can_private_chat) {
+    //     return {
+    //         allowed: false,
+    //         msg_en: 'You are banned from using private chat.',
+    //         msg_ar: 'أنت ممنوع من استخدام الرسائل الخاصة.',
+    //     };
+    // }
+
+    if (room.private_status == 0) {
+        return {
+            allowed: false,
+            msg_en: 'Private chat is disabled in this room.',
+            msg_ar: 'الرسائل الخاصة معطلة في هذه الغرفة.',
+        };
+    }
+
+    if (room.private_status === 2 && tempUser.type.toString() == enums.userTypes.guest.toString()) {
+        return {
+            allowed: false,
+            msg_en: 'Only members and admins can use private chat in this room.',
+            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
+        };
+    }
+
+    if (
+        room.private_status === 3 &&
+        ![
+            enums.userTypes.mastermain,
+            enums.userTypes.chatmanager,
+            enums.userTypes.root,
+            enums.userTypes.master,
+            enums.userTypes.mastergirl,
+        ].includes(tempUser.type.toString())
+    ) {
+        return {
+            allowed: false,
+            msg_en: 'Only admins can use private chat in this room.',
+            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
+        };
+    }
+
+    return { allowed: true };
+}
+
+function validatePrivateMessageConditions(xuser, otherUser, room, pc) {
+    const errors = [];
+
+    if (!xuser.can_private_chat || !xuser.server_can_private_chat) {
+        errors.push({
+            key: 'new-alert',
+            msg_en: 'You are banned from private chat.',
+            msg_ar: 'أنت محظور من أرسال واستقبال الرسائل الخاصة',
+        });
+    }
+
+    if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
+        errors.push({
+            key: 'new-alert',
+            msg_en: 'This user is banned from private chat.',
+            msg_ar: 'هذا المستخدم محظور من أرسال واستقبال الرسائل الخاصة',
+        });
+    }
+
+    const isDeleted = (userId) => {
+        return (
+            (userId === pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+            (userId === pc.user2Ref._id.toString() && pc.isUser2Deleted)
+        );
+    };
+
+    if (otherUser.private_status == 0 && isDeleted(otherUser._id)) {
+        global.io.to(otherUser.socketId).emit(room._id, {
+            type: 'admin-changes',
+            target: room._id,
+            data: {
+                ar: xuser.name + ' يحاول إرسال رسالة خاصة لك',
+                en: xuser.name + ' is trying to send a private message',
+            },
+        });
+
+        errors.push({
+            key: 'new-alert',
+            msg_en: "This user doesn't receive private chats",
+            msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة',
+        });
+    }
+    if (
+        room.private_status == 3 &&
+        isDeleted(otherUser._id) &&
+        ![
+            enums.userTypes.mastermain.toString(),
+            enums.userTypes.chatmanager.toString(),
+            enums.userTypes.root.toString(),
+            enums.userTypes.master.toString(),
+            enums.userTypes.mastergirl.toString(),
+        ].includes(xuser.type.toString())
+    ) {
+        errors.push({
+            key: 'new-alert',
+            msg_en: 'Only admins can use private chat in this room.',
+            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
+        });
+    }
+    if (room.private_status == 2 && isDeleted(otherUser._id)) {
+        errors.push({
+            key: 'new-alert',
+            msg_en: 'Private chat is not available in this room',
+            msg_ar: 'الرسائل الخاصة معطلة في هذه الغرفة للجميع',
+        });
+    }
+    if (
+        room.private_status == 3 &&
+        isDeleted(otherUser._id) &&
+        xuser.type.toString() == enums.userTypes.guest.toString()
+    ) {
+        errors.push({
+            key: 'new-alert',
+            msg_en: 'Private chat is available for admins only',
+            msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
+        });
+    }
+
+    return errors;
+}
+
 module.exports = {
     getMyPrivateChats,
     deleteMyChat,
-    ignoredUsers,
+    canStartPrivateChat,
+    validatePrivateMessageConditions,
 };

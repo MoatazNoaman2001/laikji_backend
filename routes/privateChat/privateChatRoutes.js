@@ -6,7 +6,11 @@ const privateChatModel = require('../../models/privateChatModel');
 const privateMessageModel = require('../../models/privateMessageModel');
 const roomModel = require('../../models/roomModel');
 const enums = require('../../helpers/enums');
-const { deleteMyChat, getMyPrivateChats } = require('../../helpers/privateChatHelpers');
+const {
+    deleteMyChat,
+    getMyPrivateChats,
+    canStartPrivateChat,
+} = require('../../helpers/privateChatHelpers');
 const { getUserById, public_user } = require('../../helpers/userHelpers');
 
 router.get('/all/:room_id', async (req, res) => {
@@ -35,68 +39,79 @@ router.post('/create', async (req, res) => {
         let room = await roomModel.findById(req.headers.room_id);
         console.log('private room id ', room._id);
         if (xuser && room) {
-            let otherUser = await getUserById(req.body.to, room._id);
+            //let otherUser = await getUserById(req.body.to, room._id);
+            const { allowed, msg_en, msg_ar } = canStartPrivateChat(xuser, room);
+            if (!allowed) return res.status(200).json({ ok: false, msg_en, msg_ar });
+            // if (room.private_status == 0) {
+            //     return res.status(200).send({
+            //         ok: false,
+            //         msg_en: 'Private chat is not available in this room',
+            //         msg_ar: 'الرسائل الخاصة معطلة في هذه الغرفة للجميع',
+            //     });
+            // }
 
-            if (room.private_status == 0) {
-                return res.status(200).send({
-                    ok: false,
-                    msg_en: 'Private chat is not available in this room',
-                    msg_ar: 'الرسائل الخاصة معطلة في هذه الغرفة للجميع',
-                });
-            }
+            // const tempUser = await public_user(xuser);
+            // if (room.private_status == 2) {
+            //     if (tempUser.type.toString() == enums.userTypes.guest.toString()) {
+            //         return res.status(200).send({
+            //             ok: false,
+            //             msg_en: 'Private chat is available for members and admins only',
+            //             msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
+            //         });
+            //     }
+            // }
 
-            const tempUser = await public_user(xuser);
-            if (room.private_status == 2) {
-                if (tempUser.type.toString() == enums.userTypes.guest.toString()) {
-                    return res.status(200).send({
-                        ok: false,
-                        msg_en: 'Private chat is available for members and admins only',
-                        msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين والأعضاء فقط',
-                    });
-                }
-            }
+            // if (room.private_status == 3) {
+            //     if (
+            //         ![
+            //             enums.userTypes.mastermain.toString(),
+            //             enums.userTypes.chatmanager.toString(),
+            //             enums.userTypes.root.toString(),
+            //             enums.userTypes.master.toString(),
+            //             enums.userTypes.mastergirl.toString(),
+            //         ].includes(tempUser.type.toString())
+            //     ) {
+            //         return res.status(200).send({
+            //             ok: false,
+            //             msg_en: 'Private chat is available for admins only',
+            //             msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
+            //         });
+            //     }
+            // }
 
-            if (room.private_status == 3) {
-                if (
-                    ![
-                        enums.userTypes.mastermain.toString(),
-                        enums.userTypes.chatmanager.toString(),
-                        enums.userTypes.root.toString(),
-                        enums.userTypes.master.toString(),
-                        enums.userTypes.mastergirl.toString(),
-                    ].includes(tempUser.type.toString())
-                ) {
-                    return res.status(200).send({
-                        ok: false,
-                        msg_en: 'Private chat is available for admins only',
-                        msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
-                    });
-                }
-            }
+            // if (!xuser.can_private_chat || !xuser.server_can_private_chat) {
+            //     return res.status(200).send({
+            //         ok: false,
+            //         msg_en: 'You are banned to use private chat',
+            //         msg_ar: 'أنت ممنوع من استقبال وارسال المحادثات الخاصة',
+            //     });
+            // }
 
-            if (!xuser.can_private_chat || !xuser.server_can_private_chat) {
-                return res.status(200).send({
-                    ok: false,
-                    msg_en: 'You are banned to use private chat',
-                    msg_ar: 'أنت ممنوع من استقبال وارسال المحادثات الخاصة',
-                });
-            }
+            // if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
+            //     return res.status(200).send({
+            //         ok: false,
+            //         msg_en: 'This user has been banned to use private chat',
+            //         msg_ar: 'هذا المستخدم ممنوع من استقبال وارسال المحادثات الخاصة',
+            //     });
+            // }
 
-            if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
-                return res.status(200).send({
-                    ok: false,
-                    msg_en: 'This user has been banned to use private chat',
-                    msg_ar: 'هذا المستخدم ممنوع من استقبال وارسال المحادثات الخاصة',
-                });
-            }
+            // if (otherUser.private_status == 0) {
 
-            if (otherUser.private_status == 0) {
-                return res.status(200).send({
-                    ok: false,
-                    msg_en: "This user doesn't receive private chats",
-                    msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة ',
-                });
-            }
+            //         global.io.to(otherUser.socketId).emit(room._id, {
+            //             type: 'admin-changes',
+            //             target: room._id,
+            //             data: {
+            //                 ar: xuser.name + ' يحاول إرسال رسالة خاصة لك',
+            //                 en: xuser.name + ' is trying to send a private message',
+            //             },
+            //         });
+
+            //     return res.status(200).send({
+            //         ok: false,
+            //         msg_en: "This user doesn't receive private chats",
+            //         msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة ',
+            //     });
+            // }
 
             const myChats = await privateChatModel.find({
                 $or: [
