@@ -48,28 +48,28 @@ app.use(express.json());
 
 //***Routes Midlewares */
 // Global Routes
-app.use('/global', require('./routes/globalRoutes'));
-app.use('/room', require('./routes/roomRoutes'));
-app.use('/chat', require('./routes/chatRoutes'));
-app.use('/test', require('./routes/testRoutes'));
-app.use('/pages', require('./routes/pageRoutes'));
-app.use('/:roomId', require('./routes/micRoutes'));
+// app.use('/global', require('./routes/globalRoutes'));
+// app.use('/room', require('./routes/roomRoutes'));
+// app.use('/chat', require('./routes/chatRoutes'));
+// app.use('/test', require('./routes/testRoutes'));
+// app.use('/pages', require('./routes/pageRoutes'));
+// app.use('/:roomId', require('./routes/micRoutes'));
 
-// Room Admin Routes
-app.use('/room_admin/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/roomRoutes'));
-app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/commandsRoutes'));
-// Admin Routes
+// // Room Admin Routes
+// app.use('/room_admin/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/roomRoutes'));
+// app.use('/room_cmd/:room_id', roomAdminMiddleware, require('./routes/roomAdmin/commandsRoutes'));
+// // Admin Routes
 
-app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
-app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));
-app.use('/admin/emojis', require('./routes/admin/emojisRoutes'));
-app.use('/admin/rooms', require('./routes/admin/roomsRoutes'));
-app.use('/admin/members', require('./routes/admin/membersRoutes'));
-app.use('/admin/users', require('./routes/admin/usersRoutes'));
-app.use('/admin/spys', require('./routes/admin/spyRoutes'));
-app.use('/admin/reports', require('./routes/admin/reportsRoutes'));
-app.use('/admin/settings', require('./routes/admin/settingsRoutes'));
-app.use('/admin/global', require('./routes/admin/globalRoutes'));
+// app.use('/admin/groups', require('./routes/admin/groupsRoutes'));
+// app.use('/admin/entericons', require('./routes/admin/enterIconsRoutes'));
+// app.use('/admin/emojis', require('./routes/admin/emojisRoutes'));
+// app.use('/admin/rooms', require('./routes/admin/roomsRoutes'));
+// app.use('/admin/members', require('./routes/admin/membersRoutes'));
+// app.use('/admin/users', require('./routes/admin/usersRoutes'));
+// app.use('/admin/spys', require('./routes/admin/spyRoutes'));
+// app.use('/admin/reports', require('./routes/admin/reportsRoutes'));
+// app.use('/admin/settings', require('./routes/admin/settingsRoutes'));
+// app.use('/admin/global', require('./routes/admin/globalRoutes'));
 app.use('/admin/auth', require('./routes/admin/authRoutes'));
 
 // Member Routes
