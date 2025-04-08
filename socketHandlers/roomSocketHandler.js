@@ -10,8 +10,6 @@ const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
 // const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 
-// ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
 const {
