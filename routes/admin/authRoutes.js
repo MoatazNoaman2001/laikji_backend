@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/', authCheckMiddleware, async (req, res) => {
+router.post('/', async (req, res) => {
     const { username, email, password, permissions } = req.body;
     console.log('auth ', username, email, password, permissions);
     try {
