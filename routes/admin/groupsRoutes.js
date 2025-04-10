@@ -128,7 +128,7 @@ router.get('/', async (req, res) => {
         });
     }
 });
-router.post('/', img_uploader.single('icon'), authCheckMiddleware, async (req, res) => {
+router.post('/', img_uploader.single('icon'), async (req, res) => {
     var g1 = new groupModel({
         name: req.body.name,
         icon: 'groups/' + req.file.filename,
