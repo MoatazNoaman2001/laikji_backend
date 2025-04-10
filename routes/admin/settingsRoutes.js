@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', multer().any(), async (req, res) => {
+router.post('/', multer().any(), authCheckMiddleware, async (req, res) => {
     for (const key in req.body) {
         if (Object.hasOwnProperty.call(req.body, key)) {
             const obj = req.body[key];

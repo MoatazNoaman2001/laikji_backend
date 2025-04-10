@@ -24,7 +24,6 @@ const { filterMsg } = require('../helpers/filterHelpers');
 const {
     getMyPrivateChats,
     deleteMyChat,
-    ignoredUsers,
     validatePrivateMessageConditions,
 } = require('../helpers/privateChatHelpers');
 const {
@@ -415,7 +414,7 @@ module.exports = (io) => {
     }).on('connection', async (xclient) => {
         var xroomId;
         var key = xclient.handshake.query.key;
-
+        var ignoredUsers = new Map();
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
         console.log('on connection for room');
@@ -524,6 +523,9 @@ module.exports = (io) => {
 
         if (!allMutedList[xroomId]) {
             allMutedList[xroomId] = [];
+        }
+        if (!ignoredUsers[xuser._id.toString()]) {
+            ignoredUsers[xuser._id.toString()] = [];
         }
         if (!mutedSpeakers[xroomId]) {
             mutedSpeakers[xroomId] = [];
