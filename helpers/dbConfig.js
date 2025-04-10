@@ -2,8 +2,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 module.exports = () => {
-    var dbCS =
-        'mongodb://laikjidb:c4dqpDx_L5h6WX3@185.203.118.57:27017/tlqana-test?authSource=admin';
+    var dbCS = process.env.DB;
     mongoose.connect(
         dbCS,
         {
