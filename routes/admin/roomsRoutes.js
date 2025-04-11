@@ -400,7 +400,7 @@ router.put(
                     isMeeting: true,
                     isGold: false,
                     isSpecial: false,
-                    groupRef: '606b8f8844e78f128ecbfac2',
+                    groupRef: '67f7e4baafb0a4f31d9d0395',
                     description: '',
                     outside_style: {
                         background: '255|255|255',
@@ -488,7 +488,7 @@ router.put('/reset/:id', authCheckMiddleware, async (req, res) => {
         //     isMeeting: true,
         //     isGold: false,
         //     isSpecial: false,
-        //     groupRef: '606b8f8844e78f128ecbfac2',
+        //     groupRef: '67f7e4baafb0a4f31d9d0395',
         //     description: '',
         //     outside_style: {
         //         background: '255|255|255',
@@ -689,7 +689,7 @@ router.get('/retrieve/:id', async (req, res) => {
             isMeeting: true,
             isGold: false,
             isSpecial: false,
-            groupRef: '606b8f8844e78f128ecbfac2',
+            groupRef: '67f7e4baafb0a4f31d9d0395',
             description: '',
             outside_style: {
                 background: '255|255|255',
