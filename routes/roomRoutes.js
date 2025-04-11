@@ -119,12 +119,9 @@ router.get('/all', async (req, res) => {
         if (meeting_gr) {
             meeting_gr.rooms = meeting_rooms;
         }
-        let sorted = response.sort((a, b) => {
-            return b.users_count - a.users_count;
-        });
         res.status(200).send({
             ok: true,
-            data: sorted,
+            data: response,
         });
     } catch (e) {
         res.status(500).send({
