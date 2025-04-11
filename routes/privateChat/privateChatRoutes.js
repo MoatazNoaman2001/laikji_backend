@@ -40,7 +40,7 @@ router.post('/create', async (req, res) => {
         console.log('private room id ', room._id);
         if (xuser && room) {
             //let otherUser = await getUserById(req.body.to, room._id);
-            const { allowed, msg_en, msg_ar } = canStartPrivateChat(xuser, room);
+            const { allowed, msg_en, msg_ar } = await canStartPrivateChat(xuser, room);
             if (!allowed) {
                 console.log('not allowed');
                 return res.status(200).send({ ok: false, msg_en, msg_ar });
