@@ -111,11 +111,7 @@ router.get('/all', async (req, res) => {
             special_gr.rooms = special_rooms;
         }
 
-        let all_gr = response
-            .find((g) => g.type == enums.groupsTypes.all)
-            .sort((a, b) => {
-                return b.rooms.users_count - a.rooms.users_count;
-            });
+        let all_gr = response.find((g) => g.type == enums.groupsTypes.all);
         if (all_gr) {
             all_gr.rooms = all_rooms;
         }
