@@ -22,6 +22,7 @@ router.get('/all', async (req, res) => {
         const golden_rooms = [];
         const special_rooms = [];
         const all_rooms = [];
+        const meeting_rooms = [];
         await Promise.all(
             grbs.map(async (item) => {
                 var rooms = await roomModel.find({
@@ -40,6 +41,8 @@ router.get('/all', async (req, res) => {
 
                     if (!r.isMeeting) {
                         all_rooms.push(r);
+                    } else {
+                        meeting_rooms.push(r);
                     }
 
                     res_rooms.push(r);
@@ -111,6 +114,10 @@ router.get('/all', async (req, res) => {
         let all_gr = response.find((g) => g.type == enums.groupsTypes.all);
         if (all_gr) {
             all_gr.rooms = all_rooms;
+        }
+        let meeting_gr = response.find((g) => g.type == enums.groupsTypes.meeting);
+        if (meeting_gr) {
+            meeting_gr.rooms = meeting_rooms;
         }
 
         res.status(200).send({
