@@ -115,7 +115,6 @@ router.get('/all', async (req, res) => {
         if (all_gr) {
             all_gr.rooms = all_rooms;
         }
-
         let meeting_gr = response.find((g) => g.type == enums.groupsTypes.meeting);
         if (meeting_gr) {
             meeting_gr.rooms = meeting_rooms;

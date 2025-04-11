@@ -111,15 +111,22 @@ router.get('/', async (req, res) => {
         let all_gr = response.find((g) => g.type == enums.groupsTypes.all);
         if (all_gr) {
             all_gr.rooms = all_rooms;
+
             all_gr.users_count = all_rooms_users_count;
         }
-
+        var sorted = response.sort((a, b) => {
+            return b.users_count - a.users_count;
+        });
+        var orderd = sorted.sort((a, b) => {
+            return b.order - a.order;
+        });
+        all_gr = sorted;
         res.status(200).send({
             ok: true,
             page: page,
             in_page: in_page,
             all_pages: 10,
-            data: response,
+            data: orderd,
         });
     } catch (e) {
         res.status(500).send({
