@@ -263,7 +263,7 @@ function validatePrivateMessageConditions(xuser, otherUser, room, pc) {
     if (
         room.private_status == 3 &&
         isDeleted(otherUser._id) &&
-        !allowedTypes.includes(tempUser.type)
+        !allowedTypes.includes(xuser.type)
     ) {
         errors.push({
             key: 'new-alert',
