@@ -137,7 +137,13 @@ const deleteMyChat = async (xuser, key = null, room_id = null) => {
 
 async function canStartPrivateChat(user, otherUser, room) {
     const tempUser = await public_user(user);
-
+    const allowedTypes = [
+        enums.userTypes.mastermain,
+        enums.userTypes.chatmanager,
+        enums.userTypes.root,
+        enums.userTypes.master,
+        enums.userTypes.mastergirl,
+    ];
     // if (!user.can_private_chat || !user.server_can_private_chat) {
     //     return {
     //         allowed: false,
@@ -165,18 +171,8 @@ async function canStartPrivateChat(user, otherUser, room) {
         };
     }
 
-    if (
-        room.private_status == 3 &&
-        ![
-            enums.userTypes.mastermain,
-            enums.userTypes.chatmanager,
-            enums.userTypes.root,
-            enums.userTypes.master,
-            enums.userTypes.mastergirl,
-        ].includes(tempUser.type.toString())
-    ) {
+    if (room.private_status == 3 && !allowedTypes.includes(tempUser.type)) {
         console.log('not allowed 3', tempUser.type);
-
         return {
             allowed: false,
             msg_en: 'Only admins can use private chat in this room.',
