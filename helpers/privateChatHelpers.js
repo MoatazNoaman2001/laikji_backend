@@ -147,6 +147,7 @@ async function canStartPrivateChat(user, room) {
     // }
 
     if (room.private_status == 0) {
+        console.log('not allowed 1');
         return {
             allowed: false,
             msg_en: 'Private chat is disabled in this room.',
@@ -155,6 +156,8 @@ async function canStartPrivateChat(user, room) {
     }
 
     if (room.private_status == 2 && tempUser.type.toString() == enums.userTypes.guest.toString()) {
+        console.log('not allowed 2');
+
         return {
             allowed: false,
             msg_en: 'Only members and admins can use private chat in this room.',
@@ -172,6 +175,8 @@ async function canStartPrivateChat(user, room) {
             enums.userTypes.mastergirl,
         ].includes(tempUser.type.toString())
     ) {
+        console.log('not allowed 3');
+
         return {
             allowed: false,
             msg_en: 'Only admins can use private chat in this room.',
