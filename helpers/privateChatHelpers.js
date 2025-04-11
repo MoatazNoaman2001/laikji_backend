@@ -214,7 +214,13 @@ async function canStartPrivateChat(user, otherUser, room) {
 
 function validatePrivateMessageConditions(xuser, otherUser, room, pc) {
     const errors = [];
-
+    const allowedTypes = [
+        enums.userTypes.mastermain,
+        enums.userTypes.chatmanager,
+        enums.userTypes.root,
+        enums.userTypes.master,
+        enums.userTypes.mastergirl,
+    ];
     if (!xuser.can_private_chat || !xuser.server_can_private_chat) {
         errors.push({
             key: 'new-alert',
@@ -233,8 +239,8 @@ function validatePrivateMessageConditions(xuser, otherUser, room, pc) {
 
     const isDeleted = (userId) => {
         return (
-            (userId === pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
-            (userId === pc.user2Ref._id.toString() && pc.isUser2Deleted)
+            (userId == pc.user1Ref._id.toString() && pc.isUser1Deleted) ||
+            (userId == pc.user2Ref._id.toString() && pc.isUser2Deleted)
         );
     };
 
@@ -257,13 +263,7 @@ function validatePrivateMessageConditions(xuser, otherUser, room, pc) {
     if (
         room.private_status == 3 &&
         isDeleted(otherUser._id) &&
-        ![
-            enums.userTypes.mastermain.toString(),
-            enums.userTypes.chatmanager.toString(),
-            enums.userTypes.root.toString(),
-            enums.userTypes.master.toString(),
-            enums.userTypes.mastergirl.toString(),
-        ].includes(xuser.type.toString())
+        !allowedTypes.includes(tempUser.type)
     ) {
         errors.push({
             key: 'new-alert',
