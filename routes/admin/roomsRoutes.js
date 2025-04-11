@@ -209,7 +209,7 @@ router.post(
                 isMeeting: true,
                 isGold: false,
                 isSpecial: false,
-                groupRef: '606b8f8844e78f128ecbfac2',
+                groupRef: '67f7e4baafb0a4f31d9d0395',
                 description: '',
                 outside_style: {
                     background: '255|255|255',
