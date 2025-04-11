@@ -135,7 +135,7 @@ const deleteMyChat = async (xuser, key = null, room_id = null) => {
     });
 };
 
-async function canStartPrivateChat(user, room) {
+async function canStartPrivateChat(user, otherUser, room) {
     const tempUser = await public_user(user);
 
     // if (!user.can_private_chat || !user.server_can_private_chat) {
@@ -167,7 +167,7 @@ async function canStartPrivateChat(user, room) {
 
     if (
         room.private_status == 3 &&
-        ![
+        [
             enums.userTypes.mastermain,
             enums.userTypes.chatmanager,
             enums.userTypes.root,
@@ -183,7 +183,36 @@ async function canStartPrivateChat(user, room) {
             msg_ar: 'الرسائل الخاصة في هذه الغرفة متاحة للمشرفين فقط',
         };
     }
+    if (!user.can_private_chat || !user.server_can_private_chat) {
+        return {
+            allowed: false,
+            msg_en: 'You are banned to use private chat',
+            msg_ar: 'أنت ممنوع من استقبال وارسال المحادثات الخاصة',
+        };
+    }
+    if (!otherUser.can_private_chat || !otherUser.server_can_private_chat) {
+        return {
+            allowed: false,
+            msg_en: 'This user has been banned to use private chat',
+            msg_ar: 'هذا المستخدم ممنوع من استقبال وارسال المحادثات الخاصة',
+        };
+    }
+    if (otherUser.private_status == 0) {
+        global.io.to(otherUser.socketId).emit(room._id, {
+            type: 'admin-changes',
+            target: room._id,
+            data: {
+                ar: user.name + ' يحاول إرسال رسالة خاصة لك',
+                en: user.name + ' is trying to send a private message',
+            },
+        });
 
+        return {
+            allowed: false,
+            msg_en: "This user doesn't receive private chats",
+            msg_ar: 'هذا المستخدم لا يستقبل الرسائل الخاصة ',
+        };
+    }
     return { allowed: true };
 }
 
