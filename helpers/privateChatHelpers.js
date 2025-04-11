@@ -167,7 +167,7 @@ async function canStartPrivateChat(user, otherUser, room) {
 
     if (
         room.private_status == 3 &&
-        [
+        ![
             enums.userTypes.mastermain,
             enums.userTypes.chatmanager,
             enums.userTypes.root,
@@ -175,7 +175,7 @@ async function canStartPrivateChat(user, otherUser, room) {
             enums.userTypes.mastergirl,
         ].includes(tempUser.type.toString())
     ) {
-        console.log('not allowed 3');
+        console.log('not allowed 3', tempUser.type);
 
         return {
             allowed: false,
