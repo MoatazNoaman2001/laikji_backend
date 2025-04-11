@@ -154,7 +154,7 @@ async function canStartPrivateChat(user, room) {
         };
     }
 
-    if (room.private_status === 2 && tempUser.type.toString() == enums.userTypes.guest.toString()) {
+    if (room.private_status == 2 && tempUser.type.toString() == enums.userTypes.guest.toString()) {
         return {
             allowed: false,
             msg_en: 'Only members and admins can use private chat in this room.',
@@ -163,7 +163,7 @@ async function canStartPrivateChat(user, room) {
     }
 
     if (
-        room.private_status === 3 &&
+        room.private_status == 3 &&
         ![
             enums.userTypes.mastermain,
             enums.userTypes.chatmanager,
