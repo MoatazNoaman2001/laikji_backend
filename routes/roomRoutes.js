@@ -20,29 +20,57 @@ router.get('/all', async (req, res) => {
             order: 'descending',
         });
         const golden_rooms = [];
+        let golden_rooms_users_count = 0;
         const special_rooms = [];
+        let special_rooms_users_count = 0;
         const all_rooms = [];
+        let all_rooms_users_count = 0;
+
         await Promise.all(
             grbs.map(async (item) => {
                 var rooms = await roomModel.find({
                     groupRef: item._id,
                 });
 
+                var res_item = {
+                    _id: item._id,
+                    name: item.name,
+                    type: item.type,
+                    icon: item.icon ? process.env.mediaUrl + item.icon : null,
+                    background: item.background,
+                    inside_style: item.inside_style,
+                    order: item.order,
+                    users_count: 0,
+                };
                 var res_rooms = [];
                 rooms.map(async (element) => {
                     const r = await helpers.get_room_small(element, item, settings);
 
-                    if (r.isSpecial) {
-                        special_rooms.push(r);
-                    } else if (r.isGold) {
-                        golden_rooms.push(r);
-                    }
-
                     if (!r.isMeeting) {
-                        all_rooms.push(r);
-                    }
+                        var u_in_room = global.rooms_users[r._id];
 
-                    res_rooms.push(r);
+                        if (u_in_room) {
+                            r.users_count = global.rooms_users[r._id].length;
+                        } else {
+                            r.users_count = 0;
+                        }
+
+                        res_item.users_count += r.users_count;
+                        all_rooms_users_count += r.users_count;
+
+                        if (r.isSpecial) {
+                            special_rooms.push(r);
+                            special_rooms_users_count += r.users_count;
+                        }
+
+                        if (r.isGold) {
+                            golden_rooms.push(r);
+                            golden_rooms_users_count += r.users_count;
+                        }
+
+                        all_rooms.push(r);
+                        res_rooms.push(r);
+                    }
                 });
 
                 let g_bg = item.background;
@@ -81,19 +109,9 @@ router.get('/all', async (req, res) => {
                     g_bg = hexToXRgb(settings.rgb_learning_group_bg) || item.background;
                     g_fnt = hexToXRgb(settings.rgb_learning_group_fnt) || '255|255|255';
                 }
-
-                var res_item = {
-                    _id: item._id,
-                    name: item.name,
-                    type: item.type,
-                    icon: item.icon ? process.env.mediaUrl + item.icon : null,
-                    background: g_bg,
-                    font: g_fnt,
-                    inside_style: item.inside_style,
-                    rooms: res_rooms,
-                    order: item.order,
-                };
-
+                res_item.font = g_fnt;
+                res_item.background = g_bg;
+                res_item.rooms = res_rooms;
                 response.push(res_item);
             }),
         );
@@ -101,21 +119,30 @@ router.get('/all', async (req, res) => {
         let golden_gr = response.find((g) => g.type == enums.groupsTypes.gold);
         if (golden_gr) {
             golden_gr.rooms = golden_rooms;
+            golden_gr.users_count = golden_rooms_users_count;
         }
 
         let special_gr = response.find((g) => g.type == enums.groupsTypes.special);
         if (special_gr) {
             special_gr.rooms = special_rooms;
+            special_gr.users_count = special_rooms_users_count;
         }
 
         let all_gr = response.find((g) => g.type == enums.groupsTypes.all);
         if (all_gr) {
             all_gr.rooms = all_rooms;
+            all_gr.users_count = all_rooms_users_count;
         }
 
+        var sorted = response.sort((a, b) => {
+            return b.users_count - a.users_count;
+        });
+        var orderd = sorted.sort((a, b) => {
+            return b.order - a.order;
+        });
         res.status(200).send({
             ok: true,
-            data: response,
+            data: orderd,
         });
     } catch (e) {
         res.status(500).send({
@@ -124,6 +151,7 @@ router.get('/all', async (req, res) => {
         });
     }
 });
+
 router.put('/change-room-password', async (req, res) => {
     try {
         let room = await roomModel.findById(req.body.room_id);
