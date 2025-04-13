@@ -95,7 +95,6 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
 
     try {
         let user = await userModal.findOne({
-            //device: req.params.device,
             key: req.params.key,
             device: req.params.device,
         });
