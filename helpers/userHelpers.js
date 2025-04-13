@@ -524,17 +524,19 @@ const isRegisteredName = async (name, room_id) => {
     }
 };
 
-const isBanned = async (key, room) => {
+const isBanned = async (key, device, room) => {
     const otherRoomId = room.isMeeting ? room.parentRef : room.meetingRef;
 
     const banned = await bannedModel.findOne({
         $or: [
             {
                 key: key,
+                device,
                 roomRef: new ObjectId(room._id),
             },
             {
                 key: key,
+                device,
                 roomRef: new ObjectId(otherRoomId),
             },
         ],
@@ -544,10 +546,10 @@ const isBanned = async (key, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (key) => {
+const isBannedFromServer = async (key, device) => {
     const banned = await bannedModel.findOne({
         key: key,
-
+        device: device,
         type: enums.banTypes.server,
     });
     if (banned && !banned.until) {

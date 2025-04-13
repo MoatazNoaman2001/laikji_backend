@@ -38,7 +38,7 @@ router.get('/entrylogs', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.key);
+                const isBanned = await isBannedFromServer(item.key, item.device);
                 const res_item = {
                     ...item,
                     isBanned,
@@ -95,8 +95,9 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
 
     try {
         let user = await userModal.findOne({
-            // device: req.params.device,
-            key: req.body.key,
+            //device: req.params.device,
+            key: req.params.key,
+            device: req.params.device,
         });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
 
@@ -120,7 +121,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
 
         await bannedModel.findOneAndUpdate(
             {
-                // device: user.device,
+                device: user.device,
                 key: user.key,
                 type: enums.banTypes.server,
             },
@@ -169,11 +170,13 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
+router.get('/unban/:key/?device=device', authCheckMiddleware, async (req, res) => {
     try {
+        const device = req.query.device;
         console.log('req ', req.params.key);
         await bannedModel.deleteMany({
             key: req.params.key,
+            device: device,
             type: enums.banTypes.server,
         });
 
@@ -219,7 +222,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
         console.log('first ', u);
         const user = await userModal.findOneAndUpdate(
             {
-                // device: req.params.device,
+                device: req.body.device,
                 key: req.params.key,
             },
             {
@@ -250,11 +253,12 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
+router.get('/unstop/:key/?device=device', authCheckMiddleware, async (req, res) => {
     try {
         const user = await userModal.findOneAndUpdate(
             {
                 key: req.params.key,
+                device: req.query.device,
             },
             {
                 server_can_public_chat: true,

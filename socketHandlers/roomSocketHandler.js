@@ -164,7 +164,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(user_key)) {
+        if (await isBannedFromServer(user_key, device)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -360,7 +360,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(user_key, room)) {
+        if (await isBanned(user_key, device, room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -1413,21 +1413,23 @@ module.exports = (io) => {
                     const acpt_usr = await getUserById(data.user, xroomId);
                     if (acpt_usr) {
                         const sc = io.sockets.sockets.get(acpt_usr.socketId);
-                        sc._events['enter-room']({ passcode: enums.passcodes.enterLock });
+                        if (sc) {
+                            sc.emit('enter-room', { passcode: enums.passcodes.enterLock });
 
-                        io.emit(xroomId, {
-                            type: 'responded-waiting',
-                            data: await public_user(acpt_usr),
-                        });
+                            io.to(xroomId).emit('responded-waiting', {
+                                type: 'responded-waiting',
+                                data: await public_user(acpt_usr),
+                            });
 
-                        addAdminLog(
-                            xuser,
-                            xroomId,
-                            `قام بقبول دخول العضو`,
-                            `has accepted user`,
-                            acpt_usr.name,
-                            true,
-                        );
+                            addAdminLog(
+                                xuser,
+                                xroomId,
+                                `قام بقبول دخول العضو`,
+                                `has accepted user`,
+                                acpt_usr.name,
+                                true,
+                            );
+                        }
                     }
                 }
             });
