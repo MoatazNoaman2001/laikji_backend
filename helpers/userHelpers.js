@@ -403,44 +403,37 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
 };
 
 const isUserInAnyRoom = (key) => {
-    let all_users = [];
-
-    for (const key in global.app_users) {
-        if (Object.hasOwnProperty.call(global.app_users, key)) {
-            const all = global.app_users[key];
-            all_users.push(...all);
+    for (const roomId in global.app_users) {
+        if (Object.hasOwnProperty.call(global.app_users, roomId)) {
+            const users = global.app_users[roomId];
+            if (users.some((user) => user.hasOwnProperty(key))) {
+                return true;
+            }
         }
     }
-    return all_users.includes(key);
+    return false;
 };
 
 const addUserToRoom = (xroomId, xuser) => {
     if (!global.rooms_users[xroomId]) global.rooms_users[xroomId] = [];
     global.rooms_users[xroomId].push(xuser._id.toString());
     if (!global.app_users[xroomId]) global.app_users[xroomId] = [];
-    global.app_users[xroomId].push(xuser.key);
+
+    global.app_users[xroomId].push({ [xuser.key]: xuser.device });
 };
 
-const removeUserFromRoom = async (xroomId, xuser) => {
-    let users;
+const removeUserFromRoom = (xroomId, xuser) => {
+    if (global.rooms_users[xroomId]) {
+        global.rooms_users[xroomId] = global.rooms_users[xroomId].filter(
+            (id) => id !== xuser._id.toString(),
+        );
+    }
 
-    if (!global.rooms_users[xroomId]) users = [];
-    else users = [...global.rooms_users[xroomId]];
-
-    const set = new Set(users);
-    set.delete(xuser._id.toString());
-
-    global.rooms_users[xroomId] = [...set];
-
-    let all;
-
-    if (!global.app_users[xroomId]) all = [];
-    else all = [...global.app_users[xroomId]];
-
-    const app = new Set(all);
-    app.delete(xuser.key);
-
-    global.app_users[xroomId] = [...app];
+    if (global.app_users[xroomId]) {
+        global.app_users[xroomId] = global.app_users[xroomId].filter(
+            (entry) => !entry.hasOwnProperty(xuser.key),
+        );
+    }
 };
 
 const addUserToWaiting = (xroomId, xuser) => {
@@ -909,9 +902,9 @@ const isDualAllowedSameRoom = async (key, users) => {
     return false;
 };
 
-const isDualAllowedManyRooms = async (key) => {
+const isDualAllowedManyRooms = async (key, device) => {
     const settings = await getSettings();
-    if (isUserInAnyRoom(key)) {
+    if (isUserInAnyRoom(key, device)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
             return true;
         } else return false;
