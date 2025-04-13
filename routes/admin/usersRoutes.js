@@ -169,7 +169,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unban/:key/?device=device', authCheckMiddleware, async (req, res) => {
+router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
     try {
         const device = req.query.device;
         console.log('req ', req.params.key);
@@ -258,7 +258,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unstop/:key/?device=device', authCheckMiddleware, async (req, res) => {
+router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
     try {
         const user = await userModal.findOneAndUpdate(
             {
