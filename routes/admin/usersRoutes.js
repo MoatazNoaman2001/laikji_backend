@@ -96,7 +96,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     try {
         let user = await userModal.findOne({
             key: req.params.key,
-            device: req.params.device,
+            device: req.body.device,
         });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
 
