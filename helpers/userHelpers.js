@@ -902,9 +902,9 @@ const isDualAllowedSameRoom = async (key, users) => {
     return false;
 };
 
-const isDualAllowedManyRooms = async (key, device) => {
+const isDualAllowedManyRooms = async (key) => {
     const settings = await getSettings();
-    if (isUserInAnyRoom(key, device)) {
+    if (isUserInAnyRoom(key)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
             return true;
         } else return false;
