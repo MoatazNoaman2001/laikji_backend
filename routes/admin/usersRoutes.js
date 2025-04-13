@@ -173,11 +173,17 @@ router.get('/unban/:key/?device=device', authCheckMiddleware, async (req, res) =
     try {
         const device = req.query.device;
         console.log('req ', req.params.key);
-        await bannedModel.deleteMany({
+        const banneds = await bannedModel.find({
             key: req.params.key,
             device: device,
             type: enums.banTypes.server,
         });
+        await Promise.all(
+            banneds.forEach(async (b) => {
+                await bannedModel.deleteOne({ _id: b._id });
+                console.log('un banned ');
+            }),
+        );
 
         return res.status(200).send({
             ok: true,
