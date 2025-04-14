@@ -136,7 +136,7 @@ router.get('/all', async (req, res) => {
         }
 
         let meeting_gr = response.find((g) => g.type == enums.groupsTypes.meeting);
-        if (meeting_gr_gr) {
+        if (meeting_gr) {
             meeting_gr.rooms = meeting_rooms;
             meeting_gr.users_count = meeting_rooms_users_count;
         }
