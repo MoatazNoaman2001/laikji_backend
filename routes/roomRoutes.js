@@ -23,6 +23,8 @@ router.get('/all', async (req, res) => {
         let golden_rooms_users_count = 0;
         const special_rooms = [];
         let special_rooms_users_count = 0;
+        const meeting_rooms = [];
+        let meeting_rooms_users_count = 0;
         const all_rooms = [];
         let all_rooms_users_count = 0;
 
@@ -70,6 +72,11 @@ router.get('/all', async (req, res) => {
 
                         all_rooms.push(r);
                         res_rooms.push(r);
+                    } else {
+                        if (r.isMeeting) {
+                            meeting_rooms.push(r);
+                            meeting_rooms_users_count += r.users_count;
+                        }
                     }
                 });
 
@@ -126,6 +133,12 @@ router.get('/all', async (req, res) => {
         if (special_gr) {
             special_gr.rooms = special_rooms;
             special_gr.users_count = special_rooms_users_count;
+        }
+
+        let meeting_gr = response.find((g) => g.type == enums.groupsTypes.meeting);
+        if (meeting_gr_gr) {
+            meeting_gr.rooms = meeting_rooms;
+            meeting_gr.users_count = meeting_rooms_users_count;
         }
 
         let all_gr = response.find((g) => g.type == enums.groupsTypes.all);
