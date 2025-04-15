@@ -113,6 +113,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
 router.post('/ban-entry', async (req, res) => {
     try {
         let room = req.room;
+        console.log('room admin ', JSON.stringify(req.user, null, 2));
 
         const entry = await entryLogModel.findById(req.body.entry_id);
 
