@@ -39,6 +39,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
             let b = await bannedModel.findOneAndUpdate(
                 {
                     device: user.device,
+                    key: user.key,
                     type: enums.banTypes.server,
                 },
                 {
@@ -117,23 +118,25 @@ router.post('/ban-entry', async (req, res) => {
 
         if (!entry) {
             return res.status(200).send({
-                ok: true,
+                ok: false,
             });
         }
+        const user = await getUserById(entry.userRef.toString(), room._id);
 
         let bb = await bannedModel.findOneAndUpdate(
             {
-                device: entry.device,
+                device: user.device,
+                key: user.key,
                 roomRef: room._id,
             },
             {
                 roomRef: room._id,
-                userRef: entry.userRef,
-                memberRef: entry.memberRef ? entry.memberRef : null,
-                name: entry.name,
-                country: entry.country,
-                ip: entry.ip,
-                key: entry.key,
+                userRef: user.userRef,
+                memberRef: user.memberRef ? user.memberRef : null,
+                name: user.name,
+                country: user.country,
+                ip: user.ip,
+                key: user.key,
                 banner_strong: req.user.strong,
             },
             { upsert: true, new: true },
@@ -142,8 +145,8 @@ router.post('/ban-entry', async (req, res) => {
         global.io.emit(room._id.toString(), {
             type: 'command-ban',
             data: {
-                user_id: entry.userRef,
-                name: entry.name,
+                user_id: user.userRef,
+                name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
         });
@@ -152,12 +155,12 @@ router.post('/ban-entry', async (req, res) => {
             type: 'command-ban',
             data: {
                 user_id: user ? user._id : null,
-                name: entry.name,
+                name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
         });
 
-        addAdminLog(req.user, room._id.toString(), `قام بحظر عضو`, `has banned a user`, entry.name);
+        addAdminLog(req.user, room._id.toString(), `قام بحظر عضو`, `has banned a user`, user.name);
 
         return res.status(200).send({
             ok: true,
