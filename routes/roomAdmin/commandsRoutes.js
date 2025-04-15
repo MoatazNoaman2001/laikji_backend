@@ -139,7 +139,7 @@ router.post('/ban-entry', async (req, res) => {
             { upsert: true, new: true },
         );
 
-        global.io.emit(room._id, {
+        global.io.emit(room._id.toString(), {
             type: 'command-ban',
             data: {
                 user_id: entry.userRef,
@@ -148,7 +148,7 @@ router.post('/ban-entry', async (req, res) => {
             },
         });
 
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+        global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
             type: 'command-ban',
             data: {
                 user_id: user ? user._id : null,
@@ -157,7 +157,7 @@ router.post('/ban-entry', async (req, res) => {
             },
         });
 
-        addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, entry.name);
+        addAdminLog(req.user, room._id.toString(), `قام بحظر عضو`, `has banned a user`, entry.name);
 
         return res.status(200).send({
             ok: true,
