@@ -31,7 +31,7 @@ const refreshFilters = async (room_id = null) => {
 const filterMsg = (msg, room_id) => {
     let words = msg.toString().split(' ');
     let new_words = [];
-    if (global.filters[room_id.toString()]) {
+    if (room_id &&  global.filters[room_id.toString()]) {
         let founded = global.filters[room_id.toString()];
         if (founded.length > 0) {
             words.map((w) => {
