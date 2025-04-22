@@ -1414,25 +1414,21 @@ module.exports = (io) => {
                     const acpt_usr = await getUserById(data.user, xroomId);
                     if (acpt_usr) {
                         const sc = io.sockets.sockets.get(acpt_usr.socketId);
-                        if (acpt_usr.socketId) {
-                            io.to(acpt_usr.socketId).emit('enter-room', {
-                                passcode: enums.passcodes.enterLock,
-                            });
+                        sc._events['enter-room']({ passcode: enums.passcodes.enterLock });
 
-                            io.to(xroomId).emit('responded-waiting', {
-                                type: 'responded-waiting',
-                                data: await public_user(acpt_usr),
-                            });
+                        io.emit(xroomId, {
+                            type: 'responded-waiting',
+                            data: await public_user(acpt_usr),
+                        });
 
-                            addAdminLog(
-                                xuser,
-                                xroomId,
-                                `قام بقبول دخول العضو`,
-                                `has accepted user`,
-                                acpt_usr.name,
-                                true,
-                            );
-                        }
+                        addAdminLog(
+                            xuser,
+                            xroomId,
+                            `قام بقبول دخول العضو`,
+                            `has accepted user`,
+                            acpt_usr.name,
+                            true,
+                        );
                     }
                 }
             });
