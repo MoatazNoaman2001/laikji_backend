@@ -448,7 +448,9 @@ const removeUserFromWaiting = async (xroomId, xuser) => {
     else users = [...global.waiting_users[xroomId]];
 
     const set = new Set(users);
-    set.delete(xuser._id.toString());
+    if (xuser && xuser._id){
+        set.delete(xuser._id.toString());
+    }
 
     global.waiting_users[xroomId] = [...set];
 };
