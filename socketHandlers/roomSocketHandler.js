@@ -2171,6 +2171,13 @@ module.exports = (io) => {
         };
 
         const disconnectFromRoom = async (data) => {
+            
+            xclient.leave(xroomId);
+            if (!xuser) return;
+            xuser = await getUserById(xuser._id, xroomId);
+            await removeUserFromRoom(xroomId, xuser);
+            await removeUserFromWaiting(xroomId, xuser);
+            
             console.log(
                 'disconnected client:',
                 xuser._id.toString(),
@@ -2180,11 +2187,6 @@ module.exports = (io) => {
                 data,
             );
 
-            xclient.leave(xroomId);
-            if (!xuser) return;
-            xuser = await getUserById(xuser._id, xroomId);
-            await removeUserFromRoom(xroomId, xuser);
-            await removeUserFromWaiting(xroomId, xuser);
 
             if (!xuser || !xroomId) return;
             // Clear the timer if it exists
