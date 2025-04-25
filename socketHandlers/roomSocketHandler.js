@@ -447,9 +447,7 @@ module.exports = (io) => {
                         roomRef: room._id,
                     };
                 } else {
-                    member = {
-                        ...member._doc,
-                    };
+                    member = null;
                 }
             } else {
                 member = null;
@@ -1370,41 +1368,47 @@ module.exports = (io) => {
             });
 
             xclient.on('delete-private-msg', async (data) => {
-                if (!xuser) return;
-                const key = data.chat_key;
-                const msg_id = data.msg_id;
+                try {
+                    if (!xuser) return;
+                    const key = data.chat_key;
+                    const msg_id = data.msg_id;
 
-                let pc = await privateChatModel
-                    .find({
-                        key: key,
-                    })
-                    .populate(['user1Ref', 'user2Ref']);
+                    let pc = await privateChatModel
+                        .find({
+                            key: key,
+                        })
+                        .populate(['user1Ref', 'user2Ref']);
 
-                pc = pc[0];
-                //const id = mongoose.Types.ObjectId(msg_id.trim());
-                const msg = await privateMessageModel.find({
-                    _id: msg_id,
-                    chatRef: pc._id,
-                });
+                    pc = pc[0];
+                    //const id = mongoose.Types.ObjectId(msg_id.trim());
+                    const msg = await privateMessageModel.find({
+                        _id: msg_id,
+                        chatRef: pc._id,
+                    });
 
-                if (msg.length > 0) {
-                    msg[0].delete();
+                    if (msg.length > 0) {
+                        msg[0].delete();
+                    }
+
+                    let otherUser =
+                        pc.user1Ref._id.toString() == xuser._id.toString()
+                            ? pc.user2Ref
+                            : pc.user1Ref;
+
+                    otherUser = await getUserById(otherUser._id, xroomId);
+
+                    io.to(otherUser.socketId).emit('delete-private-msg', {
+                        chat_key: key,
+                        msg_id: msg_id,
+                    });
+
+                    io.to(xuser.socketId).emit('delete-private-msg', {
+                        chat_key: key,
+                        msg_id: msg_id,
+                    });
+                } catch (err) {
+                    console.log('error deleting private msg', err);
                 }
-
-                let otherUser =
-                    pc.user1Ref._id.toString() == xuser._id.toString() ? pc.user2Ref : pc.user1Ref;
-
-                otherUser = await getUserById(otherUser._id, xroomId);
-
-                io.to(otherUser.socketId).emit('delete-private-msg', {
-                    chat_key: key,
-                    msg_id: msg_id,
-                });
-
-                io.to(xuser.socketId).emit('delete-private-msg', {
-                    chat_key: key,
-                    msg_id: msg_id,
-                });
             });
 
             xclient.on('accept-waiting', async (data) => {
@@ -1577,15 +1581,17 @@ module.exports = (io) => {
                     const userId = xuser._id.toString();
                     const socketId = xuser.socketId;
                     console.log('room info', JSON.stringify(roomInfo.speakers, null, 2));
+                    console.log('member value:', member);
 
-                    if (
-                        member ||
-                        xuser.type === enums.userTypes.root ||
-                        xuser.type === enums.userTypes.chatmanager ||
-                        xuser.type === enums.userTypes.master ||
-                        xuser.type === enums.userTypes.mastergirl ||
-                        xuser.type === enums.userTypes.mastermain
-                    ) {
+                    const allowedTypes = [
+                        enums.userTypes.root,
+                        enums.userTypes.chatmanager,
+                        enums.userTypes.master,
+                        enums.userTypes.mastergirl,
+                        enums.userTypes.mastermain,
+                    ];
+
+                    if (member || allowedTypes.includes(xuser.type)) {
                         if (roomInfo.speakers.has(userId)) {
                             if (
                                 roomInfo.youtubeLink &&
@@ -2171,107 +2177,119 @@ module.exports = (io) => {
         };
 
         const disconnectFromRoom = async (data) => {
-            console.log(
-                'disconnected client:',
-                xuser._id.toString(),
-                xuser.name,
-                'from:',
-                xroomId,
-                data,
-            );
-
-            xclient.leave(xroomId);
-            if (!xuser) return;
-            xuser = await getUserById(xuser._id, xroomId);
-            await removeUserFromRoom(xroomId, xuser);
-            await removeUserFromWaiting(xroomId, xuser);
-
-            if (!xuser || !xroomId) return;
-            // Clear the timer if it exists
-            releaseMic(roomInfo, xuser._id.toString(), xroomId);
-            if (Array.from(roomInfo.speakers).length == 0) {
-                console.log('clear timer from disconnect');
-
-                clearActiveTimers(xroomId);
-            }
-
-            if (roomInfo.micQueue && roomInfo.micQueue.includes(xuser._id.toString())) {
-                roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== xuser._id.toString());
-                io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
-            }
-
-            if (allMutedList[xroomId].includes(xuser._id.toString())) {
-                allMutedList[xroomId] = allMutedList[xroomId].filter(
-                    (id) => id !== xuser._id.toString(),
+            try {
+                console.log(
+                    'disconnected client:',
+                    xuser._id.toString(),
+                    xuser.name,
+                    'from:',
+                    xroomId,
+                    data,
                 );
-                io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
-            }
-            if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
-                roomInfo.youtubeLink = {};
-                isYoutubeRunning = false;
-            }
-            if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId == xuser._id.toString()) {
-                roomInfo.spotifyTrack = {};
-            }
 
-            io.to(xroomId).emit('user-left', xuser._id.toString());
+                xclient.leave(xroomId);
+                if (!xuser) return;
+                xuser = await getUserById(xuser._id, xroomId);
+                removeUserFromRoom(xroomId, xuser);
+                await removeUserFromWaiting(xroomId, xuser);
 
-            if (enterDate) {
-                await addEntryLog(xuser, xroomId, enterDate, 0); // 0 for normal disconnect
-            }
+                if (!xuser || !xroomId) return;
+                // Clear the timer if it exists
+                releaseMic(roomInfo, xuser._id.toString(), xroomId);
+                if (Array.from(roomInfo.speakers).length == 0) {
+                    console.log('clear timer from disconnect');
 
-            console.log('User disconnected:', xuser._id.toString(), xuser.name, 'from:', xroomId);
+                    clearActiveTimers(xroomId);
+                }
 
-            await helpers.notifyRoomChanged(xroomId, false, true);
+                if (roomInfo.micQueue && roomInfo.micQueue.includes(xuser._id.toString())) {
+                    roomInfo.micQueue = roomInfo.micQueue.filter(
+                        (id) => id !== xuser._id.toString(),
+                    );
+                    io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                }
 
-            if (xuser.is_visible) {
-                const room = await roomModel.findById(xroomId);
+                if (allMutedList[xroomId].includes(xuser._id.toString())) {
+                    allMutedList[xroomId] = allMutedList[xroomId].filter(
+                        (id) => id !== xuser._id.toString(),
+                    );
+                    io.to(xroomId).emit('muted-list', { 'muted-list': allMutedList[xroomId] });
+                }
+                if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == xuser._id.toString()) {
+                    roomInfo.youtubeLink = {};
+                    isYoutubeRunning = false;
+                }
+                if (roomInfo.spotifyTrack && roomInfo.spotifyTrack.userId == xuser._id.toString()) {
+                    roomInfo.spotifyTrack = {};
+                }
 
-                io.emit(xroomId, {
-                    type: 'dis-user',
-                    data: await public_user(xuser),
-                });
+                io.to(xroomId).emit('user-left', xuser._id.toString());
 
-                io.emit(xroomId, {
-                    type: 'responded-waiting',
-                    data: await public_user(xuser),
-                });
+                if (enterDate) {
+                    await addEntryLog(xuser, xroomId, enterDate, 0); // 0 for normal disconnect
+                }
 
-                if (room.isMeeting) {
-                    io.emit(room.meetingRef, {
+                console.log(
+                    'User disconnected:',
+                    xuser._id.toString(),
+                    xuser.name,
+                    'from:',
+                    xroomId,
+                );
+
+                await helpers.notifyRoomChanged(xroomId, false, true);
+
+                if (xuser.is_visible) {
+                    const room = await roomModel.findById(xroomId);
+
+                    io.emit(xroomId, {
                         type: 'dis-user',
                         data: await public_user(xuser),
                     });
-                }
 
-                let reason = 0;
-                switch (data) {
-                    case 'transport close':
-                        reason = 0;
-                        break;
+                    io.emit(xroomId, {
+                        type: 'responded-waiting',
+                        data: await public_user(xuser),
+                    });
 
-                    case 'ping timeout':
-                        reason = 1;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                if (enterDate) {
-                    await addEntryLog(xuser, xroomId, enterDate, reason);
-                }
-
-                if (reason == 0) {
-                    xuser.order = 0;
-                    xuser.game_number = '';
-                    xuser.game_number_color = '255|255|255';
-                    if (xuser.is_joker) {
-                        await helpers.endJokerInRoom(room);
-                        xuser.is_joker = false;
+                    if (room.isMeeting) {
+                        io.emit(room.meetingRef, {
+                            type: 'dis-user',
+                            data: await public_user(xuser),
+                        });
                     }
-                    await updateUser(xuser, xuser._id, xroomId);
+
+                    let reason = 0;
+                    switch (data) {
+                        case 'transport close':
+                            reason = 0;
+                            break;
+
+                        case 'ping timeout':
+                            reason = 1;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    if (enterDate) {
+                        await addEntryLog(xuser, xroomId, enterDate, reason);
+                    }
+
+                    if (reason == 0) {
+                        xuser.order = 0;
+                        xuser.game_number = '';
+                        xuser.game_number_color = '255|255|255';
+                        if (xuser.is_joker) {
+                            await helpers.endJokerInRoom(room);
+                            xuser.is_joker = false;
+                        }
+                        await updateUser(xuser, xuser._id, xroomId);
+                    }
                 }
+            } catch (err) {
+                console.log('error disconnecting from room', err);
             }
         };
 
