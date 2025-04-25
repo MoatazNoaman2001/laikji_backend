@@ -2178,6 +2178,12 @@ module.exports = (io) => {
 
         const disconnectFromRoom = async (data) => {
             try {
+                xclient.leave(xroomId);
+                if (!xuser) return;
+                xuser = await getUserById(xuser._id, xroomId);
+                await removeUserFromRoom(xroomId, xuser);
+                await removeUserFromWaiting(xroomId, xuser);
+
                 console.log(
                     'disconnected client:',
                     xuser._id.toString(),
