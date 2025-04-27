@@ -595,18 +595,26 @@ module.exports = (io) => {
             }, 60 * 60 * 1000 * 9);
 
             xclient.on('join-meeting', async (data) => {
-                room = await roomModel.findById(xroomId);
-                xroomId = room.meetingRef;
-                await updateUser(xuser, xuser._id, xroomId);
+                try {
+                    room = await roomModel.findById(xroomId);
+                    xroomId = room.meetingRef;
+                    await updateUser(xuser, xuser._id, xroomId);
 
-                console.log('xxxxxxxroom id ', xroomId);
+                    console.log('xxxxxxxroom id ', xroomId);
+                } catch (err) {
+                    console.log('error joining meeting', err);
+                }
             });
             xclient.on('leave-meeting', async (data) => {
-                room = await roomModel.findById(xroomId);
-                xroomId = room._id.toString();
-                await updateUser(xuser, xuser._id, xroomId);
+                try {
+                    room = await roomModel.findById(xroomId);
+                    xroomId = room._id.toString();
+                    await updateUser(xuser, xuser._id, xroomId);
 
-                console.log('xxxxxxxroom id ', xroomId);
+                    console.log('xxxxxxxroom id ', xroomId);
+                } catch (err) {
+                    console.log('error leaving meeting', err);
+                }
             });
             xclient.on('send-msg', async (data) => {
                 if (!xuser) return;
