@@ -13,12 +13,15 @@ const roomUsersModel = require('../models/roomUsersModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/all', async (req, res) => {
-    var response = [];
     const settings = await getSettings();
     try {
-        var grbs = await groupModel.find().sort({
-            order: 'descending',
+        var grbs = await groupModel.find().sort({ order: 'descending' });
+        var allRooms = await roomModel.find({
+            groupRef: { $in: grbs.map((g) => g._id) },
         });
+
+        var response = [];
+
         const golden_rooms = [];
         let golden_rooms_users_count = 0;
         const special_rooms = [];
@@ -29,33 +32,29 @@ router.get('/all', async (req, res) => {
         let all_rooms_users_count = 0;
 
         await Promise.all(
-            grbs.map(async (item) => {
-                var rooms = await roomModel.find({
-                    groupRef: item._id,
-                });
+            grbs.map(async (group) => {
+                var groupRooms = allRooms.filter(
+                    (r) => r.groupRef.toString() === group._id.toString(),
+                );
 
                 var res_item = {
-                    _id: item._id,
-                    name: item.name,
-                    type: item.type,
-                    icon: item.icon ? process.env.mediaUrl + item.icon : null,
-                    background: item.background,
-                    inside_style: item.inside_style,
-                    order: item.order,
+                    _id: group._id,
+                    name: group.name,
+                    type: group.type,
+                    icon: group.icon ? process.env.mediaUrl + group.icon : null,
+                    background: group.background,
+                    inside_style: group.inside_style,
+                    order: group.order,
                     users_count: 0,
+                    rooms: [],
                 };
-                var res_rooms = [];
-                rooms.map(async (element) => {
-                    const r = await helpers.get_room_small(element, item, settings);
+
+                for (const room of groupRooms) {
+                    const r = await helpers.get_room_small(room, group, settings);
 
                     if (!r.isMeeting) {
                         var u_in_room = global.rooms_users[r._id];
-
-                        if (u_in_room) {
-                            r.users_count = global.rooms_users[r._id].length;
-                        } else {
-                            r.users_count = 0;
-                        }
+                        r.users_count = u_in_room ? u_in_room.length : 0;
 
                         res_item.users_count += r.users_count;
                         all_rooms_users_count += r.users_count;
@@ -71,91 +70,43 @@ router.get('/all', async (req, res) => {
                         }
 
                         all_rooms.push(r);
-                        res_rooms.push(r);
+                        res_item.rooms.push(r);
                     } else {
-                        if (r.isMeeting) {
-                            meeting_rooms.push(r);
-                            meeting_rooms_users_count += r.users_count;
-                        }
+                        meeting_rooms.push(r);
+                        meeting_rooms_users_count += r.users_count;
                     }
-                });
-
-                let g_bg = item.background;
-                let g_fnt = '255|255|255';
-                if (item.type == enums.groupsTypes.gold) {
-                    g_bg = hexToXRgb(settings.rgb_gold_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_gold_group_fnt) || '255|255|255';
                 }
 
-                if (item.type == enums.groupsTypes.special) {
-                    g_bg = hexToXRgb(settings.rgb_special_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_special_group_fnt) || '255|255|255';
-                }
+                res_item.font = getGroupFontColor(group, settings);
+                res_item.background = getGroupBackground(group, settings);
 
-                if (item.type == enums.groupsTypes.meeting) {
-                    g_bg = hexToXRgb(settings.rgb_meet_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_meet_group_fnt) || '255|255|255';
-                }
-
-                if (item.type == enums.groupsTypes.all) {
-                    g_bg = hexToXRgb(settings.rgb_all_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_all_group_fnt) || '255|255|255';
-                }
-
-                if (item.type == enums.groupsTypes.country) {
-                    g_bg = hexToXRgb(settings.rgb_country_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_country_group_fnt) || '255|255|255';
-                }
-
-                if (item.type == enums.groupsTypes.support) {
-                    g_bg = hexToXRgb(settings.rgb_support_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_support_group_fnt) || '255|255|255';
-                }
-
-                if (item.type == enums.groupsTypes.learning) {
-                    g_bg = hexToXRgb(settings.rgb_learning_group_bg) || item.background;
-                    g_fnt = hexToXRgb(settings.rgb_learning_group_fnt) || '255|255|255';
-                }
-                res_item.font = g_fnt;
-                res_item.background = g_bg;
-                res_item.rooms = res_rooms;
                 response.push(res_item);
             }),
         );
 
-        let golden_gr = response.find((g) => g.type == enums.groupsTypes.gold);
-        if (golden_gr) {
-            golden_gr.rooms = golden_rooms;
-            golden_gr.users_count = golden_rooms_users_count;
-        }
+        const updateGroupRooms = (type, roomsList, usersCount) => {
+            let gr = response.find((g) => g.type == type);
+            if (gr) {
+                gr.rooms = roomsList;
+                gr.users_count = usersCount;
+            }
+        };
 
-        let special_gr = response.find((g) => g.type == enums.groupsTypes.special);
-        if (special_gr) {
-            special_gr.rooms = special_rooms;
-            special_gr.users_count = special_rooms_users_count;
-        }
+        updateGroupRooms(enums.groupsTypes.gold, golden_rooms, golden_rooms_users_count);
+        updateGroupRooms(enums.groupsTypes.special, special_rooms, special_rooms_users_count);
+        updateGroupRooms(enums.groupsTypes.meeting, meeting_rooms, meeting_rooms_users_count);
+        updateGroupRooms(enums.groupsTypes.all, all_rooms, all_rooms_users_count);
 
-        let meeting_gr = response.find((g) => g.type == enums.groupsTypes.meeting);
-        if (meeting_gr) {
-            meeting_gr.rooms = meeting_rooms;
-            meeting_gr.users_count = meeting_rooms_users_count;
-        }
-
-        let all_gr = response.find((g) => g.type == enums.groupsTypes.all);
-        if (all_gr) {
-            all_gr.rooms = all_rooms;
-            all_gr.users_count = all_rooms_users_count;
-        }
-
-        var sorted = response.sort((a, b) => {
+        var ordered = response.sort((a, b) => {
+            if (b.order !== a.order) {
+                return b.order - a.order;
+            }
             return b.users_count - a.users_count;
         });
-        var orderd = sorted.sort((a, b) => {
-            return b.order - a.order;
-        });
+
         res.status(200).send({
             ok: true,
-            data: orderd,
+            data: ordered,
         });
     } catch (e) {
         res.status(500).send({
@@ -164,6 +115,62 @@ router.get('/all', async (req, res) => {
         });
     }
 });
+
+function getGroupFontColor(group, settings) {
+    let color = '255|255|255';
+    switch (group.type) {
+        case enums.groupsTypes.gold:
+            color = hexToXRgb(settings.rgb_gold_group_fnt) || '255|255|255';
+            break;
+        case enums.groupsTypes.special:
+            color = hexToXRgb(settings.rgb_special_group_fnt) || '255|255|255';
+            break;
+        case enums.groupsTypes.meeting:
+            color = hexToXRgb(settings.rgb_meet_group_fnt) || '255|255|255';
+            break;
+        case enums.groupsTypes.all:
+            color = hexToXRgb(settings.rgb_all_group_fnt) || '255|255|255';
+            break;
+        case enums.groupsTypes.country:
+            color = hexToXRgb(settings.rgb_country_group_fnt) || '255|255|255';
+            break;
+        case enums.groupsTypes.support:
+            color = hexToXRgb(settings.rgb_support_group_fnt) || '255|255|255';
+            break;
+        case enums.groupsTypes.learning:
+            color = hexToXRgb(settings.rgb_learning_group_fnt) || '255|255|255';
+            break;
+    }
+    return color;
+}
+
+function getGroupBackground(group, settings) {
+    let background = group.background;
+    switch (group.type) {
+        case enums.groupsTypes.gold:
+            background = hexToXRgb(settings.rgb_gold_group_bg) || background;
+            break;
+        case enums.groupsTypes.special:
+            background = hexToXRgb(settings.rgb_special_group_bg) || background;
+            break;
+        case enums.groupsTypes.meeting:
+            background = hexToXRgb(settings.rgb_meet_group_bg) || background;
+            break;
+        case enums.groupsTypes.all:
+            background = hexToXRgb(settings.rgb_all_group_bg) || background;
+            break;
+        case enums.groupsTypes.country:
+            background = hexToXRgb(settings.rgb_country_group_bg) || background;
+            break;
+        case enums.groupsTypes.support:
+            background = hexToXRgb(settings.rgb_support_group_bg) || background;
+            break;
+        case enums.groupsTypes.learning:
+            background = hexToXRgb(settings.rgb_learning_group_bg) || background;
+            break;
+    }
+    return background;
+}
 
 router.put('/change-room-password', async (req, res) => {
     try {
