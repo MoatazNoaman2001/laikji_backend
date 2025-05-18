@@ -1107,8 +1107,8 @@ module.exports = (io) => {
 
                 io.to(roomId).emit('audioResume', data);
             });
-            xclient.on('audioStream', (audioChunk) => {
-                xclient.broadcast.emit('audioStream', audioChunk);
+            xclient.on('audioStream', (data) => {
+                xclient.broadcast.emit('audioStream', { audio: data.audio });
             });
 
             // Handle disconnection to clean up resources
