@@ -1108,6 +1108,7 @@ module.exports = (io) => {
                 io.to(roomId).emit('audioResume', data);
             });
             xclient.on('audioStream', (data) => {
+                console.log('recieve audio data: ', data);
                 xclient.broadcast.emit('audioStream', { audio: data.audio });
             });
 
