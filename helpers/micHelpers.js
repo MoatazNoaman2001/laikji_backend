@@ -226,13 +226,13 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
             if (files.length !== 0) {
                 const fileUrl = `http://185.203.118.57:9600/uploads/${speakerId}/${files[0]}`;
 
-                global.io.emit('audio-file', { fileUrl });
+                global.io.to(speaker.socketId).emit('audio-file', { fileUrl });
                 console.log('audio sent');
             } else {
-                global.io.emit('audio-file', { fileUrl: 'none' });
+                global.io.to(speaker.socketId).emit('audio-file', { fileUrl: 'none' });
             }
         } else {
-            global.io.emit('audio-file', { fileUrl: 'none' });
+            global.io.to(speaker.socketId).emit('audio-file', { fileUrl: 'none' });
         }
         // Remove user from micQueue after assigning mic to them
         if (roomInfo.micQueue && roomInfo.micQueue.includes(speakerId)) {
