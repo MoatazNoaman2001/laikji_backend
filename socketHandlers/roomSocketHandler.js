@@ -413,7 +413,7 @@ module.exports = (io) => {
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
         var xroomId;
-        var key = xclient.handshake.query.key;
+        var key = xclient.handshake.query.key + '_' + xclient.handshake.query.country_code;
         var device = xclient.handshake.query.device ?? xclient.handshake.query.key;
         var ignoredUsers = new Map();
         // get room
@@ -536,7 +536,15 @@ module.exports = (io) => {
             await removeUserFromWaiting(xroomId, xuser);
             enterDate = getNowDateTime(true);
 
-            console.info('[client accepted] id:', xuser.name, xuser._id, 'socketId:', xclient.id);
+            console.info(
+                '[client accepted] id:',
+                xuser.name,
+                xuser._id,
+                'socketId:',
+                xclient.id,
+                'key:',
+                key,
+            );
             xuser = await getUserById(xuser._id, xroomId);
             await helpers.notifyRoomChanged(xroomId, false, true);
 

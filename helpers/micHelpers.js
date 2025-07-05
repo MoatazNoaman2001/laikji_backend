@@ -232,7 +232,7 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
                 global.io.emit('audio-file', { fileUrl: 'none' });
             }
         } else {
-            console.log('audio dir not exist');
+            global.io.emit('audio-file', { fileUrl: 'none' });
         }
         // Remove user from micQueue after assigning mic to them
         if (roomInfo.micQueue && roomInfo.micQueue.includes(speakerId)) {
