@@ -226,10 +226,10 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
             if (files.length !== 0) {
                 const fileUrl = `http://185.203.118.57:9600/uploads/${speakerId}/${files[0]}`;
 
-                global.io.to(xroomId).emit('audio-file', { fileUrl });
+                global.io.emit('audio-file', { fileUrl });
                 console.log('audio sent');
             } else {
-                console.log('no audio in user file');
+                global.io.emit('audio-file', { fileUrl: 'none' });
             }
         } else {
             console.log('audio dir not exist');
