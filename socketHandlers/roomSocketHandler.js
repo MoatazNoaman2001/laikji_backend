@@ -70,6 +70,10 @@ const activeAudioStreams = {};
 // =======
 module.exports = (io) => {
     io.use(async (socket, next) => {
+        const { flag, country_code } = getFlagAndCountryCode(ip);
+        socket.handshake.query.country_code = country_code;
+        socket.handshake.query.flag = flag;
+        socket.handshake.query.ip = helpers.ip2num(ip);
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
@@ -190,10 +194,6 @@ module.exports = (io) => {
             );
         }
 
-        const { flag, country_code } = getFlagAndCountryCode(ip);
-        socket.handshake.query.country_code = country_code;
-        socket.handshake.query.flag = flag;
-        socket.handshake.query.ip = helpers.ip2num(ip);
         var users_in_room = await getUsersInRoom(room_id, true, false);
         var users_in_waiting = await getUsersInWaiting(room_id, true);
         if (users_in_room.length >= room.capacity) {
