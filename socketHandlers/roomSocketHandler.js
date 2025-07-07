@@ -73,7 +73,7 @@ module.exports = (io) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
-        let user_key = socket.handshake.query.key + '_' + xclient.handshake.query.country_code;
+        let user_key = socket.handshake.query.key + '_' + socket.handshake.query.country_code;
         let device = socket.handshake.query.device;
         let ip = socket.request.connection.remoteAddress;
         let rp = socket.handshake.query.rp;
