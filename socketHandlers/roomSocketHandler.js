@@ -70,6 +70,7 @@ const activeAudioStreams = {};
 // =======
 module.exports = (io) => {
     io.use(async (socket, next) => {
+        let ip = socket.request.connection.remoteAddress;
         const { flag, country_code } = getFlagAndCountryCode(ip);
         socket.handshake.query.country_code = country_code;
         socket.handshake.query.flag = flag;
@@ -79,7 +80,6 @@ module.exports = (io) => {
         let room_id = socket.handshake.query.roomId;
         let user_key = socket.handshake.query.key + '_' + socket.handshake.query.country_code;
         let device = socket.handshake.query.device;
-        let ip = socket.request.connection.remoteAddress;
         let rp = socket.handshake.query.rp;
         let fp = socket.handshake.query.fp;
         let mp = socket.handshake.query.mp;
