@@ -73,7 +73,7 @@ module.exports = (io) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
-        let user_key = socket.handshake.query.key;
+        let user_key = socket.handshake.query.key + '_' + xclient.handshake.query.country_code;
         let device = socket.handshake.query.device;
         let ip = socket.request.connection.remoteAddress;
         let rp = socket.handshake.query.rp;
@@ -218,7 +218,7 @@ module.exports = (io) => {
             const sc = io.sockets.sockets.get(same_user_name.socketId);
 
             if (same_user_name.key == user_key && same_user_name.roomRef == room_id) {
-                await removeUserFromRoom(room_id, same_user_name);
+                removeUserFromRoom(room_id, same_user_name);
                 if (sc) sc.disconnect();
             } else if (same_user_name.key != user_key || same_user_name.roomRef == room_id) {
                 return next(
