@@ -32,6 +32,6 @@
         "nodemon": "^2.0.16",
         "peer": "^0.5.3",
         "short-crypt": "^1.0.25",
-        "socket.io": "2.4.1"
+        "socket.io": "^3.1.2"
     }
 }

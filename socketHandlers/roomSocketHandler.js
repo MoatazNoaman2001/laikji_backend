@@ -215,7 +215,7 @@ module.exports = (io) => {
         const same_user_name = getNameInRoom(name, users_in_room);
 
         if (same_user_name) {
-            const sc = io.sockets.sockets[same_user_name.socketId];
+            const sc = io.sockets.sockets.get(same_user_name.socketId);
 
             if (same_user_name.key == user_key && same_user_name.roomRef == room_id) {
                 removeUserFromRoom(room_id, same_user_name);
