@@ -15,11 +15,10 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, device, room_id, member = null, regUser_id = null) => {
+const createUser = async (user_key, room_id, member = null, regUser_id = null) => {
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
-            device: device,
         },
         {},
         {
@@ -448,7 +447,7 @@ const removeUserFromWaiting = async (xroomId, xuser) => {
     else users = [...global.waiting_users[xroomId]];
 
     const set = new Set(users);
-    if (xuser && xuser._id){
+    if (xuser && xuser._id) {
         set.delete(xuser._id.toString());
     }
 

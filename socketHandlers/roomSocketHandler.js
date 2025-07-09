@@ -414,7 +414,7 @@ module.exports = (io) => {
     }).on('connection', async (xclient) => {
         var xroomId;
         var key = xclient.handshake.query.key + '_' + xclient.handshake.query.country_code;
-        var device = xclient.handshake.query.device ?? xclient.handshake.query.key;
+        // var device = xclient.handshake.query.device ?? xclient.handshake.query.key;
         var ignoredUsers = new Map();
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
@@ -462,7 +462,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, device, xroomId, member, regUser_id);
+            xuser = await createUser(key, xroomId, member, regUser_id);
         }
         let os = xclient.handshake.query.os;
         if (
@@ -496,7 +496,7 @@ module.exports = (io) => {
                 is_typing: false,
                 is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
-                device: xclient.handshake.query.device ?? xclient.handshake.query.key,
+                //device: xclient.handshake.query.device ?? xclient.handshake.query.key,
                 // private_status:
                 //     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
                 //         ? parseInt(xclient.handshake.query.ps)
@@ -602,17 +602,17 @@ module.exports = (io) => {
                 }
             }, 60 * 60 * 1000 * 9);
 
-            xclient.on('join-meeting', async (data) => {
-                try {
-                    room = await roomModel.findById(xroomId);
-                    xroomId = room.meetingRef;
-                    await updateUser(xuser, xuser._id, xroomId);
+            // xclient.on('join-meeting', async (data) => {
+            //     try {
+            //         room = await roomModel.findById(xroomId);
+            //         xroomId = room.meetingRef;
+            //         await updateUser(xuser, xuser._id, xroomId);
 
-                    console.log('xxxxxxxroom id ', xroomId);
-                } catch (err) {
-                    console.log('error joining meeting', err);
-                }
-            });
+            //         console.log('xxxxxxxroom id ', xroomId);
+            //     } catch (err) {
+            //         console.log('error joining meeting', err);
+            //     }
+            // });
             xclient.on('leave-meeting', async (data) => {
                 try {
                     room = await roomModel.findById(xroomId);
