@@ -602,28 +602,6 @@ module.exports = (io) => {
                 }
             }, 60 * 60 * 1000 * 9);
 
-            // xclient.on('join-meeting', async (data) => {
-            //     try {
-            //         room = await roomModel.findById(xroomId);
-            //         xroomId = room.meetingRef;
-            //         await updateUser(xuser, xuser._id, xroomId);
-
-            //         console.log('xxxxxxxroom id ', xroomId);
-            //     } catch (err) {
-            //         console.log('error joining meeting', err);
-            //     }
-            // });
-            xclient.on('leave-meeting', async (data) => {
-                try {
-                    room = await roomModel.findById(xroomId);
-                    xroomId = room._id.toString();
-                    await updateUser(xuser, xuser._id, xroomId);
-
-                    console.log('xxxxxxxroom id ', xroomId);
-                } catch (err) {
-                    console.log('error leaving meeting', err);
-                }
-            });
             xclient.on('send-msg', async (data) => {
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
@@ -1120,17 +1098,17 @@ module.exports = (io) => {
                 xclient.broadcast.emit('audioStream', { audio: data.audio });
             });
 
-            // Handle disconnection to clean up resources
-            xclient.on('disconnect', () => {
-                // Clean up any streams owned by this client
-                for (const audioId in activeAudioStreams) {
-                    if (activeAudioStreams[audioId].userId === xclient.id) {
-                        const roomId = activeAudioStreams[audioId].roomId;
-                        io.to(roomId).emit('audioClosed', {});
-                        delete activeAudioStreams[audioId];
-                    }
-                }
-            });
+            // // Handle disconnection to clean up resources
+            // xclient.on('disconnect', () => {
+            //     // Clean up any streams owned by this client
+            //     for (const audioId in activeAudioStreams) {
+            //         if (activeAudioStreams[audioId].userId === xclient.id) {
+            //             const roomId = activeAudioStreams[audioId].roomId;
+            //             io.to(roomId).emit('audioClosed', {});
+            //             delete activeAudioStreams[audioId];
+            //         }
+            //     }
+            // });
 
             // xclient.on('closeAudioStream', async (data) => {
             //     io.to(xroomId).emit('audioClosed', {});

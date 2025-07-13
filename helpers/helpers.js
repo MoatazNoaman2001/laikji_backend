@@ -378,6 +378,7 @@ function simpleDecString(text) {
 }
 
 function ip2num(ip) {
+    console.log('ip from helperss ', ip);
     var d = ip.split('.');
 
     var num = 0;
