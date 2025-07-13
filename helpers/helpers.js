@@ -387,6 +387,7 @@ function ip2num(ip) {
     num += Number(d[2]) * Math.pow(256, 1);
     num += Number(d[3]);
 
+    console.log('num after process ', num);
     return num;
 }
 
