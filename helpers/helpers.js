@@ -380,7 +380,6 @@ function simpleDecString(text) {
 function ip2num(ip) {
     console.log('ip from helperss ', ip);
     var a = ip.split(':').pop();
-
     var d = a.split('.');
 
     var num = 0;
@@ -388,8 +387,6 @@ function ip2num(ip) {
     num += Number(d[1]) * Math.pow(256, 2);
     num += Number(d[2]) * Math.pow(256, 1);
     num += Number(d[3]);
-
-    console.log('num after process ', num);
     return num;
 }
 
