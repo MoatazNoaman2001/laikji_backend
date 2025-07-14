@@ -520,6 +520,7 @@ module.exports = (io) => {
             xuser._id,
             xroomId,
         );
+
         /////////////// ROOM LOGIN SUCCESS CASE ///////////////////
         const roomInfo = await getRoomData(xroomId);
 
@@ -559,8 +560,19 @@ module.exports = (io) => {
                 users_in_waiting = await getUsersInWaiting(xroomId, true);
             }
 
-            if (!room.isMeeting) {
-                await deleteMyChat(xuser);
+            // if (!room.isMeeting) {
+            await deleteMyChat(xuser);
+            //}
+            if (room.isMeeting) {
+                xuser.status = enums.statusTypes.away.toString();
+                xuser = await updateUser(xuser, xuser._id, room.parentRef.toString());
+
+                if (xuser.is_visible) {
+                    io.emit(room.parentRef.toString(), {
+                        type: 'info-change',
+                        data: await public_user(xuser),
+                    });
+                }
             }
 
             const current_joker = await helpers.getJokerInRoom(room);
