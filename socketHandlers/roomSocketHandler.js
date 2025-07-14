@@ -497,7 +497,7 @@ module.exports = (io) => {
                 is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
                 status: room.isMeeting
-                    ? enums.statusTypes.busy.toString()
+                    ? enums.statusTypes.away.toString()
                     : enums.statusTypes.empty.toString(),
                 //device: xclient.handshake.query.device ?? xclient.handshake.query.key,
                 // private_status:
