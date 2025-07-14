@@ -496,6 +496,9 @@ module.exports = (io) => {
                 is_typing: false,
                 is_meeting_typing: false,
                 ip: xclient.handshake.query.ip,
+                status: room.isMeeting
+                    ? enums.statusTypes.busy.toString()
+                    : enums.statusTypes.empty.toString(),
                 //device: xclient.handshake.query.device ?? xclient.handshake.query.key,
                 // private_status:
                 //     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
@@ -529,6 +532,7 @@ module.exports = (io) => {
         if (!mutedSpeakers[xroomId]) {
             mutedSpeakers[xroomId] = [];
         }
+
         const continue_to_room = async () => {
             // add user to room
             xclient.join(xroomId);
@@ -940,8 +944,6 @@ module.exports = (io) => {
                     });
                 }
             });
-
-            // Add these new event handlers to your server.js file
 
             // Handle new audio stream announcement
             xclient.on('newAudioStream', async (data) => {
@@ -2179,7 +2181,7 @@ module.exports = (io) => {
                 xclient.leave(xroomId);
                 if (!xuser) return;
                 xuser = await getUserById(xuser._id, xroomId);
-                await removeUserFromRoom(xroomId, xuser);
+                removeUserFromRoom(xroomId, xuser);
                 await removeUserFromWaiting(xroomId, xuser);
 
                 console.log(
