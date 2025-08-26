@@ -917,6 +917,16 @@ const checkIPAddress = async (ip) => {
     return privateRanges.some((range) => range.test(ip));
 };
 
+const isUsingVPN = async (ip) => {
+    try {
+        const res = await axios.get(`https://api.ipdata.co/${ip}?api-key=YOUR_API_KEY`);
+        return res.data.threat.is_vpn || res.data.threat.is_proxy || res.data.threat.is_tor;
+    } catch (err) {
+        console.error('VPN check failed:', err);
+        return false;
+    }
+};
+
 module.exports = {
     getUserById,
     getUserOfMember,
@@ -951,4 +961,5 @@ module.exports = {
     isDualAllowedManyRooms,
     isDualAllowedSameRoom,
     checkIPAddress,
+    isUsingVPN,
 };

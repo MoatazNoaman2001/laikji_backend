@@ -114,17 +114,17 @@ module.exports = (io) => {
                     ),
                 );
             }
-            if (await isUsingVPN(ip)) {
-                return next(
-                    new Error(
-                        JSON.stringify({
-                            error_code: 17,
-                            msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
-                            msg_en: 'using VPN is not allowed ',
-                        }),
-                    ),
-                );
-            }
+            // if (await isUsingVPN(ip)) {
+            //     return next(
+            //         new Error(
+            //             JSON.stringify({
+            //                 error_code: 17,
+            //                 msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
+            //                 msg_en: 'using VPN is not allowed ',
+            //             }),
+            //         ),
+            //     );
+            // }
         }
 
         if (!room_id) {
