@@ -52,6 +52,7 @@ const {
     isDualAllowedManyRooms,
     isDualAllowedSameRoom,
     checkIPAddress,
+    isUsingVPN,
 } = require('../helpers/userHelpers');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
@@ -109,6 +110,17 @@ module.exports = (io) => {
                             error_code: 17,
                             msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
                             msg_en: 'not allowed to use VPN ',
+                        }),
+                    ),
+                );
+            }
+            if (await isUsingVPN(ip)) {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 17,
+                            msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
+                            msg_en: 'using VPN is not allowed ',
                         }),
                     ),
                 );
@@ -560,9 +572,9 @@ module.exports = (io) => {
                 users_in_waiting = await getUsersInWaiting(xroomId, true);
             }
 
-            // if (!room.isMeeting) {
-            await deleteMyChat(xuser);
-            //}
+            if (!room.isMeeting) {
+                await deleteMyChat(xuser);
+            }
             if (room.isMeeting) {
                 xuser.status = enums.statusTypes.away.toString();
                 xuser = await updateUser(xuser, xuser._id, room.parentRef.toString());
