@@ -900,7 +900,7 @@ module.exports = (io) => {
                             ) {
                                 xuser.status = enums.statusTypes.empty.toString();
                                 addAdminLog(
-                                    xuser.name,
+                                    xuser,
                                     xroomId,
                                     `قام بتعطيل ميزة غير متاح`,
                                     `has switched his status to Available `,
@@ -909,7 +909,7 @@ module.exports = (io) => {
                                 xuser.status = data.user.status;
                                 if (data.user.status == enums.statusTypes.out) {
                                     addAdminLog(
-                                        xuser.name,
+                                        xuser,
                                         xroomId,
                                         `قام بتفعيل ميزة غير متاح`,
                                         `has switched his status to OUT `,
@@ -1577,7 +1577,7 @@ module.exports = (io) => {
 
                                 io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
                                 addAdminLog(
-                                    user.name,
+                                    user,
                                     xroomId,
                                     `قام برفع يده لدور الميكروفون `,
                                     `has raised his hand `,

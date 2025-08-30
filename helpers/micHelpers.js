@@ -217,7 +217,7 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
     try {
         roomInfo.speakers.add(speakerId);
         global.io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
-        addAdminLog(speaker.name, xroomId, `قام باستخدام الميكروفون`, `is on mic `);
+        addAdminLog(speaker, xroomId, `قام باستخدام الميكروفون`, `is on mic `);
 
         console.log('hello updated speakers');
 
