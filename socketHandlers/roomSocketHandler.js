@@ -102,19 +102,19 @@ module.exports = (io) => {
             'VERSION:',
             version,
         );
-        if (version) {
-            if (parseInt(version) < 42) {
-                return next(
-                    new Error(
-                        JSON.stringify({
-                            error_code: 17,
-                            msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
-                            msg_en: 'please update the app to login ',
-                        }),
-                    ),
-                );
-            }
-        }
+        // if (version) {
+        //     if (parseInt(version) < 42) {
+        //         return next(
+        //             new Error(
+        //                 JSON.stringify({
+        //                     error_code: 17,
+        //                     msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
+        //                     msg_en: 'please update the app to login ',
+        //                 }),
+        //             ),
+        //         );
+        //     }
+        // }
         if (ip) {
             if (checkIPAddress(ip)) {
                 ip = ip.split(':').pop();
