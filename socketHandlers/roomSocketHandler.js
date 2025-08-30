@@ -103,7 +103,7 @@ module.exports = (io) => {
             version,
         );
         if (version) {
-            if (version !== '1.0.5') {
+            if (version !== '1.0.8') {
                 return next(
                     new Error(
                         JSON.stringify({
