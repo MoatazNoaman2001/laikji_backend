@@ -85,6 +85,7 @@ module.exports = (io) => {
         let fp = socket.handshake.query.fp;
         let mp = socket.handshake.query.mp;
         let inv = socket.handshake.query.inv;
+        let version = socket.handshake.query.version ?? '0';
         socket.handshake.query.icon = '0.png';
 
         console.log(
@@ -98,8 +99,22 @@ module.exports = (io) => {
             user_key,
             'DEVICE: ',
             device,
+            'VERSION:',
+            version,
         );
-
+        if (version) {
+            if (int.parse(version) < 42) {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 17,
+                            msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
+                            msg_en: 'please update the app to login ',
+                        }),
+                    ),
+                );
+            }
+        }
         if (ip) {
             if (checkIPAddress(ip)) {
                 ip = ip.split(':').pop();
