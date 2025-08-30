@@ -90,13 +90,11 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
 
 router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
-    console.log('req body ' + JSON.stringify(req.body, null, 2));
     //const device = req.params.device.replace(/[{}]/g, '');
 
     try {
         let user = await userModal.findOne({
             key: req.params.key,
-            device: req.body.device,
         });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
 
@@ -171,11 +169,9 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
 
 router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
     try {
-        const device = req.query.device;
         console.log('req ', req.params.key);
         const banneds = await bannedModel.find({
             key: req.params.key,
-            device: device,
             type: enums.banTypes.server,
         });
         await Promise.all(

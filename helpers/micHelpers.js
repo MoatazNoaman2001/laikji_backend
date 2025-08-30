@@ -1,5 +1,6 @@
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
+const { addAdminLog } = require('./Logger');
 const { getRoomData } = require('./mediasoupHelpers');
 const { updateUser, getUserById } = require('./userHelpers');
 const fs = require('fs');
@@ -216,6 +217,7 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
     try {
         roomInfo.speakers.add(speakerId);
         global.io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
+        addAdminLog(speaker.name, xroomId, `قام باستخدام الميكروفون`, `is on mic `);
 
         console.log('hello updated speakers');
 

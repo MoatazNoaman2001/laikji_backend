@@ -102,19 +102,19 @@ module.exports = (io) => {
             'VERSION:',
             version,
         );
-        // if (version) {
-        //     if (parseInt(version) < 42) {
-        //         return next(
-        //             new Error(
-        //                 JSON.stringify({
-        //                     error_code: 17,
-        //                     msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
-        //                     msg_en: 'please update the app to login ',
-        //                 }),
-        //             ),
-        //         );
-        //     }
-        // }
+        if (version) {
+            if (version !== '1.0.5') {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 99,
+                            msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
+                            msg_en: 'please update the app to login ',
+                        }),
+                    ),
+                );
+            }
+        }
         if (ip) {
             if (checkIPAddress(ip)) {
                 ip = ip.split(':').pop();
@@ -129,17 +129,6 @@ module.exports = (io) => {
                     ),
                 );
             }
-            // if (await isUsingVPN(ip)) {
-            //     return next(
-            //         new Error(
-            //             JSON.stringify({
-            //                 error_code: 17,
-            //                 msg_ar: 'استخدام الـ VPN غير مسموح في تطبيق لايك جي',
-            //                 msg_en: 'using VPN is not allowed ',
-            //             }),
-            //         ),
-            //     );
-            // }
         }
 
         if (!room_id) {
@@ -910,8 +899,22 @@ module.exports = (io) => {
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
                                 xuser.status = enums.statusTypes.empty.toString();
+                                addAdminLog(
+                                    xuser.name,
+                                    xroomId,
+                                    `قام بتعطيل ميزة غير متاح`,
+                                    `has switched his status to Available `,
+                                );
                             } else {
                                 xuser.status = data.user.status;
+                                if (data.user.status == enums.statusTypes.out) {
+                                    addAdminLog(
+                                        xuser.name,
+                                        xroomId,
+                                        `قام بتفعيل ميزة غير متاح`,
+                                        `has switched his status to OUT `,
+                                    );
+                                }
                             }
                             if (
                                 data.user.status == enums.statusTypes.phone &&
@@ -1567,12 +1570,18 @@ module.exports = (io) => {
                                 roomInfo.micQueue &&
                                 !roomInfo.micQueue.includes(user._id.toString())
                             ) {
-                                // Add user to the queue if there's an active speaker
                                 roomInfo.micQueue.push(user._id.toString());
                                 console.log(
                                     `User ${user._id} added to the queue. Queue length: ${roomInfo.micQueue.length}`,
                                 );
+
                                 io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
+                                addAdminLog(
+                                    user.name,
+                                    xroomId,
+                                    `قام برفع يده لدور الميكروفون `,
+                                    `has raised his hand `,
+                                );
                             } else if (
                                 roomInfo.micQueue &&
                                 roomInfo.micQueue.includes(user._id.toString())
