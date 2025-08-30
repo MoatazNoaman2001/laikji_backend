@@ -919,9 +919,7 @@ const checkIPAddress = async (ip) => {
 
 const isUsingVPN = async (ip) => {
     try {
-        const res = await axios.get(
-            `https://api.ipdata.co/${ip}?7f8ba916825c272d807c479e7adbc9d4933083a064ede11390245130`,
-        );
+        const res = await axios.get(`https://ipqualityscore.com/api/json/ip/YOUR_API_KEY/${ip}`);
         if (res.data && res.data.status === 'success') {
             return res.data.threat.is_vpn || res.data.threat.is_proxy || res.data.threat.is_tor;
         } else {

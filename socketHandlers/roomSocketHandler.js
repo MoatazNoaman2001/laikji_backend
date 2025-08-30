@@ -103,7 +103,7 @@ module.exports = (io) => {
             version,
         );
         if (version) {
-            if (int.parse(version) < 42) {
+            if (parseInt(version) < 42) {
                 return next(
                     new Error(
                         JSON.stringify({
