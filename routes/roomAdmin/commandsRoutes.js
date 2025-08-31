@@ -126,7 +126,6 @@ router.post('/ban-entry', async (req, res) => {
 
         let bb = await bannedModel.findOneAndUpdate(
             {
-                device: user.device,
                 key: user.key,
                 roomRef: room._id,
             },

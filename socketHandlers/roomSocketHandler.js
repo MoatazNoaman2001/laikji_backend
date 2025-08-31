@@ -79,8 +79,8 @@ module.exports = (io) => {
         socket.handshake.query.name = socket.handshake.query.name.trim();
         let name = socket.handshake.query.name;
         let room_id = socket.handshake.query.roomId;
-        let user_key = socket.handshake.query.key + '_' + socket.handshake.query.country_code;
         let device = socket.handshake.query.device;
+        let user_key = socket.handshake.query.key;
         let rp = socket.handshake.query.rp;
         let fp = socket.handshake.query.fp;
         let mp = socket.handshake.query.mp;
@@ -184,7 +184,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(user_key, device)) {
+        if (await isBannedFromServer(user_key)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -376,7 +376,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(user_key, device, room)) {
+        if (await isBanned(user_key, room)) {
             return next(
                 new Error(
                     JSON.stringify({

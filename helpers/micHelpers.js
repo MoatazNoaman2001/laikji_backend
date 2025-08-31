@@ -102,7 +102,7 @@ const startInterval = async (time, xroomId, roomInfo) => {
             console.log(`Time's up for user`);
             global.io.to(xroomId).emit('speaker-time-update', {
                 userId: Array.from(roomInfo.speakers)[0],
-                time: "Time's up",
+                timeLeft: 0,
             });
             for (const speakerId of Array.from(roomInfo.speakers)) {
                 releaseMic(roomInfo, speakerId, xroomId);

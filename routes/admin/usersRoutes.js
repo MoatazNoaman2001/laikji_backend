@@ -259,7 +259,6 @@ router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
         const user = await userModal.findOneAndUpdate(
             {
                 key: req.params.key,
-                device: req.query.device,
             },
             {
                 server_can_public_chat: true,
