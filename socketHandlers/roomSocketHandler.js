@@ -3,13 +3,6 @@ const helpers = require('../helpers/helpers');
 const enums = require('../helpers/enums');
 const roomModel = require('../models/roomModel');
 const { v4: uuidv4 } = require('uuid');
-
-const { Writable } = require('stream');
-const fs = require('fs');
-const path = require('path');
-const ffmpeg = require('fluent-ffmpeg');
-// const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
-
 const { public_room } = require('../helpers/helpers');
 const { addEntryLog, addAdminLog } = require('../helpers/Logger');
 const {
@@ -429,7 +422,7 @@ module.exports = (io) => {
         // console.log('cant reach here')
     }).on('connection', async (xclient) => {
         var xroomId;
-        var key = xclient.handshake.query.key + '_' + xclient.handshake.query.country_code;
+        var key = xclient.handshake.query.key;
         // var device = xclient.handshake.query.device ?? xclient.handshake.query.key;
         var ignoredUsers = new Map();
         // get room
@@ -899,12 +892,14 @@ module.exports = (io) => {
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
                                 xuser.status = enums.statusTypes.empty.toString();
-                                addAdminLog(
-                                    xuser,
-                                    xroomId,
-                                    `قام بتعطيل ميزة غير متاح`,
-                                    `has switched his status to Available `,
-                                );
+                                if (data.user.status == enums.statusTypes.out) {
+                                    addAdminLog(
+                                        xuser,
+                                        xroomId,
+                                        `قام بتعطيل ميزة غير متاح`,
+                                        `has switched his status to Available `,
+                                    );
+                                }
                             } else {
                                 xuser.status = data.user.status;
                                 if (data.user.status == enums.statusTypes.out) {
