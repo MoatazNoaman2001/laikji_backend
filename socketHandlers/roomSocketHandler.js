@@ -905,7 +905,7 @@ module.exports = (io) => {
                                     );
                                 }
                                 xuser.status = data.user.status;
-                                if (data.user.status == enums.statusTypes.out) {
+                                if (xuser.status == enums.statusTypes.out) {
                                     addAdminLog(
                                         xuser,
                                         xroomId,
