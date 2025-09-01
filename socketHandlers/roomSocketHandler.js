@@ -798,7 +798,7 @@ module.exports = (io) => {
                         },
                         msg: msg,
                     });
-                    console.log('private message .1');
+                    console.log('private message .1', msg);
 
                     if (otherUserInOtherRoom) {
                         console.log('private message .2');
