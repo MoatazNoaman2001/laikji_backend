@@ -892,7 +892,11 @@ module.exports = (io) => {
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
                                 xuser.status = enums.statusTypes.empty.toString();
-                                if (data.user.status == enums.statusTypes.out) {
+                            } else {
+                                if (
+                                    data.user.status != enums.statusTypes.out &&
+                                    xuser.status == enums.statusTypes.out
+                                ) {
                                     addAdminLog(
                                         xuser,
                                         xroomId,
@@ -900,7 +904,6 @@ module.exports = (io) => {
                                         `has switched his status to Available `,
                                     );
                                 }
-                            } else {
                                 xuser.status = data.user.status;
                                 if (data.user.status == enums.statusTypes.out) {
                                     addAdminLog(
