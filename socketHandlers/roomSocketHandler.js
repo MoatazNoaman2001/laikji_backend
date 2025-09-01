@@ -893,7 +893,7 @@ module.exports = (io) => {
                             const newStatus = data.user.status;
 
                             if (
-                                newStatus === enums.statusTypes.out &&
+                                newStatus == enums.statusTypes.out &&
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
                                 // If user tries to set "out" but isn’t in micQueue → set empty
@@ -901,8 +901,8 @@ module.exports = (io) => {
                             } else {
                                 // Log status changes only when old ≠ new
                                 if (
-                                    oldStatus === enums.statusTypes.out &&
-                                    newStatus !== enums.statusTypes.out
+                                    oldStatus == enums.statusTypes.out &&
+                                    newStatus != enums.statusTypes.out
                                 ) {
                                     addAdminLog(
                                         xuser,
@@ -912,8 +912,8 @@ module.exports = (io) => {
                                     );
                                 }
                                 if (
-                                    oldStatus !== enums.statusTypes.out &&
-                                    newStatus === enums.statusTypes.out
+                                    oldStatus != enums.statusTypes.out &&
+                                    newStatus == enums.statusTypes.out
                                 ) {
                                     addAdminLog(
                                         xuser,
@@ -928,7 +928,7 @@ module.exports = (io) => {
 
                             // Handle "phone" status
                             if (
-                                newStatus === enums.statusTypes.phone &&
+                                newStatus == enums.statusTypes.phone &&
                                 roomInfo.speakers.has(xuser._id.toString())
                             ) {
                                 releaseMic(roomInfo, xuser._id.toString(), xroomId);
