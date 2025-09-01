@@ -883,19 +883,26 @@ module.exports = (io) => {
             // });
             xclient.on('change-user', async (data, ack) => {
                 if (!xuser) return;
+
                 xuser = await getUserById(xuser._id, xroomId);
+
                 switch (data.type) {
                     case 'info-change':
                         if (data.user.hasOwnProperty('status')) {
+                            const oldStatus = xuser.status;
+                            const newStatus = data.user.status;
+
                             if (
-                                data.user.status == enums.statusTypes.out &&
+                                newStatus === enums.statusTypes.out &&
                                 !roomInfo.micQueue.includes(xuser._id.toString())
                             ) {
+                                // If user tries to set "out" but isn’t in micQueue → set empty
                                 xuser.status = enums.statusTypes.empty.toString();
                             } else {
+                                // Log status changes only when old ≠ new
                                 if (
-                                    data.user.status != enums.statusTypes.out &&
-                                    xuser.status == enums.statusTypes.out
+                                    oldStatus === enums.statusTypes.out &&
+                                    newStatus !== enums.statusTypes.out
                                 ) {
                                     addAdminLog(
                                         xuser,
@@ -904,8 +911,10 @@ module.exports = (io) => {
                                         `has switched his status to Available `,
                                     );
                                 }
-                                xuser.status = data.user.status;
-                                if (xuser.status == enums.statusTypes.out) {
+                                if (
+                                    oldStatus !== enums.statusTypes.out &&
+                                    newStatus === enums.statusTypes.out
+                                ) {
                                     addAdminLog(
                                         xuser,
                                         xroomId,
@@ -913,16 +922,22 @@ module.exports = (io) => {
                                         `has switched his status to OUT `,
                                     );
                                 }
+
+                                xuser.status = newStatus;
                             }
+
+                            // Handle "phone" status
                             if (
-                                data.user.status == enums.statusTypes.phone &&
+                                newStatus === enums.statusTypes.phone &&
                                 roomInfo.speakers.has(xuser._id.toString())
                             ) {
                                 releaseMic(roomInfo, xuser._id.toString(), xroomId);
-                                if (Array.from(roomInfo.speakers).length == 0) {
+
+                                if (Array.from(roomInfo.speakers).length === 0) {
                                     console.log('clear timer from request mic');
                                     clearActiveTimers(xroomId);
                                 }
+
                                 if (mutedSpeakers[xroomId].includes(xuser._id.toString())) {
                                     mutedSpeakers[xroomId] = mutedSpeakers[xroomId].filter(
                                         (id) => id !== xuser._id.toString(),
@@ -931,25 +946,32 @@ module.exports = (io) => {
                                         mutedSpeakers: mutedSpeakers[xroomId],
                                     });
                                 }
-                                console.log('after delete user id', roomInfo.speakers);
 
+                                console.log('after delete user id', roomInfo.speakers);
                                 console.log(`User ${xuser._id.toString()} has declined the mic.`);
                             }
+
+                            // Reset order/game_number when not in f1/f2/f3
                             if (
-                                data.user.status != enums.statusTypes.f1 &&
-                                data.user.status != enums.statusTypes.f2 &&
-                                data.user.status != enums.statusTypes.f3
+                                newStatus !== enums.statusTypes.f1 &&
+                                newStatus !== enums.statusTypes.f2 &&
+                                newStatus !== enums.statusTypes.f3
                             ) {
                                 xuser.order = 0;
                                 xuser.game_number = '';
                                 xuser.game_number_color = '255|255|255';
                             }
                         }
-                        if (data.user.hasOwnProperty('icon')) xuser.icon = data.user.icon;
+
+                        if (data.user.hasOwnProperty('icon')) {
+                            xuser.icon = data.user.icon;
+                        }
+
                         if (data.user.hasOwnProperty('img_key')) {
                             xuser.img_key = data.user.img_key;
                             xuser.img = await getEnterIcon(data.user.img_key);
                         }
+
                         if (data.user.hasOwnProperty('is_typing')) {
                             xuser.is_typing = data.user.is_typing;
                         }
@@ -957,24 +979,28 @@ module.exports = (io) => {
                         if (data.user.hasOwnProperty('is_meeting_typing')) {
                             xuser.is_meeting_typing = data.user.is_meeting_typing;
                         }
+
                         if (data.user.hasOwnProperty('showCountry')) {
                             xuser.showCountry = data.user.showCountry;
                         }
 
                         if (data.user.hasOwnProperty('private_status')) {
-                            if (data.user.private_status == 1 || data.user.private_status == 0)
+                            if (data.user.private_status === 1 || data.user.private_status === 0) {
                                 xuser.private_status = data.user.private_status;
+                            }
                         }
 
                         if (data.user.hasOwnProperty('prevent_private_screenshot')) {
                             xuser.prevent_private_screenshot = data.user.prevent_private_screenshot;
                         }
+
                         xuser = await updateUser(xuser, xuser._id, xroomId);
-                    // ack({ ok: true, message: 'User status updated successfully' });
-                    // break;
-                    // default:
-                    // if (ack) ack({ ok: false, message: 'Invalid type' });
-                    // break;
+
+                        break;
+
+                    default:
+                        if (ack) ack({ ok: false, message: 'Invalid type' });
+                        return;
                 }
 
                 if (xuser.is_visible) {
@@ -982,6 +1008,10 @@ module.exports = (io) => {
                         type: data.type,
                         data: await public_user(xuser),
                     });
+                }
+
+                if (ack) {
+                    ack({ ok: true, message: 'User status updated successfully' });
                 }
             });
 
