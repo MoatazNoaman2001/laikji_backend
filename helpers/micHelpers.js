@@ -133,7 +133,7 @@ const startInterval = async (time, xroomId, roomInfo) => {
     } else if (time == 0o0) {
         global.io.to(xroomId).emit('speaker-time-update', {
             userId: Array.from(roomInfo.speakers)[0],
-            timeLeft: 'You have an open time',
+            timeLeft: 'وقت مفتوح',
         });
         if (!activeTimers.has(xroomId)) {
             activeTimers.set(xroomId, new Map());

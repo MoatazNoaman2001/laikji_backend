@@ -79,6 +79,7 @@ module.exports = (io) => {
         let mp = socket.handshake.query.mp;
         let inv = socket.handshake.query.inv;
         let version = socket.handshake.query.version ?? '0';
+        let isDual = socket.handshake.query.isdual ?? false;
         socket.handshake.query.icon = '0.png';
 
         console.log(
@@ -95,19 +96,19 @@ module.exports = (io) => {
             'VERSION:',
             version,
         );
-        // if (version) {
-        //     if (version !== '1.0.5') {
-        //         return next(
-        //             new Error(
-        //                 JSON.stringify({
-        //                     error_code: 99,
-        //                     msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
-        //                     msg_en: 'please update the app to login ',
-        //                 }),
-        //             ),
-        //         );
-        //     }
-        // }
+        if (version) {
+            if (version !== '1.0.5') {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 99,
+                            msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
+                            msg_en: 'please update the app to login ',
+                        }),
+                    ),
+                );
+            }
+        }
         if (ip) {
             if (checkIPAddress(ip)) {
                 ip = ip.split(':').pop();
@@ -709,132 +710,133 @@ module.exports = (io) => {
                 try {
                     if (!xuser) return;
 
-                    xuser = await getUserById(xuser._id, xroomId);
+                    const userCache = new Map();
+                    const memberCache = new Map();
 
-                    const key = data.key;
-                    let pc = await privateChatModel
-                        .find({
-                            key: key,
-                        })
-                        .populate(['user1Ref', 'user2Ref']);
+                    const [updatedXuser, pc, room] = await Promise.all([
+                        getUserById(xuser._id, xroomId, userCache),
+                        privateChatModel
+                            .findOne({ key: data.key })
+                            .populate(['user1Ref', 'user2Ref']),
+                        roomModel.findById(xroomId),
+                    ]);
 
-                    pc = pc[0];
+                    xuser = updatedXuser;
 
-                    let otherUser =
-                        pc.user1Ref._id.toString() == xuser._id.toString()
-                            ? pc.user2Ref
-                            : pc.user1Ref;
+                    if (!pc) return;
 
-                    otherUser = await getUserById(otherUser._id, xroomId);
-                    const room = await roomModel.findById(xroomId);
+                    const otherUser = await getUserById(
+                        pc.user1Ref._id.toString() === xuser._id.toString()
+                            ? pc.user2Ref._id
+                            : pc.user1Ref._id,
+                        xroomId,
+                        userCache,
+                    );
+
+                    // Validate conditions
                     const errors = validatePrivateMessageConditions(xuser, otherUser, room, pc);
                     if (errors.length > 0) {
                         errors.forEach((err) => io.to(xuser.socketId).emit(err.key, err));
                         return;
                     }
+
                     pc.isUser1Deleted = false;
                     pc.isUser2Deleted = false;
-                    pc.save();
 
-                    let body = {
+                    const body = {
                         key: uuidv4(),
                         type: data.type,
                         msg: filterMsg(data.msg, xroomId),
                         style: data.style,
-                        user: await public_user(xuser),
-                        replay: null,
+                        user: await public_user(xuser, true, memberCache),
+                        replay: data.replay
+                            ? {
+                                  type: data.replay.type,
+                                  msg: data.replay.msg,
+                                  style: data.replay.style,
+                                  user: data.replay.user,
+                              }
+                            : null,
                     };
 
-                    if (data.replay) {
-                        body.replay = {
-                            type: data.replay.type,
-                            msg: data.replay.msg,
-                            style: data.replay.style,
-                            user: data.replay.user,
-                        };
-                    }
+                    const [msg, otherRoom] = await Promise.all([
+                        new privateMessageModel({
+                            chatRef: pc._id,
+                            userRef: xuser._id,
+                            body: body,
+                        }).save(),
+                        pc.save(),
+                        room.isMeeting
+                            ? roomModel.findById(room.meetingRef)
+                            : roomModel.findById(room.parentRef),
+                    ]);
 
-                    const msg = new privateMessageModel({
-                        chatRef: pc._id,
-                        userRef: xuser._id,
-                        body: body,
-                    });
+                    const pcWithUsers = {
+                        ...JSON.parse(JSON.stringify(pc._doc)),
+                        user1Ref: await public_user(
+                            pc.user1Ref._id.toString() === xuser._id.toString() ? xuser : otherUser,
+                            true,
+                            memberCache,
+                        ),
+                        user2Ref: await public_user(
+                            pc.user1Ref._id.toString() === xuser._id.toString() ? otherUser : xuser,
+                            true,
+                            memberCache,
+                        ),
+                    };
 
-                    await msg.save();
+                    const [unReadMsgsCount, otherUserInOtherRoom, xuserInOtherRoom] =
+                        await Promise.all([
+                            privateMessageModel.countDocuments({
+                                chatRef: new ObjectId(pc._id),
+                                userRef: new ObjectId(xuser._id),
+                                isRead: false,
+                            }),
+                            otherRoom ? getUserById(otherUser._id, otherRoom._id, userCache) : null,
+                            otherRoom ? getUserById(xuser._id, otherRoom._id, userCache) : null,
+                        ]);
 
-                    pc = { ...pc._doc };
-
-                    let u1 = await getUserById(pc.user1Ref._id, xroomId);
-                    let u2 = await getUserById(pc.user2Ref._id, xroomId);
-                    pc = { ...JSON.parse(JSON.stringify(pc)) };
-                    u1 = await public_user(u1);
-                    u2 = await public_user(u2);
-                    pc.user1Ref = u1;
-                    pc.user2Ref = u2;
-
-                    const unReadMsgsCount = await privateMessageModel.countDocuments({
-                        chatRef: new ObjectId(pc._id),
-                        userRef: new ObjectId(xuser._id),
-                        isRead: false,
-                    });
-
-                    const otherRoom = await roomModel.findById(
-                        room.isMeeting ? room.meetingRef : room.parentRef,
-                    );
-
-                    let otherUserInOtherRoom = null;
-                    let xuserInOtherRoom = null;
-
-                    if (otherRoom) {
-                        otherUserInOtherRoom = await getUserById(otherUser._id, otherRoom._id);
-                        xuserInOtherRoom = await getUserById(xuser._id, otherRoom._id);
-                    }
-
-                    io.to(otherUser.socketId).emit('new-private-msg', {
+                    const messageData = {
                         chat: {
-                            ...pc,
+                            ...pcWithUsers,
                             last: msg,
                             newMsgs: unReadMsgsCount,
                         },
                         msg: msg,
-                    });
-                    console.log('private message .1', msg);
+                    };
 
-                    if (otherUserInOtherRoom) {
-                        console.log('private message .2');
-
-                        io.to(otherUserInOtherRoom.socketId).emit('new-private-msg', {
-                            chat: {
-                                ...pc,
-                                last: msg,
-                                newMsgs: unReadMsgsCount,
-                            },
-                            msg: msg,
-                        });
-                    }
-
-                    io.to(xuser.socketId).emit('new-private-msg', {
+                    const senderMessageData = {
                         chat: {
-                            ...pc,
+                            ...pcWithUsers,
                             last: msg,
                             newMsgs: 0,
                         },
                         msg: msg,
-                    });
-                    console.log('private message .3 ');
+                    };
+
+                    const emitPromises = [
+                        io.to(otherUser.socketId).emit('new-private-msg', messageData),
+                        io.to(xuser.socketId).emit('new-private-msg', senderMessageData),
+                    ];
+
+                    if (otherUserInOtherRoom) {
+                        emitPromises.push(
+                            io
+                                .to(otherUserInOtherRoom.socketId)
+                                .emit('new-private-msg', messageData),
+                        );
+                    }
 
                     if (xuserInOtherRoom) {
-                        console.log('private message .4');
-
-                        io.to(xuserInOtherRoom.socketId).emit('new-private-msg', {
-                            chat: {
-                                ...pc,
-                                last: msg,
-                                newMsgs: 0,
-                            },
-                            msg: msg,
-                        });
+                        emitPromises.push(
+                            io
+                                .to(xuserInOtherRoom.socketId)
+                                .emit('new-private-msg', senderMessageData),
+                        );
                     }
+                    await Promise.all(emitPromises);
+
+                    console.log('Private message sent successfully');
                 } catch (err) {
                     console.error('Error in send-msg-private:', err);
                     io.to(xuser?.socketId).emit('new-alert', {
@@ -843,44 +845,7 @@ module.exports = (io) => {
                     });
                 }
             });
-            // xclient.on('send-msg-private', async (data) => {
-            //    const { msg, otherUserId } = data;
 
-            //    try {
-            //        const otherUser = users.find((u) => u._id.toString() === otherUserId);
-            //        const room = roomModel.find((r) => r._id.toString() === xuser.room); // assume `room` is available
-
-            //        let pc = await privateChatModel.findOne({
-            //            $or: [
-            //                { user1: xuser._id, user2: otherUser._id },
-            //                { user1: otherUser._id, user2: xuser._id },
-            //            ],
-            //        }).populate('user1Ref user2Ref');
-
-            //        if (!pc) return;
-
-            //        const errors = validatePrivateMessageConditions(xuser, otherUser, room, pc);
-            //        if (errors.length > 0) {
-            //            errors.forEach((err) => io.to(xuser.socketId).emit(err.key, err));
-            //            return;
-            //        }
-
-            //        const message = new privateChatModel({
-            //            from: xuser._id,
-            //            to: otherUser._id,
-            //            content: msg,
-            //        });
-
-            //        await message.save();
-
-            //        io.to(otherUser.socketId).emit('new-private-message', {
-            //            from: xuser._id,
-            //            msg,
-            //        });
-            //    } catch (error) {
-            //        console.error('Private message error:', error);
-            //    }
-            // });
             xclient.on('change-user', async (data, ack) => {
                 if (!xuser) return;
 

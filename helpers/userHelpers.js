@@ -168,78 +168,78 @@ const getDefaultRegUser = async (
     return obj;
 };
 
-const getUserById = async (user_id, room_id) => {
-    const user = await userModal.findById(user_id);
-    if (!user) return false;
+// const getUserById = async (user_id, room_id) => {
+//     const user = await userModal.findById(user_id);
+//     if (!user) return false;
 
-    const roomUser = await roomUsersModel.findOne({
-        userRef: new ObjectId(user_id),
-        roomRef: new ObjectId(room_id),
-    });
+//     const roomUser = await roomUsersModel.findOne({
+//         userRef: new ObjectId(user_id),
+//         roomRef: new ObjectId(room_id),
+//     });
 
-    if (!roomUser) return false;
+//     if (!roomUser) return false;
 
-    let regUser = null;
-    if (roomUser.regUserRef) {
-        regUser = await registeredUserModal.findById(roomUser.regUserRef);
-        if (regUser) regUser = regUser._doc;
-    }
+//     let regUser = null;
+//     if (roomUser.regUserRef) {
+//         regUser = await registeredUserModal.findById(roomUser.regUserRef);
+//         if (regUser) regUser = regUser._doc;
+//     }
 
-    if (!regUser) {
-        regUser = await getDefaultRegUser(user.name);
-    }
-    // console.log(user);
-    const spy = await getSpyUser(user.name, roomUser.room_password);
-    // console.log(spy);
+//     if (!regUser) {
+//         regUser = await getDefaultRegUser(user.name);
+//     }
+//     // console.log(user);
+//     const spy = await getSpyUser(user.name, roomUser.room_password);
+//     // console.log(spy);
 
-    const is_spy = spy ? true : false;
-    const is_hidden = spy && !spy.is_visible ? true : false;
+//     const is_spy = spy ? true : false;
+//     const is_hidden = spy && !spy.is_visible ? true : false;
 
-    const permissions = is_spy ? getPermissionOfType(regUser.type, is_spy) : regUser.permissions;
-    const strong = getStrongOfType(regUser.type, is_spy);
+//     const permissions = is_spy ? getPermissionOfType(regUser.type, is_spy) : regUser.permissions;
+//     const strong = getStrongOfType(regUser.type, is_spy);
 
-    let server_stop_remaining = null;
-    if (
-        !user.server_can_public_chat ||
-        !user.server_can_private_chat ||
-        !user.server_can_use_mic ||
-        !user.server_can_use_camera
-    ) {
-        if (!user.server_stop_until) {
-            server_stop_remaining = -1;
-        } else {
-            server_stop_remaining = user.server_stop_until - getNowDateTime(true);
+//     let server_stop_remaining = null;
+//     if (
+//         !user.server_can_public_chat ||
+//         !user.server_can_private_chat ||
+//         !user.server_can_use_mic ||
+//         !user.server_can_use_camera
+//     ) {
+//         if (!user.server_stop_until) {
+//             server_stop_remaining = -1;
+//         } else {
+//             server_stop_remaining = user.server_stop_until - getNowDateTime(true);
 
-            if (server_stop_remaining < 0) {
-                user.server_can_public_chat = true;
-                user.server_can_private_chat = true;
-                user.server_can_use_mic = true;
-                user.server_can_use_camera = true;
-                user.server_stop_until = null;
-                user.server_stop_time = null;
-                server_stop_remaining = null;
+//             if (server_stop_remaining < 0) {
+//                 user.server_can_public_chat = true;
+//                 user.server_can_private_chat = true;
+//                 user.server_can_use_mic = true;
+//                 user.server_can_use_camera = true;
+//                 user.server_stop_until = null;
+//                 user.server_stop_time = null;
+//                 server_stop_remaining = null;
 
-                await user.save();
-            }
-        }
-    }
+//                 await user.save();
+//             }
+//         }
+//     }
 
-    return {
-        ...roomUser._doc,
-        ...regUser,
-        regUserRef: regUser && regUser._id ? regUser._id : null,
-        ...user._doc,
-        server_stop_remaining,
-        is_spy,
-        ip: roomUser.ip,
-        country_code: roomUser.country_code,
-        is_visible: !is_hidden,
-        permissions,
-        strong,
-        roomUserRef: roomUser._id,
-        server_now: getNowDateTime(true),
-    };
-};
+//     return {
+//         ...roomUser._doc,
+//         ...regUser,
+//         regUserRef: regUser && regUser._id ? regUser._id : null,
+//         ...user._doc,
+//         server_stop_remaining,
+//         is_spy,
+//         ip: roomUser.ip,
+//         country_code: roomUser.country_code,
+//         is_visible: !is_hidden,
+//         permissions,
+//         strong,
+//         roomUserRef: roomUser._id,
+//         server_now: getNowDateTime(true),
+//     };
+// };
 
 const getUserOfMember = async (member_id, room_id) => {
     const roomUsers = await roomUsersModel.find({
@@ -753,14 +753,193 @@ async function getAppUsersColors() {
     return res;
 }
 
-async function public_user(xuser, withMember = true) {
-    let member;
+// async function public_user(xuser, withMember = true) {
+//     let member;
+
+//     if (withMember && xuser.memberRef) {
+//         member = await memberModal.findOne({
+//             _id: new ObjectId(xuser.memberRef),
+//         });
+//     }
+
+//     return {
+//         _id: xuser._id,
+//         name: xuser.name,
+//         username: xuser.username,
+//         icon: xuser.icon,
+//         os: xuser.os,
+//         order: xuser.order,
+//         img: xuser.img,
+//         img_key: xuser.img_key,
+//         is_typing: xuser.is_typing,
+//         is_meeting_typing: xuser.is_meeting_typing,
+//         is_locked: xuser.is_locked,
+//         can_public_chat: xuser.can_public_chat,
+//         can_private_chat: xuser.can_private_chat,
+//         can_use_mic: xuser.can_use_mic,
+//         can_use_camera: xuser.can_use_camera,
+//         stop_strong_public_chat: xuser.stop_strong_public_chat,
+//         stop_strong_private_chat: xuser.stop_strong_private_chat,
+//         stop_strong_use_mic: xuser.stop_strong_use_mic,
+//         stop_strong_use_camera: xuser.stop_strong_use_camera,
+//         server_can_public_chat: xuser.server_can_public_chat,
+//         server_can_private_chat: xuser.server_can_private_chat,
+//         server_can_use_mic: xuser.server_can_use_mic,
+//         server_can_use_camera: xuser.server_can_use_camera,
+//         server_stop_until: xuser.server_stop_until,
+//         server_stop_remaining: xuser.server_stop_remaining,
+//         prevent_private_screenshot: xuser.prevent_private_screenshot,
+//         type: xuser.type,
+//         status: xuser.status,
+//         private_status: xuser.private_status,
+//         showCountry: xuser.showCountry,
+//         flag: xuser.showCountry ? xuser.flag : '',
+//         country_code: xuser.showCountry ? xuser.country_code : '',
+//         strong: xuser.strong,
+//         permissions: xuser.permissions,
+//         is_spy: xuser.is_spy,
+//         is_joker: xuser.is_joker,
+//         game_number: xuser.game_number,
+//         game_number_color: xuser.game_number_color,
+//         is_visible: xuser.is_visible,
+//         server_now: xuser.server_now,
+//         ...(await getUserColor(member ? member : null, xuser)),
+//         member: member
+//             ? {
+//                   _id: member._id,
+//                   username: member.username,
+//                   name_color: member.name_color,
+//                   bg_color: member.bg_color,
+//                   img_color: member.img_color,
+//                   is_full_bg: member.is_full_bg,
+//                   is_girl: member.is_girl,
+//                   likes: member.likes,
+//                   accept_photos: member.accept_photos,
+//                   is_animated_text: member.is_animated_text,
+//                   is_flash: member.is_flash,
+//                   like_level: member.like_level,
+//                   bio: member.bio,
+//                   img: member.img,
+//                   background: member.background,
+//                   type: member.type,
+//                   is_shader_banner: member.is_shader_banner,
+//                   time_to_end: getMemberRemainingTime(member),
+//                   imageUpdatedDate: member.imageUpdatedDate,
+//                   ...(await getMemberShields(member, xuser)),
+//                   settings: { ...(await getMemberSettings(member)) },
+//               }
+//             : null,
+//     };
+// }
+
+const getUserById = async (user_id, room_id, userCache = new Map()) => {
+    const cacheKey = `${user_id}_${room_id}`;
+    if (userCache.has(cacheKey)) {
+        return userCache.get(cacheKey);
+    }
+
+    const [user, roomUser] = await Promise.all([
+        userModal.findById(user_id),
+        roomUsersModel.findOne({
+            userRef: new ObjectId(user_id),
+            roomRef: new ObjectId(room_id),
+        }),
+    ]);
+
+    if (!user || !roomUser) {
+        userCache.set(cacheKey, false);
+        return false;
+    }
+
+    let regUser = null;
+    if (roomUser.regUserRef) {
+        regUser = await registeredUserModal.findById(roomUser.regUserRef);
+        if (regUser) regUser = regUser._doc;
+    }
+
+    if (!regUser) {
+        regUser = await getDefaultRegUser(user.name);
+    }
+
+    const spy = await getSpyUser(user.name, roomUser.room_password);
+    const is_spy = spy ? true : false;
+    const is_hidden = spy && !spy.is_visible ? true : false;
+    const permissions = is_spy ? getPermissionOfType(regUser.type, is_spy) : regUser.permissions;
+    const strong = getStrongOfType(regUser.type, is_spy);
+
+    let server_stop_remaining = null;
+    let userUpdateNeeded = false;
+
+    if (
+        !user.server_can_public_chat ||
+        !user.server_can_private_chat ||
+        !user.server_can_use_mic ||
+        !user.server_can_use_camera
+    ) {
+        if (!user.server_stop_until) {
+            server_stop_remaining = -1;
+        } else {
+            server_stop_remaining = user.server_stop_until - getNowDateTime(true);
+
+            if (server_stop_remaining < 0) {
+                user.server_can_public_chat = true;
+                user.server_can_private_chat = true;
+                user.server_can_use_mic = true;
+                user.server_can_use_camera = true;
+                user.server_stop_until = null;
+                user.server_stop_time = null;
+                server_stop_remaining = null;
+                userUpdateNeeded = true;
+            }
+        }
+    }
+
+    // Batch user update if needed
+    if (userUpdateNeeded) {
+        // Don't await - fire and forget for better performance
+        user.save().catch((err) => console.error('Error updating user:', err));
+    }
+
+    const result = {
+        ...roomUser._doc,
+        ...regUser,
+        regUserRef: regUser && regUser._id ? regUser._id : null,
+        ...user._doc,
+        server_stop_remaining,
+        is_spy,
+        ip: roomUser.ip,
+        country_code: roomUser.country_code,
+        is_visible: !is_hidden,
+        permissions,
+        strong,
+        roomUserRef: roomUser._id,
+        server_now: getNowDateTime(true),
+    };
+
+    userCache.set(cacheKey, result);
+    return result;
+};
+
+const public_user = async (xuser, withMember = true, memberCache = new Map()) => {
+    let member = null;
 
     if (withMember && xuser.memberRef) {
-        member = await memberModal.findOne({
-            _id: new ObjectId(xuser.memberRef),
-        });
+        const memberCacheKey = xuser.memberRef.toString();
+        if (memberCache.has(memberCacheKey)) {
+            member = memberCache.get(memberCacheKey);
+        } else {
+            member = await memberModal.findOne({
+                _id: new ObjectId(xuser.memberRef),
+            });
+            memberCache.set(memberCacheKey, member);
+        }
     }
+
+    const [userColor, memberShields, memberSettings] = await Promise.all([
+        getUserColor(member, xuser),
+        member ? getMemberShields(member, xuser) : Promise.resolve({}),
+        member ? getMemberSettings(member) : Promise.resolve({}),
+    ]);
 
     return {
         _id: xuser._id,
@@ -803,7 +982,7 @@ async function public_user(xuser, withMember = true) {
         game_number_color: xuser.game_number_color,
         is_visible: xuser.is_visible,
         server_now: xuser.server_now,
-        ...(await getUserColor(member ? member : null, xuser)),
+        ...userColor,
         member: member
             ? {
                   _id: member._id,
@@ -825,12 +1004,12 @@ async function public_user(xuser, withMember = true) {
                   is_shader_banner: member.is_shader_banner,
                   time_to_end: getMemberRemainingTime(member),
                   imageUpdatedDate: member.imageUpdatedDate,
-                  ...(await getMemberShields(member, xuser)),
-                  settings: { ...(await getMemberSettings(member)) },
+                  ...memberShields,
+                  settings: memberSettings,
               }
             : null,
     };
-}
+};
 
 const notifyUserChangedByName = async (name, room_id, extras = {}) => {
     const roomUser = await roomUsersModel.find({
@@ -884,6 +1063,26 @@ const notifyUserChanged = async (user_id, extras = {}, with_command_stop = false
     }
 };
 
+// const isDualAllowedSameRoom = async (isDual) => {
+//     const settings = await getSettings();
+//     if (isDual) {
+//         if (settings && settings.enable_dual_same_room == 0) {
+//             return true;
+//         } else return false;
+//     }
+
+//     return false;
+// };
+
+// const isDualAllowedManyRooms = async (isDual) => {
+//     const settings = await getSettings();
+//     if (isDual) {
+//         if (settings && settings.enable_dual_many_rooms == 0) {
+//             return true;
+//         } else return false;
+//     }
+//     return false;
+// };
 const isDualAllowedSameRoom = async (key, users) => {
     const settings = await getSettings();
 
