@@ -96,7 +96,7 @@ module.exports = (io) => {
             'VERSION:',
             version,
         );
-        if (version) {
+        if (version && os != enums.osTypes.desktop) {
             if (version !== '1.0.5') {
                 return next(
                     new Error(
