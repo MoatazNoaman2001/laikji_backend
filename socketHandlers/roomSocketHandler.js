@@ -78,6 +78,7 @@ module.exports = (io) => {
         let fp = socket.handshake.query.fp;
         let mp = socket.handshake.query.mp;
         let inv = socket.handshake.query.inv;
+        let os = socket.handshake.query.os;
         let version = socket.handshake.query.version ?? '0';
         let isDual = socket.handshake.query.isdual ?? false;
         socket.handshake.query.icon = '0.png';
@@ -95,6 +96,8 @@ module.exports = (io) => {
             device,
             'VERSION:',
             version,
+            'OS',
+            os,
         );
         if (version && os != enums.osTypes.desktop) {
             if (version !== '1.0.5') {
