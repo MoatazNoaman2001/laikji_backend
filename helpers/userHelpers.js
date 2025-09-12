@@ -15,12 +15,18 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, room_id, member = null, regUser_id = null) => {
+const createUser = async (user_key, device, room_id, member = null, regUser_id = null) => {
+    let deviceUser = await userModal.findOne({ device: device });
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
         },
-        {},
+        {
+            server_can_use_camera: deviceUser ? deviceUser.server_can_use_camera : true,
+            server_can_use_mic: deviceUser ? deviceUser.server_can_use_mic : true,
+            server_can_private_chat: deviceUser ? deviceUser.server_can_private_chat : true,
+            server_can_public_chat: deviceUser ? deviceUser.server_can_public_chat : true,
+        },
         {
             upsert: true,
             new: true,
@@ -401,11 +407,11 @@ const getUsersInWaiting = async (xroomId, is_public_users = true) => {
     return res;
 };
 
-const isUserInAnyRoom = (key) => {
+const isUserInAnyRoom = (device) => {
     for (const roomId in global.app_users) {
         if (Object.hasOwnProperty.call(global.app_users, roomId)) {
             const users = global.app_users[roomId];
-            if (users.some((user) => user.hasOwnProperty(key))) {
+            if (users.some((user) => user.hasOwnProperty(device))) {
                 return true;
             }
         }
@@ -519,17 +525,17 @@ const isRegisteredName = async (name, room_id) => {
     }
 };
 
-const isBanned = async (key, room) => {
+const isBanned = async (device, room) => {
     const otherRoomId = room.isMeeting ? room.parentRef : room.meetingRef;
 
     const banned = await bannedModel.findOne({
         $or: [
             {
-                key: key,
+                device: device,
                 roomRef: new ObjectId(room._id),
             },
             {
-                key: key,
+                device: device,
                 roomRef: new ObjectId(otherRoomId),
             },
         ],
@@ -539,9 +545,9 @@ const isBanned = async (key, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (key) => {
+const isBannedFromServer = async (device) => {
     const banned = await bannedModel.findOne({
-        key: key,
+        device: device,
         type: enums.banTypes.server,
     });
     if (banned && !banned.until) {
@@ -1083,11 +1089,11 @@ const notifyUserChanged = async (user_id, extras = {}, with_command_stop = false
 //     }
 //     return false;
 // };
-const isDualAllowedSameRoom = async (key, users) => {
+const isDualAllowedSameRoom = async (device, users) => {
     const settings = await getSettings();
 
     let same_device_clients = users.filter((item) => {
-        return item.key == key;
+        return item.device == device;
     });
 
     if (same_device_clients.length > 0) {
@@ -1099,9 +1105,9 @@ const isDualAllowedSameRoom = async (key, users) => {
     return false;
 };
 
-const isDualAllowedManyRooms = async (key) => {
+const isDualAllowedManyRooms = async (device) => {
     const settings = await getSettings();
-    if (isUserInAnyRoom(key)) {
+    if (isUserInAnyRoom(device)) {
         if (settings && settings.enable_dual_many_rooms == 0) {
             return true;
         } else return false;

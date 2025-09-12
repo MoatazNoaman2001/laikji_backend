@@ -100,7 +100,7 @@ module.exports = (io) => {
             os,
         );
         if (version && os != enums.osTypes.desktop) {
-            if (version !== '1.0.6' || version === 0) {
+            if (parseInt(version) < 44 || parseInt(version) === 0) {
                 return next(
                     new Error(
                         JSON.stringify({
@@ -181,7 +181,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(user_key)) {
+        if (await isBannedFromServer(device)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -373,7 +373,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(user_key, room)) {
+        if (await isBanned(device, room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -398,7 +398,7 @@ module.exports = (io) => {
                 );
             }
         }
-        if (await isDualAllowedSameRoom(user_key, users_in_room)) {
+        if (await isDualAllowedSameRoom(device, users_in_room)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -409,7 +409,7 @@ module.exports = (io) => {
                 ),
             );
         }
-        if (await isDualAllowedManyRooms(user_key)) {
+        if (await isDualAllowedManyRooms(device)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -427,7 +427,7 @@ module.exports = (io) => {
     }).on('connection', async (xclient) => {
         var xroomId;
         var key = xclient.handshake.query.key;
-        // var device = xclient.handshake.query.device ?? xclient.handshake.query.key;
+        var device = xclient.handshake.query.device;
         var ignoredUsers = new Map();
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
@@ -475,7 +475,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, xroomId, member, regUser_id);
+            xuser = await createUser(key, device, xroomId, member, regUser_id);
         }
         let os = xclient.handshake.query.os;
         if (
@@ -512,7 +512,7 @@ module.exports = (io) => {
                 status: room.isMeeting
                     ? enums.statusTypes.away.toString()
                     : enums.statusTypes.empty.toString(),
-                //device: xclient.handshake.query.device ?? xclient.handshake.query.key,
+                device: device,
                 // private_status:
                 //     xclient.handshake.query.ps == '1' || xclient.handshake.query.ps == '0'
                 //         ? parseInt(xclient.handshake.query.ps)
@@ -1456,21 +1456,23 @@ module.exports = (io) => {
                     const acpt_usr = await getUserById(data.user, xroomId);
                     if (acpt_usr) {
                         const sc = io.sockets.sockets.get(acpt_usr.socketId);
-                        sc._events['enter-room']({ passcode: enums.passcodes.enterLock });
+                        if (sc) {
+                            sc._events['enter-room']({ passcode: enums.passcodes.enterLock });
 
-                        io.emit(xroomId, {
-                            type: 'responded-waiting',
-                            data: await public_user(acpt_usr),
-                        });
+                            io.emit(xroomId, {
+                                type: 'responded-waiting',
+                                data: await public_user(acpt_usr),
+                            });
 
-                        addAdminLog(
-                            xuser,
-                            xroomId,
-                            `قام بقبول دخول العضو`,
-                            `has accepted user`,
-                            acpt_usr.name,
-                            true,
-                        );
+                            addAdminLog(
+                                xuser,
+                                xroomId,
+                                `قام بقبول دخول العضو`,
+                                `has accepted user`,
+                                acpt_usr.name,
+                                true,
+                            );
+                        }
                     }
                 }
             });
