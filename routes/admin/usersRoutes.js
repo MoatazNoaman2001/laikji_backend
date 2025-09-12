@@ -19,7 +19,7 @@ router.get('/entrylogs', async (req, res) => {
     var response = [];
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
     var room_id = req.query.room_id ? req.query.room_id : null;
-    var in_page = 100;
+    var in_page = 1000;
     try {
         let query = {};
 
@@ -340,7 +340,7 @@ router.get('/stoppeds', async (req, res) => {
 router.get('/banneds', async (req, res) => {
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
     var room_id = req.query.room_id ? req.query.room_id : null;
-    var in_page = 30;
+    var in_page = 1000;
     try {
         let query = {
             type: enums.banTypes.server,
