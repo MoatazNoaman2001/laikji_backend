@@ -58,6 +58,7 @@ var statusTypes = {
 var banTypes = {
     room: 1,
     server: 2,
+    ip: 3,
 };
 
 module.exports = {

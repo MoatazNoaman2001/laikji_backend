@@ -38,7 +38,7 @@ router.get('/entrylogs', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.key, item.device);
+                const isBanned = await isBannedFromServer(item.device, item.ip);
                 const res_item = {
                     ...item,
                     isBanned,
@@ -167,12 +167,114 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
+router.post('/ban/:ip', authCheckMiddleware, async (req, res) => {
+    console.log('req params ' + JSON.stringify(req.params, null, 2));
+
+    try {
+        let user = await userModal.findOne({
+            ip: req.params.ip,
+        });
+        console.log('latest rooms ', JSON.stringify(user, null, 2));
+
+        if (!user) {
+            res.status(500).send({
+                ok: false,
+                error: 'user is not defined',
+            });
+        }
+
+        if (user.latestRoomRef) {
+            user = await getUserById(user._id, user.latestRoomRef);
+        }
+
+        let until = null;
+
+        if (req.body.time && req.body.time != -1) {
+            until = getNowDateTime();
+            until = until.setHours(until.getHours() + parseInt(req.body.time));
+        }
+
+        await bannedModel.findOneAndUpdate(
+            {
+                ip: user.ip,
+                type: enums.banTypes.ip,
+            },
+            {
+                name: user.name,
+                until: until,
+                country: user.country_code ?? '',
+                ip: user.ip ?? '',
+                banner_strong: 100000,
+            },
+            { upsert: true, new: true },
+        );
+
+        if (user.latestRoomRef) {
+            const room = await roomModel.findById(user.latestRoomRef);
+
+            global.io.emit(room._id, {
+                type: 'command-ban',
+                data: {
+                    user_id: user._id,
+                    name: user.name,
+                    from: 'سيرفر',
+                },
+            });
+
+            global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+                type: 'command-ban',
+                data: {
+                    user_id: user._id,
+                    name: user.name,
+                    from: 'سيرفر',
+                },
+            });
+        }
+
+        return res.status(200).send({
+            ok: true,
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+
 router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
     try {
         console.log('req ', req.params.key);
         const banneds = await bannedModel.find({
             key: req.params.key,
             type: enums.banTypes.server,
+        });
+        await Promise.all(
+            banneds.forEach(async (b) => {
+                await bannedModel.deleteOne({ _id: b._id });
+                console.log('un banned ');
+            }),
+        );
+
+        return res.status(200).send({
+            ok: true,
+        });
+    } catch (e) {
+        console.log('error from unban', e);
+        return res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+
+router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
+    try {
+        console.log('req ', req.params.ip);
+        const banneds = await bannedModel.find({
+            ip: req.params.ip,
+            type: enums.banTypes.ip,
         });
         await Promise.all(
             banneds.forEach(async (b) => {
@@ -386,7 +488,7 @@ router.get('/inroom', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.key);
+                const isBanned = await isBannedFromServer(item.device, item.ip);
                 const res_item = {
                     ...item,
                     isBanned,

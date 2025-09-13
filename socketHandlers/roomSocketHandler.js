@@ -81,6 +81,7 @@ module.exports = (io) => {
         let os = socket.handshake.query.os;
         let version = socket.handshake.query.version ?? '0';
         let isDual = socket.handshake.query.isdual ?? false;
+        let isVPN = socket.handshake.query.isvpn ?? false;
         socket.handshake.query.icon = '0.png';
 
         console.log(
@@ -181,7 +182,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(device)) {
+        if (await isBannedFromServer(device, ip)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -220,7 +221,17 @@ module.exports = (io) => {
                 ),
             );
         }
-
+        if (isDual && isVPN) {
+            return next(
+                new Error(
+                    JSON.stringify({
+                        error_code: 1,
+                        msg_ar: 'غير مسموح استخدام الناسخ مع VPN',
+                        msg_en: 'Dual and VPN are not allowed',
+                    }),
+                ),
+            );
+        }
         users_in_room = [...users_in_room, ...users_in_waiting];
 
         let is_error = false;
@@ -373,7 +384,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(device, room)) {
+        if (await isBanned(device, key, ip, room)) {
             return next(
                 new Error(
                     JSON.stringify({
