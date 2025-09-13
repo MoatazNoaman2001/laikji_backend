@@ -384,7 +384,7 @@ module.exports = (io) => {
             }
         }
 
-        if (await isBanned(device, key, ip, room)) {
+        if (await isBanned(device, user_key, ip, room)) {
             return next(
                 new Error(
                     JSON.stringify({
