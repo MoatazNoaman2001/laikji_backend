@@ -564,23 +564,26 @@ const isBanned = async (device, key, ip, room) => {
 const isBannedFromServer = async (device, ip) => {
     const banned = await bannedModel.findOne({
         $or: [
-            {
-                device: device,
-                type: enums.banTypes.server,
-            },
+            { device: device, type: enums.banTypes.server },
+            { ip: ip, type: enums.banTypes.ip },
         ],
     });
-    if (banned && !banned.until) {
+
+    if (!banned) return false;
+
+    if (!banned.until) {
         return true;
     }
 
-    if (banned && banned.until) {
-        if (banned.until < getNowDateTime()) {
-            banned.delete();
-            return false;
-        }
-        return true;
-    } else return false;
+    const until = new Date(banned.until);
+    const now = new Date(getNowDateTime());
+
+    if (until < now) {
+        await banned.deleteOne();
+        return false;
+    }
+
+    return true;
 };
 
 const isInvited = async (user_key, room) => {
