@@ -568,10 +568,6 @@ const isBannedFromServer = async (device, ip) => {
                 device: device,
                 type: enums.banTypes.server,
             },
-            {
-                ip: ip,
-                type: enums.banTypes.ip,
-            },
         ],
     });
     if (banned && !banned.until) {
