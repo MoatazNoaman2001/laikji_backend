@@ -167,7 +167,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.post('/ban/:ip', authCheckMiddleware, async (req, res) => {
+router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
 
     try {
