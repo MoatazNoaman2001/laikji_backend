@@ -93,16 +93,13 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
 
 router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
-    //const device = req.params.device.replace(/[{}]/g, '');
 
     try {
-        let user = await userModal.findOne({
-            key: req.params.key,
-        });
+        let user = await userModal.findOne({ key: req.params.key });
         console.log('latest rooms ', JSON.stringify(user, null, 2));
 
         if (!user) {
-            res.status(500).send({
+            return res.status(500).send({
                 ok: false,
                 error: 'user is not defined',
             });
@@ -127,7 +124,6 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
             },
             {
                 name: user.name,
-                // device: user.device,
                 until: until,
                 country: user.country_code ?? '',
                 ip: user.ip ?? '',
@@ -180,7 +176,7 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
         console.log('latest rooms ', JSON.stringify(user, null, 2));
 
         if (!user) {
-            res.status(500).send({
+            return res.status(500).send({
                 ok: false,
                 error: 'user is not defined',
             });
