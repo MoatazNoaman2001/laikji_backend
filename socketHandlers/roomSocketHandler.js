@@ -46,6 +46,7 @@ const {
     isDualAllowedSameRoom,
     checkIPAddress,
     isUsingVPN,
+    isBannedByIp,
 } = require('../helpers/userHelpers');
 const privateChatModel = require('../models/privateChatModel');
 const privateMessageModel = require('../models/privateMessageModel');
@@ -182,7 +183,18 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(device, ip)) {
+        if (await isBannedFromServer(device)) {
+            return next(
+                new Error(
+                    JSON.stringify({
+                        error_code: 3,
+                        msg_ar: 'أنت محضور سيرفر من ملتقى لأيك جي شات',
+                        msg_en: "Sorry, You're banned from the server",
+                    }),
+                ),
+            );
+        }
+        if (await isBannedByIp(ip)) {
             return next(
                 new Error(
                     JSON.stringify({

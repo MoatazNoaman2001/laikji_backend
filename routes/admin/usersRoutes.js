@@ -9,6 +9,7 @@ const {
     getUsersInRoom,
     notifyUserChanged,
     getUserById,
+    isBannedByIp,
 } = require('../../helpers/userHelpers');
 const userModal = require('../../models/userModal');
 const roomModel = require('../../models/roomModel');
@@ -38,10 +39,12 @@ router.get('/entrylogs', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.device, item.ip);
-                const res_item = {
+                const isServerBanned = await isBannedFromServer(item.device);
+                const isIpBanned = await isBannedByIp(item.ip);
+                result = {
                     ...item,
-                    isBanned,
+                    isIpBanned,
+                    isServerBanned,
                 };
 
                 response.push(res_item);

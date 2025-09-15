@@ -561,12 +561,30 @@ const isBanned = async (device, key, ip, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (device, ip) => {
+const isBannedFromServer = async (device) => {
     const banned = await bannedModel.findOne({
-        $or: [
-            { device: device, type: enums.banTypes.server },
-            { ip: ip, type: enums.banTypes.ip },
-        ],
+        $or: [{ device: device, type: enums.banTypes.server }],
+    });
+
+    if (!banned) return false;
+
+    if (!banned.until) {
+        return true;
+    }
+
+    const until = new Date(banned.until);
+    const now = new Date(getNowDateTime());
+
+    if (until < now) {
+        await banned.deleteOne();
+        return false;
+    }
+
+    return true;
+};
+const isBannedByIp = async (ip) => {
+    const banned = await bannedModel.findOne({
+        $or: [{ ip: ip, type: enums.banTypes.ip }],
     });
 
     if (!banned) return false;
@@ -1172,6 +1190,7 @@ module.exports = {
     isRegisteredName,
     isBanned,
     isBannedFromServer,
+    isBannedByIp,
     isInvited,
     addUserToWaiting,
     removeUserFromWaiting,
