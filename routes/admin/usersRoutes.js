@@ -486,10 +486,12 @@ router.get('/inroom', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isBanned = await isBannedFromServer(item.device, item.ip);
+                const isServerBanned = await isBannedFromServer(item.device);
+                const isIpBanned = await isBannedByIp(item.ip);
                 const res_item = {
                     ...item,
-                    isBanned,
+                    isServerBanned,
+                    isIpBanned,
                 };
 
                 response.push(res_item);
