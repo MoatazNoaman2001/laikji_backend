@@ -533,25 +533,27 @@ const isBanned = async (device, key, ip, room) => {
             {
                 device: device,
                 roomRef: new ObjectId(room._id),
+                type: enums.banTypes.room,
             },
             {
                 device: device,
                 roomRef: new ObjectId(otherRoomId),
+                type: enums.banTypes.room,
             },
             {
-                device: key,
+                key: key,
                 roomRef: new ObjectId(room._id),
             },
             {
-                device: key,
+                key: key,
                 roomRef: new ObjectId(otherRoomId),
             },
             {
-                device: ip,
+                ip: ip,
                 roomRef: new ObjectId(room._id),
             },
             {
-                device: ip,
+                ip: ip,
                 roomRef: new ObjectId(otherRoomId),
             },
         ],

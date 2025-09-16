@@ -145,7 +145,6 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
                 {
                     ip: user.ip,
                     roomRef: room._id,
-                    type: enums.banTypes.ip,
                 },
                 {
                     roomRef: room._id,
@@ -283,7 +282,6 @@ router.post('/ban-ip-entry', async (req, res) => {
             },
             {
                 roomRef: room._id,
-                type: enums.banTypes.ip,
                 userRef: user.userRef,
                 memberRef: user.memberRef ? user.memberRef : null,
                 name: user.name,
