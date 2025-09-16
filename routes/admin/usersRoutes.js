@@ -39,8 +39,9 @@ router.get('/entrylogs', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isServerBanned = await isBannedFromServer(item.device);
-                const isIpBanned = await isBannedByIp(item.ip);
+                const isServerBanned =
+                    item.device !== null ? await isBannedFromServer(item.device) : false;
+                const isIpBanned = item.ip !== null ? await isBannedByIp(item.ip) : false;
                 result = {
                     ...item,
                     isIpBanned,
