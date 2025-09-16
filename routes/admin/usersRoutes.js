@@ -17,10 +17,11 @@ const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/entrylogs', async (req, res) => {
-    var response = [];
-    var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
-    var room_id = req.query.room_id ? req.query.room_id : null;
-    var in_page = 1000;
+    let response = [];
+    let page = req.query.page ? parseInt(req.query.page) - 1 : 0;
+    let room_id = req.query.room_id ? req.query.room_id : null;
+    let in_page = 1000;
+
     try {
         let query = {};
 
@@ -36,32 +37,29 @@ router.get('/entrylogs', async (req, res) => {
             .limit(in_page)
             .exec();
 
-        await Promise.all(
+        response = await Promise.all(
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
-                const isServerBanned =
-                    item.device !== null ? await isBannedFromServer(item.device) : false;
-                const isIpBanned = item.ip !== null ? await isBannedByIp(item.ip) : false;
-                result = {
+
+                const isServerBanned = item.device ? await isBannedFromServer(item.device) : false;
+
+                const isIpBanned = item.ip ? await isBannedByIp(item.ip) : false;
+
+                return {
                     ...item,
                     isIpBanned,
                     isServerBanned,
                 };
-
-                response.push(res_item);
             }),
         );
 
-        response = response.sort(
-            (a, b) => Date.parse(new Date(b.exitDate)) - Date.parse(new Date(a.exitDate)),
-        );
+        response = response.sort((a, b) => Date.parse(b.exitDate) - Date.parse(a.exitDate));
 
         res.status(200).send({
             ok: true,
-            page: page,
-            in_page: in_page,
+            page,
+            in_page,
             all_pages: 10,
-            items: items,
             data: response,
         });
     } catch (e) {
