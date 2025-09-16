@@ -169,51 +169,51 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
 
     try {
-        let users = await userModal.find({
-            ip: req.params.ip,
-        });
+        let users = await userModal.find({ ip: req.params.ip });
 
         if (users.length <= 0) {
-            return res.status(500).send({
+            return res.status(404).send({
                 ok: false,
-                error: 'user is not defined',
+                error: 'User not found',
             });
         }
-        users.forEach(async (user) => {
+
+        for (const user of users) {
+            let userData = user;
+
             if (user.latestRoomRef) {
-                user = await getUserById(user._id, user.latestRoomRef);
+                userData = await getUserById(user._id, user.latestRoomRef);
             }
 
             let until = null;
-
             if (req.body.time && req.body.time != -1) {
                 until = getNowDateTime();
-                until = until.setHours(until.getHours() + parseInt(req.body.time));
+                until.setHours(until.getHours() + parseInt(req.body.time));
             }
 
             await bannedModel.findOneAndUpdate(
                 {
-                    ip: user.ip,
+                    ip: userData.ip,
                     type: enums.banTypes.ip,
                 },
                 {
-                    name: user.name,
+                    name: userData.name,
                     until: until,
-                    country: user.country_code ?? '',
-                    ip: user.ip ?? '',
+                    country: userData.country_code ?? '',
+                    ip: userData.ip ?? '',
                     banner_strong: 100000,
                 },
                 { upsert: true, new: true },
             );
 
-            if (user.latestRoomRef) {
-                const room = await roomModel.findById(user.latestRoomRef);
+            if (userData.latestRoomRef) {
+                const room = await roomModel.findById(userData.latestRoomRef);
 
                 global.io.emit(room._id, {
                     type: 'command-ban',
                     data: {
-                        user_id: user._id,
-                        name: user.name,
+                        user_id: userData._id,
+                        name: userData.name,
                         from: 'سيرفر',
                     },
                 });
@@ -221,19 +221,19 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
                 global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
                     type: 'command-ban',
                     data: {
-                        user_id: user._id,
-                        name: user.name,
+                        user_id: userData._id,
+                        name: userData.name,
                         from: 'سيرفر',
                     },
                 });
             }
+        }
 
-            return res.status(200).send({
-                ok: true,
-            });
+        return res.status(200).send({
+            ok: true,
         });
     } catch (e) {
-        console.log(e);
+        console.error(e);
         return res.status(500).send({
             ok: false,
             error: e.message,
