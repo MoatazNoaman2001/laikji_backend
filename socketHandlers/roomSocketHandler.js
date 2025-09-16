@@ -194,7 +194,7 @@ module.exports = (io) => {
                 ),
             );
         }
-        if (await isBannedByIp(ip)) {
+        if (await isBannedByIp(socket.handshake.query.ip)) {
             return next(
                 new Error(
                     JSON.stringify({
