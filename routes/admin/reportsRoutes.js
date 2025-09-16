@@ -16,8 +16,8 @@ router.get('/', async (req, res) => {
                 result = {};
                 if (item.type !== 1) {
                     item = JSON.parse(JSON.stringify(item));
-                    const isServerBanned = await isBannedFromServer(item.device);
-                    const isIpBanned = await isBannedByIp(item.ip);
+                    const isServerBanned = await isBannedFromServer(item.device, false);
+                    const isIpBanned = await isBannedByIp(item.ip, false);
                     result = {
                         ...item,
                         isIpBanned,

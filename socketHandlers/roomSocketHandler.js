@@ -183,7 +183,7 @@ module.exports = (io) => {
             );
         }
 
-        if (await isBannedFromServer(device)) {
+        if (await isBannedFromServer(device, true)) {
             return next(
                 new Error(
                     JSON.stringify({
@@ -194,7 +194,7 @@ module.exports = (io) => {
                 ),
             );
         }
-        if (await isBannedByIp(socket.handshake.query.ip)) {
+        if (await isBannedByIp(socket.handshake.query.ip, true)) {
             return next(
                 new Error(
                     JSON.stringify({
