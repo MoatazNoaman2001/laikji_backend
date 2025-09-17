@@ -281,6 +281,7 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
                     country: userData.country_code ?? '',
                     ip: userData.ip ?? '',
                     banner_strong: 100000,
+                    device: userData.device,
                 },
                 { upsert: true, new: true },
             );
@@ -320,12 +321,18 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
     }
 });
 
-router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
+router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
     try {
-        console.log('req ', req.params.key);
+        console.log('req ', req.params.device);
         const banneds = await bannedModel.find({
-            key: req.params.key,
+            device: req.params.device,
         });
+        if (banneds.length <= 0) {
+            return res.status(500).send({
+                ok: false,
+                error: 'no banned users found',
+            });
+        }
         await Promise.all(
             banneds.forEach(async (b) => {
                 await bannedModel.deleteOne({ _id: b._id });
