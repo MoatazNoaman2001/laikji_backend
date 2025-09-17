@@ -41,7 +41,7 @@ router.get('/entrylogs', async (req, res) => {
             items.map(async (item) => {
                 item = JSON.parse(JSON.stringify(item));
 
-                const isServerBanned = await isBannedFromServer(item.device, false);
+                const isServerBanned = await isBannedFromServer(item.userRef.device, false);
 
                 const isIpBanned = await isBannedByIp(item.ip, false);
 
@@ -400,7 +400,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
         console.log('first ', u);
         const user = await userModal.findOneAndUpdate(
             {
-                device: req.body.device,
+                device: u.device,
                 key: req.params.key,
             },
             {
