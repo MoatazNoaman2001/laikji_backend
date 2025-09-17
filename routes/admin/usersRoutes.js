@@ -193,13 +193,14 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
 
             await bannedModel.findOneAndUpdate(
                 {
-                    device: userData.device,
+                    key: userData.key,
                     type: enums.banTypes.server,
                     level: enums.banTypes.server,
                 },
                 {
                     name: userData.name,
                     until: until,
+                    device: userData.device,
                     country: userData.country_code ?? '',
                     ip: userData.ip ?? '',
                     banner_strong: 100000,
