@@ -92,75 +92,151 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
     }
 });
 
+// router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
+//     console.log('req params ' + JSON.stringify(req.params, null, 2));
+
+//     try {
+//         let user = await userModal.findOne({ key: req.params.key });
+//         console.log('latest rooms ', JSON.stringify(user, null, 2));
+
+//         if (!user) {
+//             return res.status(500).send({
+//                 ok: false,
+//                 error: 'user is not defined',
+//             });
+//         }
+
+//         if (user.latestRoomRef) {
+//             user = await getUserById(user._id, user.latestRoomRef);
+//         }
+
+//         let until = null;
+
+//         if (req.body.time && req.body.time != -1) {
+//             until = getNowDateTime();
+//             until = until.setHours(until.getHours() + parseInt(req.body.time));
+//         }
+
+//         await bannedModel.findOneAndUpdate(
+//             {
+//                 device: user.device,
+//                 // key: user.key,
+//                 type: enums.banTypes.server,
+//                 level: enums.banTypes.server,
+//             },
+//             {
+//                 name: user.name,
+//                 until: until,
+//                 country: user.country_code ?? '',
+//                 ip: user.ip ?? '',
+//                 banner_strong: 100000,
+//             },
+//             { upsert: true, new: true },
+//         );
+
+//         if (user.latestRoomRef) {
+//             const room = await roomModel.findById(user.latestRoomRef);
+
+//             global.io.emit(room._id, {
+//                 type: 'command-ban',
+//                 data: {
+//                     user_id: user._id,
+//                     name: user.name,
+//                     from: 'سيرفر',
+//                 },
+//             });
+
+//             global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+//                 type: 'command-ban',
+//                 data: {
+//                     user_id: user._id,
+//                     name: user.name,
+//                     from: 'سيرفر',
+//                 },
+//             });
+//         }
+
+//         return res.status(200).send({
+//             ok: true,
+//         });
+//     } catch (e) {
+//         console.log(e);
+//         return res.status(500).send({
+//             ok: false,
+//             error: e.message,
+//         });
+//     }
+// });
 router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
     console.log('req params ' + JSON.stringify(req.params, null, 2));
 
     try {
-        let user = await userModal.findOne({ key: req.params.key });
-        console.log('latest rooms ', JSON.stringify(user, null, 2));
+        let users = await userModal.find({ key: req.params.key });
 
-        if (!user) {
-            return res.status(500).send({
+        if (users.length <= 0) {
+            return res.status(404).send({
                 ok: false,
-                error: 'user is not defined',
+                error: 'User not found',
             });
         }
 
-        if (user.latestRoomRef) {
-            user = await getUserById(user._id, user.latestRoomRef);
-        }
+        for (const user of users) {
+            let userData = user;
 
-        let until = null;
+            if (user.latestRoomRef) {
+                userData = await getUserById(user._id, user.latestRoomRef);
+            }
 
-        if (req.body.time && req.body.time != -1) {
-            until = getNowDateTime();
-            until = until.setHours(until.getHours() + parseInt(req.body.time));
-        }
+            let until = null;
+            if (req.body.time && req.body.time != -1) {
+                until = getNowDateTime();
+                until.setHours(until.getHours() + parseInt(req.body.time));
+            }
 
-        await bannedModel.findOneAndUpdate(
-            {
-                device: user.device,
-                // key: user.key,
-                type: enums.banTypes.server,
-                level: enums.banTypes.server,
-            },
-            {
-                name: user.name,
-                until: until,
-                country: user.country_code ?? '',
-                ip: user.ip ?? '',
-                banner_strong: 100000,
-            },
-            { upsert: true, new: true },
-        );
-
-        if (user.latestRoomRef) {
-            const room = await roomModel.findById(user.latestRoomRef);
-
-            global.io.emit(room._id, {
-                type: 'command-ban',
-                data: {
-                    user_id: user._id,
-                    name: user.name,
-                    from: 'سيرفر',
+            await bannedModel.findOneAndUpdate(
+                {
+                    device: userData.device,
+                    type: enums.banTypes.server,
+                    level: enums.banTypes.server,
                 },
-            });
-
-            global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-                type: 'command-ban',
-                data: {
-                    user_id: user._id,
-                    name: user.name,
-                    from: 'سيرفر',
+                {
+                    name: userData.name,
+                    until: until,
+                    country: userData.country_code ?? '',
+                    ip: userData.ip ?? '',
+                    banner_strong: 100000,
                 },
-            });
+                { upsert: true, new: true },
+            );
+
+            if (userData.latestRoomRef) {
+                const room = await roomModel.findById(userData.latestRoomRef);
+
+                global.io.emit(room._id, {
+                    type: 'command-ban',
+                    data: {
+                        user_id: userData._id,
+                        name: userData.name,
+                        from: 'سيرفر',
+                    },
+                });
+
+                global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+                    type: 'command-ban',
+                    data: {
+                        user_id: userData._id,
+                        name: userData.name,
+                        from: 'سيرفر',
+                    },
+                });
+            }
         }
 
         return res.status(200).send({
             ok: true,
         });
     } catch (e) {
-        console.log(e);
+        console.error(e);
         return res.status(500).send({
             ok: false,
             error: e.message,
