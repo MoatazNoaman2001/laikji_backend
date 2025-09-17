@@ -326,6 +326,7 @@ router.get('/unban/:device', authCheckMiddleware, async (req, res) => {
         console.log('req ', req.params.device);
         const banneds = await bannedModel.find({
             device: req.params.device,
+            type: enums.banTypes.server,
         });
         if (banneds.length <= 0) {
             return res.status(500).send({
@@ -357,6 +358,7 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
         console.log('req ', req.params.ip);
         const banneds = await bannedModel.find({
             ip: req.params.ip,
+            type: enums.banTypes.ip,
         });
         await Promise.all(
             banneds.forEach(async (b) => {
