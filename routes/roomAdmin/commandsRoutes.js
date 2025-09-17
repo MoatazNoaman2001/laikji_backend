@@ -41,6 +41,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
                 {
                     device: user.device,
                     key: user.key,
+                    level: enums.banTypes.server,
                     type: enums.banTypes.server,
                 },
                 {
@@ -130,6 +131,7 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
                 {
                     ip: user.ip,
                     type: enums.banTypes.ip,
+                    level: enums.banTypes.server,
                 },
                 {
                     name: user.name,
@@ -216,6 +218,7 @@ router.post('/ban-entry', async (req, res) => {
             {
                 key: user.key,
                 roomRef: room._id,
+                type: enums.banTypes.server,
             },
             {
                 roomRef: room._id,
@@ -279,6 +282,7 @@ router.post('/ban-ip-entry', async (req, res) => {
             {
                 ip: user.ip,
                 roomRef: room._id,
+                type: enums.banTypes.ip,
             },
             {
                 roomRef: room._id,

@@ -122,6 +122,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
                 device: user.device,
                 key: user.key,
                 type: enums.banTypes.server,
+                level: enums.banTypes.server,
             },
             {
                 name: user.name,
@@ -197,6 +198,7 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
                 {
                     ip: userData.ip,
                     type: enums.banTypes.ip,
+                    level: enums.banTypes.server,
                 },
                 {
                     name: userData.name,
@@ -443,7 +445,14 @@ router.get('/banneds', async (req, res) => {
     var in_page = 1000;
     try {
         let query = {
-            //type: enums.banTypes.server,
+            $or: [
+                {
+                    type: enums.banTypes.server,
+                },
+                {
+                    type: enums.banTypes.ip,
+                },
+            ],
         };
 
         if (room_id) {

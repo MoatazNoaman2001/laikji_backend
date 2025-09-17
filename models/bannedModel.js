@@ -35,6 +35,10 @@ const schema = Schema({
         type: Number,
         default: enums.banTypes.room,
     },
+    level: {
+        type: Number,
+        default: enums.banTypes.room,
+    },
     creationDate: {
         type: Date,
         default: getNowDateTime,

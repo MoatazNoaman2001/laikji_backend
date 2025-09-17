@@ -563,10 +563,10 @@ const isBanned = async (device, key, ip, room) => {
     else return false;
 };
 
-const isBannedFromServer = async (device, type) => {
-    const query = type
-        ? { $or: [{ device: device, type: enums.banTypes.server }] }
-        : { $or: [{ device: device }] };
+const isBannedFromServer = async (device, level) => {
+    const query = level
+        ? { $or: [{ device: device, type: enums.banTypes.server, level: enums.banTypes.server }] }
+        : { $or: [{ device: device, type: enums.banTypes.server }] };
 
     const banned = await bannedModel.findOne(query);
 
@@ -587,8 +587,10 @@ const isBannedFromServer = async (device, type) => {
     return true;
 };
 
-const isBannedByIp = async (ip, type) => {
-    const query = type ? { $or: [{ ip: ip, type: enums.banTypes.ip }] } : { $or: [{ ip: ip }] };
+const isBannedByIp = async (ip, level) => {
+    const query = level
+        ? { $or: [{ ip: ip, type: enums.banTypes.ip, level: enums.banTypes.server }] }
+        : { $or: [{ ip: ip, type: enums.banTypes.ip }] };
 
     const banned = await bannedModel.findOne(query);
 
