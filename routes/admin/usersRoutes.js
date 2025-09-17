@@ -248,7 +248,6 @@ router.get('/unban/:key', authCheckMiddleware, async (req, res) => {
         console.log('req ', req.params.key);
         const banneds = await bannedModel.find({
             key: req.params.key,
-            type: enums.banTypes.server,
         });
         await Promise.all(
             banneds.forEach(async (b) => {
@@ -274,7 +273,6 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
         console.log('req ', req.params.ip);
         const banneds = await bannedModel.find({
             ip: req.params.ip,
-            type: enums.banTypes.ip,
         });
         await Promise.all(
             banneds.forEach(async (b) => {
@@ -298,7 +296,7 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
 router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     try {
         console.log('set stop', req.params.key, req.body);
-        //const device = req.params.device.replace(/[{}]/g, '');
+        const device = req.params.device.replace(/[{}]/g, '');
 
         let until = -1;
         //console.log('stop ', device);
@@ -445,7 +443,7 @@ router.get('/banneds', async (req, res) => {
     var in_page = 1000;
     try {
         let query = {
-            type: enums.banTypes.server,
+            //type: enums.banTypes.server,
         };
 
         if (room_id) {

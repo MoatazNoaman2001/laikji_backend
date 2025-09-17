@@ -101,8 +101,9 @@ router.get('/info', async (req, res) => {
             memberRef: new ObjectId(item._id),
         });
         const lastItem = users_of_mem.slice(-1);
-
-        item.flag = item.showCountry ? lastItem[0].flag : '';
+        if (lastItem) {
+            item.flag = item.showCountry ? lastItem[0].flag : '';
+        }
 
         item.login_time = intToString(item.login_time);
         item.mic_time = intToString(item.mic_time);
