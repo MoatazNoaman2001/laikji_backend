@@ -373,7 +373,6 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
 router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     try {
         console.log('set stop', req.params.key, req.body);
-        const device = req.params.device.replace(/[{}]/g, '');
 
         let until = -1;
         //console.log('stop ', device);
