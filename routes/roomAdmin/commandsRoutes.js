@@ -147,6 +147,7 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
                 {
                     ip: user.ip,
                     roomRef: room._id,
+                    type: enums.banTypes.ip,
                 },
                 {
                     roomRef: room._id,
@@ -340,6 +341,56 @@ router.post('/unban', async (req, res) => {
 
         const banned = await bannedModel.findOne({
             _id: new ObjectId(req.body._id),
+            type: enums.banTypes.room,
+        });
+
+        if (banned) {
+            await bannedModel.deleteOne({
+                _id: new ObjectId(req.body._id),
+            });
+
+            global.io.emit(room._id, {
+                type: 'command-unban',
+                data: {
+                    name: banned.name,
+                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                },
+            });
+
+            global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
+                type: 'command-unban',
+                data: {
+                    name: banned.name,
+                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                },
+            });
+
+            addAdminLog(
+                req.user,
+                room._id,
+                `قام بإلغاء حظر عضو`,
+                `has unbanned a user`,
+                banned.name,
+            );
+        }
+
+        return res.status(200).send({
+            ok: true,
+        });
+    } catch (e) {
+        return res.status(500).send({
+            ok: false,
+            error: e.message,
+        });
+    }
+});
+router.post('/unban-ip', async (req, res) => {
+    try {
+        let room = req.room;
+
+        const banned = await bannedModel.findOne({
+            _id: new ObjectId(req.body._id),
+            type: enums.banTypes.ip,
         });
 
         if (banned) {

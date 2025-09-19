@@ -24,7 +24,7 @@ function getRoomData(roomId) {
             listeners: new Set(),
             micQueue: new Array(),
             youtubeLink: { userId: '', link: '', paused: false },
-            spotifyTrack: { userId: '', uri: '', paused: false  },
+            spotifyTrack: { userId: '', uri: '', paused: false },
             holdMic: new Set(),
         });
     }
@@ -55,7 +55,7 @@ async function createWebRtcTransport(roomId) {
         listenIps: [
             {
                 ip: '0.0.0.0',
-                announcedIp: process.env.ANNOUNCED_IP || '127.0.0.1', // replace with your public IP
+                announcedIp: process.env.ANNOUNCED_IP || '127.0.0.1',
             },
         ],
         enableUdp: true,
