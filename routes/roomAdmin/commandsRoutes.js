@@ -59,6 +59,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
                 {
                     device: user.device,
                     roomRef: room._id,
+                    type: enums.banTypes.room,
                 },
                 {
                     roomRef: room._id,
@@ -219,7 +220,7 @@ router.post('/ban-entry', async (req, res) => {
             {
                 key: user.key,
                 roomRef: room._id,
-                type: enums.banTypes.server,
+                type: enums.banTypes.room,
             },
             {
                 roomRef: room._id,
@@ -341,12 +342,12 @@ router.post('/unban', async (req, res) => {
 
         const banned = await bannedModel.findOne({
             device: req.body._id,
-            type: enums.banTypes.room,
         });
 
         if (banned) {
             await bannedModel.deleteOne({
                 _id: banned._id,
+                type: enums.banTypes.room,
             });
 
             global.io.emit(room._id, {
