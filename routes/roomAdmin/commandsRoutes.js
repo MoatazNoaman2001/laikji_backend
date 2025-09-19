@@ -372,6 +372,8 @@ router.post('/unban', async (req, res) => {
                 `has unbanned a user`,
                 banned.name,
             );
+        } else {
+            console.log('banned user not found');
         }
 
         return res.status(200).send({
