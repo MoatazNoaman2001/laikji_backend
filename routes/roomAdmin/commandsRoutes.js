@@ -346,7 +346,7 @@ router.post('/unban', async (req, res) => {
 
         if (banned) {
             await bannedModel.deleteOne({
-                _id: new ObjectId(req.body._id),
+                _id: banned._id,
             });
 
             global.io.emit(room._id, {
@@ -395,7 +395,7 @@ router.post('/unban-ip', async (req, res) => {
 
         if (banned) {
             await bannedModel.deleteOne({
-                _id: new ObjectId(req.body._id),
+                _id: banned._id,
             });
 
             global.io.emit(room._id, {
