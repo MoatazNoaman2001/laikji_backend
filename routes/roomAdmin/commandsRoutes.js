@@ -340,7 +340,7 @@ router.post('/unban', async (req, res) => {
         let room = req.room;
 
         const banned = await bannedModel.findOne({
-            _id: new ObjectId(req.body._id),
+            device: req.body._id,
             type: enums.banTypes.room,
         });
 
@@ -389,7 +389,7 @@ router.post('/unban-ip', async (req, res) => {
         let room = req.room;
 
         const banned = await bannedModel.findOne({
-            _id: new ObjectId(req.body._id),
+            ip: req.body._id,
             type: enums.banTypes.ip,
         });
 
