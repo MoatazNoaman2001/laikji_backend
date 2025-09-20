@@ -85,9 +85,9 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
         });
 
         global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'command-ban'.toString(),
+            type: 'command-ban',
             data: {
-                user_id: user._id,
+                user_id: user._id.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
@@ -237,7 +237,7 @@ router.post('/ban-entry', async (req, res) => {
         global.io.emit(room._id.toString(), {
             type: 'command-ban',
             data: {
-                user_id: user.userRef,
+                user_id: user.userRef.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
@@ -246,7 +246,7 @@ router.post('/ban-entry', async (req, res) => {
         global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
             type: 'command-ban',
             data: {
-                user_id: user ? user._id : null,
+                user_id: user ? user._id.toString() : null,
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
@@ -301,7 +301,7 @@ router.post('/ban-ip-entry', async (req, res) => {
         global.io.emit(room._id.toString(), {
             type: 'command-ban',
             data: {
-                user_id: user.userRef,
+                user_id: user.userRef.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
@@ -310,7 +310,7 @@ router.post('/ban-ip-entry', async (req, res) => {
         global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
             type: 'command-ban',
             data: {
-                user_id: user ? user._id : null,
+                user_id: user ? user._id.toString() : null,
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
