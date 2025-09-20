@@ -214,7 +214,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
                 global.io.emit(room._id, {
                     type: 'command-ban',
                     data: {
-                        user_id: userData._id,
+                        user_id: userData._id.toString(),
                         name: userData.name,
                         from: 'سيرفر',
                     },
@@ -223,7 +223,7 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
                 global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
                     type: 'command-ban',
                     data: {
-                        user_id: userData._id,
+                        user_id: userData._id.toString(),
                         name: userData.name,
                         from: 'سيرفر',
                     },
@@ -292,7 +292,7 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
                 global.io.emit(room._id, {
                     type: 'command-ban',
                     data: {
-                        user_id: userData._id,
+                        user_id: userData._id.toString(),
                         name: userData.name,
                         from: 'سيرفر',
                     },
@@ -301,7 +301,7 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
                 global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
                     type: 'command-ban',
                     data: {
-                        user_id: userData._id,
+                        user_id: userData._id.toString(),
                         name: userData.name,
                         from: 'سيرفر',
                     },

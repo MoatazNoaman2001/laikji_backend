@@ -24,7 +24,6 @@ var ObjectId = require('mongoose').Types.ObjectId;
 router.post('/ban', userInRoomMiddleware, async (req, res) => {
     try {
         let room = req.room;
-        let type = req.body.type;
 
         const user = await getUserById(req.body.user_id, room._id);
 
@@ -79,14 +78,14 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
         global.io.emit(room._id, {
             type: 'command-ban',
             data: {
-                user_id: user._id,
+                user_id: user._id.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
         });
 
         global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'command-ban',
+            type: 'command-ban'.toString(),
             data: {
                 user_id: user._id,
                 name: user.name,
@@ -168,7 +167,7 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
         global.io.emit(room._id, {
             type: 'command-ban',
             data: {
-                user_id: user._id,
+                user_id: user._id.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
@@ -177,7 +176,7 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
         global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
             type: 'command-ban',
             data: {
-                user_id: user._id,
+                user_id: user._id.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
