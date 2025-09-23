@@ -7,6 +7,7 @@ const schema = Schema({
         ref: 'members',
     },
     key: String,
+    ip: String,
 });
 
 module.exports = mongoose.model('views', schema);

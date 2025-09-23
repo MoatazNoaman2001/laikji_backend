@@ -51,8 +51,16 @@ router.get('/info', async (req, res) => {
         });
 
         const old_viewed = await viewModel.find({
-            memberRef: new ObjectId(item._id),
-            key: req.user.device,
+            $or: [
+                {
+                    memberRef: new ObjectId(item._id),
+                    key: req.user.device,
+                },
+                {
+                    memberRef: new ObjectId(item._id),
+                    ip: req.user.ip,
+                },
+            ],
         });
 
         if (!req.user.is_spy) {
@@ -65,6 +73,7 @@ router.get('/info', async (req, res) => {
                         const view = new viewModel({
                             memberRef: new ObjectId(item._id),
                             key: req.user.device,
+                            ip: req.user.ip,
                         });
                         await view.save();
                     }
@@ -83,8 +92,16 @@ router.get('/info', async (req, res) => {
         }
 
         const old_liked = await likeModel.find({
-            memberRef: new ObjectId(item._id),
-            key: req.user.device,
+            $or: [
+                {
+                    memberRef: new ObjectId(item._id),
+                    key: req.user.device,
+                },
+                {
+                    memberRef: new ObjectId(item._id),
+                    ip: req.user.ip,
+                },
+            ],
         });
 
         item = JSON.parse(JSON.stringify(item));
@@ -133,8 +150,16 @@ router.get('/like', async (req, res) => {
         let member = req.member;
         const item = await memberModal.findById(member._id).select('-password');
         const old_query = {
-            memberRef: new ObjectId(item._id),
-            key: req.user.device,
+            $or: [
+                {
+                    memberRef: new ObjectId(item._id),
+                    key: req.user.device,
+                },
+                {
+                    memberRef: new ObjectId(item._id),
+                    ip: req.user.ip,
+                },
+            ],
         };
 
         const old = await likeModel.find(old_query);
@@ -150,6 +175,7 @@ router.get('/like', async (req, res) => {
             const like = new likeModel({
                 memberRef: new ObjectId(item._id),
                 key: req.user.device,
+                ip: req.user.ip,
             });
             like.save();
 
