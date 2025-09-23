@@ -102,7 +102,7 @@ module.exports = (io) => {
             os,
         );
         if (version && os != enums.osTypes.desktop) {
-            if (parseInt(version) < 44 || parseInt(version) === 0) {
+            if (parseInt(version) < 45 || parseInt(version) === 0) {
                 return next(
                     new Error(
                         JSON.stringify({
