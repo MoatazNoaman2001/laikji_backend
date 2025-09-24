@@ -75,7 +75,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
             );
         }
 
-        global.io.emit(room._id, {
+        global.io.emit(room._id.toString(), {
             type: 'command-ban',
             data: {
                 user_id: user._id.toString(),
@@ -84,14 +84,14 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
             },
         });
 
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'command-ban',
-            data: {
-                user_id: user._id.toString(),
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+        // global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
+        //     type: 'command-ban',
+        //     data: {
+        //         user_id: user._id.toString(),
+        //         name: user.name,
+        //         from: !req.user.is_spy ? req.user.name : 'سيرفر',
+        //     },
+        // });
 
         addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
 
@@ -511,10 +511,10 @@ router.post('/kick', userInRoomMiddleware, async (req, res) => {
 
         const user = await getUserById(req.body.user_id, room._id);
 
-        global.io.emit(room._id, {
+        global.io.emit(room._id.toString(), {
             type: 'command-kick',
             data: {
-                user_id: user._id,
+                user_id: user._id.toString(),
                 name: user.name,
                 from: !req.user.is_spy ? req.user.name : 'سيرفر',
             },
