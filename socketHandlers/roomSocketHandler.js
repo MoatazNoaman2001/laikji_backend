@@ -101,7 +101,7 @@ module.exports = (io) => {
             'OS',
             os,
         );
-        if (version && os != enums.osTypes.desktop) {
+        if (version && os != enums.osTypes.desktop && !room.isMeeting) {
             if (parseInt(version) < 45 || parseInt(version) === 0) {
                 return next(
                     new Error(
