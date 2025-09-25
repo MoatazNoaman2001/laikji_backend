@@ -19,6 +19,7 @@ const userModal = require('../../models/userModal');
 const { endJokerInRoom } = require('../../helpers/helpers');
 const { getRoomData } = require('../../helpers/mediasoupHelpers');
 const { stopMic } = require('../../helpers/micHelpers');
+const roomModel = require('../../models/roomModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.post('/ban', userInRoomMiddleware, async (req, res) => {
