@@ -87,15 +87,17 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
                     from: !req.user.is_spy ? req.user.name : 'سيرفر',
                 },
             });
+            if (room.isMeeting) {
+                global.io.emit(room.parentRef, {
+                    type: 'command-ban',
+                    data: {
+                        user_id: user._id.toString(),
+                        name: user.name,
+                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                    },
+                });
+            }
 
-            global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-                type: 'command-ban',
-                data: {
-                    user_id: user._id.toString(),
-                    name: user.name,
-                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
-                },
-            });
             addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
         }
 
