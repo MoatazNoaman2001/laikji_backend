@@ -166,7 +166,7 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
 //     }
 // });
 router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
-    console.log('req params ' + JSON.stringify(req.params, null, 2));
+    console.log('req time ' + JSON.stringify(req.body, null, 2));
 
     try {
         let users = await userModal.find({ key: req.params.key });
