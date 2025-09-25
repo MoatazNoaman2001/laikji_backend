@@ -25,8 +25,6 @@ var ObjectId = require('mongoose').Types.ObjectId;
 router.post('/ban', userInRoomMiddleware, async (req, res) => {
     try {
         let room = req.room;
-        console.log('room is from req', JSON.stringify(req.room, null, 2));
-
         const user = await getUserById(req.body.user_id, room._id);
 
         let member = await getMemberOfUser(user._id, room._id);
@@ -170,25 +168,30 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
             );
         }
 
-        global.io.emit(room._id, {
-            type: 'command-ban',
-            data: {
-                user_id: user._id.toString(),
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+        if (user.latestRoomRef) {
+            const room = await roomModel.findById(user.latestRoomRef);
 
-        global.io.emit(room.isMeeting ? room.parentRef : room.meetingRef, {
-            type: 'command-ban',
-            data: {
-                user_id: user._id.toString(),
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+            global.io.emit(room._id, {
+                type: 'command-ban',
+                data: {
+                    user_id: user._id.toString(),
+                    name: user.name,
+                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                },
+            });
+            if (room.isMeeting) {
+                global.io.emit(room.parentRef, {
+                    type: 'command-ban',
+                    data: {
+                        user_id: user._id.toString(),
+                        name: user.name,
+                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                    },
+                });
+            }
 
-        addAdminLog(req.user, room._id, `قام بحظر الآي بي للعضو`, `has banned a user`, user.name);
+            addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
+        }
 
         if (member) {
             member.banned += 1;
@@ -240,25 +243,30 @@ router.post('/ban-entry', async (req, res) => {
             { upsert: true, new: true },
         );
 
-        global.io.emit(room._id.toString(), {
-            type: 'command-ban',
-            data: {
-                user_id: user.userRef.toString(),
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+        if (user.latestRoomRef) {
+            const room = await roomModel.findById(user.latestRoomRef);
 
-        global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
-            type: 'command-ban',
-            data: {
-                user_id: user ? user._id.toString() : null,
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+            global.io.emit(room._id, {
+                type: 'command-ban',
+                data: {
+                    user_id: user.userRef.toString(),
+                    name: user.name,
+                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                },
+            });
+            if (room.isMeeting) {
+                global.io.emit(room.parentRef, {
+                    type: 'command-ban',
+                    data: {
+                        user_id: user.userRef.toString(),
+                        name: user.name,
+                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                    },
+                });
+            }
 
-        addAdminLog(req.user, room._id.toString(), `قام بحظر عضو`, `has banned a user`, user.name);
+            addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
+        }
 
         return res.status(200).send({
             ok: true,
@@ -304,31 +312,30 @@ router.post('/ban-ip-entry', async (req, res) => {
             { upsert: true, new: true },
         );
 
-        global.io.emit(room._id.toString(), {
-            type: 'command-ban',
-            data: {
-                user_id: user.userRef.toString(),
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+        if (user.latestRoomRef) {
+            const room = await roomModel.findById(user.latestRoomRef);
 
-        global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
-            type: 'command-ban',
-            data: {
-                user_id: user ? user._id.toString() : null,
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+            global.io.emit(room._id, {
+                type: 'command-ban',
+                data: {
+                    user_id: user.userRef.toString(),
+                    name: user.name,
+                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                },
+            });
+            if (room.isMeeting) {
+                global.io.emit(room.parentRef, {
+                    type: 'command-ban',
+                    data: {
+                        user_id: user.userRef.toString(),
+                        name: user.name,
+                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                    },
+                });
+            }
 
-        addAdminLog(
-            req.user,
-            room._id.toString(),
-            `قام بحظر الآي بي للعضو`,
-            `has banned a user`,
-            user.name,
-        );
+            addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
+        }
 
         return res.status(200).send({
             ok: true,

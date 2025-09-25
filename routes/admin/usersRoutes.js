@@ -166,8 +166,6 @@ router.get('/entrylogs/clear', authCheckMiddleware, async (req, res) => {
 //     }
 // });
 router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
-    console.log('req time ' + JSON.stringify(req.body, null, 2));
-
     try {
         let users = await userModal.find({ key: req.params.key });
 
@@ -186,9 +184,13 @@ router.post('/ban/:key', authCheckMiddleware, async (req, res) => {
             }
 
             let until = null;
-            if (req.body.time && req.body.time != -1) {
-                until = getNowDateTime();
-                until.setHours(until.getHours() + parseInt(req.body.time));
+            if (req.body.time) {
+                if (req.body.time != -1) {
+                    until = getNowDateTime();
+                    until.setHours(until.getHours() + parseInt(req.body.time));
+                } else {
+                    until = -1;
+                }
             }
 
             await bannedModel.findOneAndUpdate(
@@ -264,9 +266,13 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
             }
 
             let until = null;
-            if (req.body.time && req.body.time != -1) {
-                until = getNowDateTime();
-                until.setHours(until.getHours() + parseInt(req.body.time));
+            if (req.body.time) {
+                if (req.body.time != -1) {
+                    until = getNowDateTime();
+                    until.setHours(until.getHours() + parseInt(req.body.time));
+                } else {
+                    until = -1;
+                }
             }
 
             await bannedModel.findOneAndUpdate(
