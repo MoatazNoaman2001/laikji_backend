@@ -101,19 +101,7 @@ module.exports = (io) => {
             'OS',
             os,
         );
-        if (version && os != enums.osTypes.desktop && !room.isMeeting) {
-            if (parseInt(version) < 45 || parseInt(version) === 0) {
-                return next(
-                    new Error(
-                        JSON.stringify({
-                            error_code: 99,
-                            msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
-                            msg_en: 'please update the app to login ',
-                        }),
-                    ),
-                );
-            }
-        }
+
         if (ip) {
             if (checkIPAddress(ip)) {
                 ip = ip.split(':').pop();
@@ -154,7 +142,19 @@ module.exports = (io) => {
                 ),
             );
         }
-
+        if (version && os != enums.osTypes.desktop && !room.isMeeting) {
+            if (parseInt(version) < 45 || parseInt(version) === 0) {
+                return next(
+                    new Error(
+                        JSON.stringify({
+                            error_code: 99,
+                            msg_ar: 'الرجاء تحديث التطبيق لتتمكن من تسجيل الدخول',
+                            msg_en: 'please update the app to login ',
+                        }),
+                    ),
+                );
+            }
+        }
         if (!helpers.isRoomStarted(room)) {
             return next(
                 new Error(
