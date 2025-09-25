@@ -517,16 +517,30 @@ router.post('/kick', userInRoomMiddleware, async (req, res) => {
 
         const user = await getUserById(req.body.user_id, room._id);
 
-        global.io.emit(room.isMeeting ? room.parentRef.toString() : room.meetingRef.toString(), {
-            type: 'command-kick',
-            data: {
-                user_id: user._id.toString(),
-                name: user.name,
-                from: !req.user.is_spy ? req.user.name : 'سيرفر',
-            },
-        });
+        if (user.latestRoomRef) {
+            const room = await roomModel.findById(user.latestRoomRef);
 
-        addAdminLog(req.user, room._id, `قام بطرد عضو`, `has Kicked-out a user`, user.name);
+            global.io.emit(room._id, {
+                type: 'command-kick',
+                data: {
+                    user_id: user._id.toString(),
+                    name: user.name,
+                    from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                },
+            });
+            if (room.isMeeting) {
+                global.io.emit(room.parentRef, {
+                    type: 'command-kick',
+                    data: {
+                        user_id: user._id.toString(),
+                        name: user.name,
+                        from: !req.user.is_spy ? req.user.name : 'سيرفر',
+                    },
+                });
+            }
+
+            addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
+        }
 
         return res.status(200).send({
             ok: true,
