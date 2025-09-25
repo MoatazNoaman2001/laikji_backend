@@ -24,6 +24,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 router.post('/ban', userInRoomMiddleware, async (req, res) => {
     try {
         let room = req.room;
+        console.log('room is from req', JSON.stringify(req.room, null, 2));
 
         const user = await getUserById(req.body.user_id, room._id);
 
