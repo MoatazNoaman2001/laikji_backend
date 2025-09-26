@@ -588,9 +588,9 @@ const isBannedFromServer = async (device, level) => {
 };
 
 const isBannedByIp = async (ip, level) => {
-    const query = !level
-        ? { $or: [{ ip: ip, type: enums.banTypes.ip, level: enums.banTypes.server }] }
-        : { $or: [{ ip: ip, type: enums.banTypes.ip }] };
+    const query = level
+        ? { ip: ip, type: enums.banTypes.ip, level: enums.banTypes.server }
+        : { ip: ip, type: enums.banTypes.ip };
 
     const banned = await bannedModel.findOne(query);
 
