@@ -271,7 +271,9 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
                 if (req.body.time != -1) {
                     until.setHours(until.getHours() + parseInt(req.body.time));
                 } else {
-                    until.setHours(until.getHours() + parseInt(99999999999));
+                    until = new Date();
+                    until.setFullYear(9999);
+                    //until.setHours(until.getHours() + parseInt(99999999999));
                 }
             }
 
