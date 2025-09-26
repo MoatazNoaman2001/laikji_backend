@@ -267,11 +267,11 @@ router.post('/banip/:ip', authCheckMiddleware, async (req, res) => {
 
             let until = null;
             if (req.body.time) {
+                until = getNowDateTime();
                 if (req.body.time != -1) {
-                    until = getNowDateTime();
                     until.setHours(until.getHours() + parseInt(req.body.time));
                 } else {
-                    until = -1;
+                    until.setHours(until.getHours() + parseInt(99999999999));
                 }
             }
 

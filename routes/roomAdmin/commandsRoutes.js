@@ -47,6 +47,7 @@ router.post('/ban', userInRoomMiddleware, async (req, res) => {
                     name: user.name,
                     key: user.key,
                     until: null,
+                    bannerRef: req.user._id,
                     country: user.country_code ?? '',
                     ip: user.ip ?? '',
                     banner_strong: 100000,
@@ -140,6 +141,7 @@ router.post('/ban-ip', userInRoomMiddleware, async (req, res) => {
                 {
                     name: user.name,
                     key: user.key,
+                    bannerRef: req.user._id,
                     until: null,
                     country: user.country_code ?? '',
                     banner_strong: 100000,
@@ -238,6 +240,7 @@ router.post('/ban-entry', async (req, res) => {
                 country: user.country,
                 ip: user.ip,
                 key: user.key,
+                bannerRef: req.user._id,
                 banner_strong: req.user.strong,
             },
             { upsert: true, new: true },
@@ -308,6 +311,7 @@ router.post('/ban-ip-entry', async (req, res) => {
                 ip: user.ip,
                 key: user.key,
                 banner_strong: req.user.strong,
+                bannerRef: req.user._id,
             },
             { upsert: true, new: true },
         );
