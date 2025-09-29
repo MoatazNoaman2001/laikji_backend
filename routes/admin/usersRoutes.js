@@ -14,6 +14,7 @@ const {
 const userModal = require('../../models/userModal');
 const roomModel = require('../../models/roomModel');
 const authCheckMiddleware = require('../../middlewares/authCheckMiddleware');
+const stopModel = require('../../models/stopModel');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/entrylogs', async (req, res) => {
@@ -387,22 +388,15 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
     }
 });
 
+// ✅ set stop
 router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     try {
         let key = req.params.key.trim();
         console.log('set stop', key, req.body);
 
         let until = -1;
-        //console.log('stop ', device);
         if (req.body.time && req.body.time != -1) {
             until = getNowDateTime(true) + req.body.time * 3600 * 1000;
-            console.log(
-                getNowDateTime(true),
-                req.body.time,
-                req.body.time * 3600 * 1000,
-                ':',
-                until,
-            );
         }
 
         if (
@@ -413,73 +407,68 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
         ) {
             until = null;
         }
+
+        // 🔹 get user to extract device & ip
         const u = await userModal.findOne({ key: key });
-        console.log('first ', u);
-        const user = await userModal.findOneAndUpdate(
+        if (!u) {
+            return res.status(404).send({ ok: false, error: 'User not found' });
+        }
+
+        // 🔹 upsert stop doc based on device + ip
+        const stopDoc = await stopModel.findOneAndUpdate(
             {
-                //device: u.device,
-                key: key,
+                device: u.device,
+                ip: u.ip,
             },
             {
+                device: u.device,
+                ip: u.ip,
                 server_can_public_chat: !req.body.server_can_public_chat,
                 server_can_private_chat: !req.body.server_can_private_chat,
                 server_can_use_mic: !req.body.server_can_use_mic,
                 server_can_use_camera: !req.body.server_can_use_camera,
                 server_stop_until: until == -1 ? null : until,
                 server_stop_time: until ? req.body.time : null,
-                device: u.device,
-                ip: u.ip,
+                userRef: u._id,
+                roomRef: u.latestRoomRef || null,
             },
             {
                 new: true,
-                sort: { creationDate: -1 },
+                upsert: true,
             },
         );
 
-        await notifyUserChanged(user._id, {}, true);
+        await notifyUserChanged(u._id, {}, true);
 
-        return res.status(200).send({
-            ok: true,
-        });
+        return res.status(200).send({ ok: true });
     } catch (e) {
         console.log(e);
-        return res.status(500).send({
-            ok: false,
-            error: e.message,
-        });
+        return res.status(500).send({ ok: false, error: e.message });
     }
 });
 
 router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
     try {
-        const user = await userModal.findOneAndUpdate(
-            {
-                key: req.params.key,
-            },
-            {
-                server_can_public_chat: true,
-                server_can_private_chat: true,
-                server_can_use_mic: true,
-                server_can_use_camera: true,
-                server_stop_until: null,
-                server_stop_time: null,
-            },
-        );
+        const u = await userModal.findOne({ key: req.params.key });
+        if (!u) {
+            return res.status(404).send({ ok: false, error: 'User not found' });
+        }
 
-        await notifyUserChanged(user._id);
-
-        return res.status(200).send({
-            ok: true,
+        await stopModel.findOneAndDelete({
+            device: u.device,
+            ip: u.ip,
         });
+
+        await notifyUserChanged(u._id);
+
+        return res.status(200).send({ ok: true });
     } catch (e) {
         console.log(e);
-        return res.status(500).send({
-            ok: false,
-            error: e.message,
-        });
+        return res.status(500).send({ ok: false, error: e.message });
     }
 });
 
+// ✅ list stoppeds
 router.get('/stoppeds', async (req, res) => {
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
     var room_id = req.query.room_id ? req.query.room_id : null;
@@ -490,12 +479,8 @@ router.get('/stoppeds', async (req, res) => {
             query.roomRef = new ObjectId(room_id);
         }
 
-        let items = await userModal
-            .find({
-                server_stop_time: {
-                    $ne: null,
-                },
-            })
+        let items = await stopModel
+            .find(query)
             .sort('-creationDate')
             .skip(page * in_page)
             .limit(in_page)
@@ -506,12 +491,11 @@ router.get('/stoppeds', async (req, res) => {
         );
 
         const data = [];
-
         await Promise.all(
             items.map(async (item) => {
-                if (item.latestRoomRef) {
-                    const u = await getUserById(item._id, item.latestRoomRef);
-                    data.push(u);
+                if (item.roomRef) {
+                    const u = await getUserById(item.userRef, item.roomRef);
+                    data.push({ ...u, stop: item });
                 } else {
                     data.push(item);
                 }
@@ -526,12 +510,155 @@ router.get('/stoppeds', async (req, res) => {
             data: data,
         });
     } catch (e) {
-        res.status(500).send({
-            ok: false,
-            error: e.message,
-        });
+        res.status(500).send({ ok: false, error: e.message });
     }
 });
+
+// router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
+//     try {
+//         let key = req.params.key.trim();
+//         console.log('set stop', key, req.body);
+
+//         let until = -1;
+//         //console.log('stop ', device);
+//         if (req.body.time && req.body.time != -1) {
+//             until = getNowDateTime(true) + req.body.time * 3600 * 1000;
+//             console.log(
+//                 getNowDateTime(true),
+//                 req.body.time,
+//                 req.body.time * 3600 * 1000,
+//                 ':',
+//                 until,
+//             );
+//         }
+
+//         if (
+//             !req.body.server_can_public_chat &&
+//             !req.body.server_can_private_chat &&
+//             !req.body.server_can_use_mic &&
+//             !req.body.server_can_use_camera
+//         ) {
+//             until = null;
+//         }
+//         const u = await userModal.findOne({ key: key });
+//         console.log('first ', u);
+//         const user = await userModal.findOneAndUpdate(
+//             {
+//                 //device: u.device,
+//                 key: key,
+//             },
+//             {
+//                 server_can_public_chat: !req.body.server_can_public_chat,
+//                 server_can_private_chat: !req.body.server_can_private_chat,
+//                 server_can_use_mic: !req.body.server_can_use_mic,
+//                 server_can_use_camera: !req.body.server_can_use_camera,
+//                 server_stop_until: until == -1 ? null : until,
+//                 server_stop_time: until ? req.body.time : null,
+//                 device: u.device,
+//                 ip: u.ip,
+//             },
+//             {
+//                 new: true,
+//                 sort: { creationDate: -1 },
+//             },
+//         );
+
+//         await notifyUserChanged(user._id, {}, true);
+
+//         return res.status(200).send({
+//             ok: true,
+//         });
+//     } catch (e) {
+//         console.log(e);
+//         return res.status(500).send({
+//             ok: false,
+//             error: e.message,
+//         });
+//     }
+// });
+
+// router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
+//     try {
+//         const user = await userModal.findOneAndUpdate(
+//             {
+//                 key: req.params.key,
+//             },
+//             {
+//                 server_can_public_chat: true,
+//                 server_can_private_chat: true,
+//                 server_can_use_mic: true,
+//                 server_can_use_camera: true,
+//                 server_stop_until: null,
+//                 server_stop_time: null,
+//             },
+//         );
+
+//         await notifyUserChanged(user._id);
+
+//         return res.status(200).send({
+//             ok: true,
+//         });
+//     } catch (e) {
+//         console.log(e);
+//         return res.status(500).send({
+//             ok: false,
+//             error: e.message,
+//         });
+//     }
+// });
+
+// router.get('/stoppeds', async (req, res) => {
+//     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
+//     var room_id = req.query.room_id ? req.query.room_id : null;
+//     var in_page = 10000;
+//     try {
+//         let query = {};
+//         if (room_id) {
+//             query.roomRef = new ObjectId(room_id);
+//         }
+
+//         let items = await userModal
+//             .find({
+//                 server_stop_time: {
+//                     $ne: null,
+//                 },
+//             })
+//             .sort('-creationDate')
+//             .skip(page * in_page)
+//             .limit(in_page)
+//             .exec();
+
+//         items = items.sort(
+//             (a, b) => Date.parse(new Date(b.exitDate)) - Date.parse(new Date(a.exitDate)),
+//         );
+
+//         const data = [];
+
+//         await Promise.all(
+//             items.map(async (item) => {
+//                 if (item.latestRoomRef) {
+//                     const u = await getUserById(item._id, item.latestRoomRef);
+//                     data.push(u);
+//                 } else {
+//                     data.push(item);
+//                 }
+//             }),
+//         );
+
+//         res.status(200).send({
+//             ok: true,
+//             page: page,
+//             in_page: in_page,
+//             all_pages: 10,
+//             data: data,
+//         });
+//     } catch (e) {
+//         res.status(500).send({
+//             ok: false,
+//             error: e.message,
+//         });
+//     }
+// });
 
 router.get('/banneds', async (req, res) => {
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;

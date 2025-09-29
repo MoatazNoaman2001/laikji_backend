@@ -14,25 +14,50 @@ var ObjectId = require('mongoose').Types.ObjectId;
 const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
+const stopModel = require('../models/stopModel');
 
 const createUser = async (user_key, device, room_id, ip, member = null, regUser_id = null) => {
     console.log('ip from create user', ip);
 
-    //let deviceUser = await userModal.findOne({ device: device });
-    let ipUser = await userModal.findOne({ ip: ip });
-
-    if (ipUser) {
-        console.log('ip user ', ipUser.name, ipUser.ip);
+    let deviceUser = await stopModel.findOne({ device: device });
+    let ipUser = await stopModel.findOne({ ip: ip });
+    let canMsg = true;
+    let canPrivateMsg = true;
+    let canCam = true;
+    let canMic = true;
+    if (deviceUser || ipUser) {
+        canMsg = deviceUser
+            ? deviceUser.server_can_public_chat
+            : true && ipUser
+            ? ipUser.server_can_public_chat
+            : true;
+        canPrivateMsg = deviceUser
+            ? deviceUser.server_can_private_chat
+            : true && ipUser
+            ? ipUser.server_can_private_chat
+            : true;
+        canMic = deviceUser
+            ? deviceUser.server_can_use_mic
+            : true && ipUser
+            ? ipUser.server_can_use_mic
+            : true;
+        canCam = deviceUser
+            ? deviceUser.server_can_use_camera
+            : true && ipUser
+            ? ipUser.server_can_use_camera
+            : true;
     }
+
+    console.log('device user', JSON.stringify(deviceUser, null, 2));
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key.trim(),
         },
         {
-            server_can_use_camera: ipUser ? ipUser.server_can_use_camera : true,
-            server_can_use_mic: ipUser ? ipUser.server_can_use_mic : true,
-            server_can_private_chat: ipUser ? ipUser.server_can_private_chat : true,
-            server_can_public_chat: ipUser ? ipUser.server_can_public_chat : true,
+            server_can_use_camera: canCam,
+            server_can_use_mic: canMic,
+            server_can_private_chat: canPrivateMsg,
+            server_can_public_chat: canMsg,
         },
         {
             upsert: true,
