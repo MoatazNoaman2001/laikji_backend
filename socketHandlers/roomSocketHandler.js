@@ -451,7 +451,7 @@ module.exports = (io) => {
         var xroomId;
         var key = xclient.handshake.query.key;
         var device = xclient.handshake.query.device;
-        var ip = helpers.ip2num(xclient.handshake.query.ip);
+        var ip = xclient.handshake.query.ip;
         var ignoredUsers = new Map();
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
