@@ -15,11 +15,11 @@ const enterIconModel = require('../models/enterIconModel');
 const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
-const createUser = async (user_key, device, room_id, member = null, regUser_id = null) => {
-    let deviceUser = await userModal.findOne({ device: device });
+const createUser = async (user_key, device, room_id, ip, member = null, regUser_id = null) => {
+    let deviceUser = await userModal.findOne({ $or: [{ device: device }, { ip: ip }] });
     let user = await userModal.findOneAndUpdate(
         {
-            key: user_key,
+            _id: deviceUser._id,
         },
         {
             server_can_use_camera: deviceUser ? deviceUser.server_can_use_camera : true,

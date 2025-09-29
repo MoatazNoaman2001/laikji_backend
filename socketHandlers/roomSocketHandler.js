@@ -451,6 +451,7 @@ module.exports = (io) => {
         var xroomId;
         var key = xclient.handshake.query.key;
         var device = xclient.handshake.query.device;
+        var ip = helpers.ip2num(xclient.handshake.query.ip);
         var ignoredUsers = new Map();
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
@@ -498,7 +499,7 @@ module.exports = (io) => {
         }
 
         if (!xuser) {
-            xuser = await createUser(key, device, xroomId, member, regUser_id);
+            xuser = await createUser(key, device, xroomId, ip, member, regUser_id);
         }
         let os = xclient.handshake.query.os;
         if (
