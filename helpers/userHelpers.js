@@ -31,7 +31,6 @@ const createUser = async (user_key, device, room_id, ip, member = null, regUser_
         canCam = ipUser.server_can_use_camera;
     }
 
-    console.log('device user', JSON.stringify(deviceUser, null, 2));
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key.trim(),
