@@ -18,17 +18,29 @@ const spyModal = require('../models/spyModal');
 const createUser = async (user_key, device, room_id, ip, member = null, regUser_id = null) => {
     console.log('ip from create user', ip);
 
-    let deviceUser = await userModal.findOne({ $or: [{ device: device }, { ip: ip }] });
+    let deviceUser = await userModal.findOne({ device: device });
+    let ipUser = await userModal.findOne({ ip: ip });
+    let canMsg = true;
+    let canPrivateMsg = true;
+    let canCam = true;
+    let canMic = true;
+    if (deviceUser && ipUser) {
+        canMsg = deviceUser.server_can_public_chat && ipUser.server_can_public_chat;
+        canPrivateMsg = deviceUser.server_can_private_chat && ipUser.server_can_private_chat;
+        canMic = deviceUser.server_can_use_mic && ipUser.server_can_use_mic;
+        canCam = deviceUser.server_can_use_camera && ipUser.server_can_use_camera;
+    }
+
     console.log('device user', JSON.stringify(deviceUser, null, 2));
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
         },
         {
-            server_can_use_camera: deviceUser ? deviceUser.server_can_use_camera : true,
-            server_can_use_mic: deviceUser ? deviceUser.server_can_use_mic : true,
-            server_can_private_chat: deviceUser ? deviceUser.server_can_private_chat : true,
-            server_can_public_chat: deviceUser ? deviceUser.server_can_public_chat : true,
+            server_can_use_camera: canCam,
+            server_can_use_mic: canMic,
+            server_can_private_chat: canPrivateMsg,
+            server_can_public_chat: canMsg,
         },
         {
             upsert: true,
