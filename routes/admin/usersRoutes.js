@@ -413,7 +413,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
         ) {
             until = null;
         }
-        const u = await userModal.findOne({ key: req.params.key });
+        const u = await userModal.findOne({ key: key });
         console.log('first ', u);
         const user = await userModal.findOneAndUpdate(
             {
