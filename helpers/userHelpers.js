@@ -16,7 +16,10 @@ const registeredUserModal = require('../models/registeredUserModal');
 const spyModal = require('../models/spyModal');
 
 const createUser = async (user_key, device, room_id, ip, member = null, regUser_id = null) => {
+    console.log('ip from create user', ip);
+
     let deviceUser = await userModal.findOne({ $or: [{ device: device }, { ip: ip }] });
+    console.log('device user', JSON.stringify(deviceUser, null, 2));
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key,
