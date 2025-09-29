@@ -24,17 +24,33 @@ const createUser = async (user_key, device, room_id, ip, member = null, regUser_
     let canPrivateMsg = true;
     let canCam = true;
     let canMic = true;
-    if (deviceUser && ipUser) {
-        canMsg = deviceUser.server_can_public_chat && ipUser.server_can_public_chat;
-        canPrivateMsg = deviceUser.server_can_private_chat && ipUser.server_can_private_chat;
-        canMic = deviceUser.server_can_use_mic && ipUser.server_can_use_mic;
-        canCam = deviceUser.server_can_use_camera && ipUser.server_can_use_camera;
+    if (deviceUser || ipUser) {
+        canMsg = deviceUser
+            ? deviceUser.server_can_public_chat
+            : true && ipUser
+            ? ipUser.server_can_public_chat
+            : true;
+        canPrivateMsg = deviceUser
+            ? deviceUser.server_can_private_chat
+            : true && ipUser
+            ? ipUser.server_can_private_chat
+            : true;
+        canMic = deviceUser
+            ? deviceUser.server_can_use_mic
+            : true && ipUser
+            ? ipUser.server_can_use_mic
+            : true;
+        canCam = deviceUser
+            ? deviceUser.server_can_use_camera
+            : true && ipUser
+            ? ipUser.server_can_use_camera
+            : true;
     }
 
     console.log('device user', JSON.stringify(deviceUser, null, 2));
     let user = await userModal.findOneAndUpdate(
         {
-            key: user_key,
+            key: user_key.trim(),
         },
         {
             server_can_use_camera: canCam,
