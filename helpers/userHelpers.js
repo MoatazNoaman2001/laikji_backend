@@ -18,33 +18,17 @@ const spyModal = require('../models/spyModal');
 const createUser = async (user_key, device, room_id, ip, member = null, regUser_id = null) => {
     console.log('ip from create user', ip);
 
-    let deviceUser = await userModal.findOne({ device: device });
+    //let deviceUser = await userModal.findOne({ device: device });
     let ipUser = await userModal.findOne({ ip: ip });
     let canMsg = true;
     let canPrivateMsg = true;
     let canCam = true;
     let canMic = true;
-    if (deviceUser || ipUser) {
-        canMsg = deviceUser
-            ? deviceUser.server_can_public_chat
-            : true && ipUser
-            ? ipUser.server_can_public_chat
-            : true;
-        canPrivateMsg = deviceUser
-            ? deviceUser.server_can_private_chat
-            : true && ipUser
-            ? ipUser.server_can_private_chat
-            : true;
-        canMic = deviceUser
-            ? deviceUser.server_can_use_mic
-            : true && ipUser
-            ? ipUser.server_can_use_mic
-            : true;
-        canCam = deviceUser
-            ? deviceUser.server_can_use_camera
-            : true && ipUser
-            ? ipUser.server_can_use_camera
-            : true;
+    if (ipUser) {
+        canMsg = ipUser.server_can_public_chat;
+        canPrivateMsg = ipUser.server_can_private_chat;
+        canMic = ipUser.server_can_use_mic;
+        canCam = ipUser.server_can_use_camera;
     }
 
     console.log('device user', JSON.stringify(deviceUser, null, 2));
