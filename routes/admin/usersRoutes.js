@@ -389,7 +389,8 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
 
 router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     try {
-        console.log('set stop', req.params.key, req.body);
+        let key = req.params.key.trim();
+        console.log('set stop', key, req.body);
 
         let until = -1;
         //console.log('stop ', device);
@@ -416,8 +417,8 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
         console.log('first ', u);
         const user = await userModal.findOneAndUpdate(
             {
-                device: u.device,
-                key: req.params.key,
+                //device: u.device,
+                key: key,
             },
             {
                 server_can_public_chat: !req.body.server_can_public_chat,
@@ -426,6 +427,8 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
                 server_can_use_camera: !req.body.server_can_use_camera,
                 server_stop_until: until == -1 ? null : until,
                 server_stop_time: until ? req.body.time : null,
+                device: u.device,
+                ip: u.ip,
             },
             {
                 new: true,

@@ -19,7 +19,7 @@ const createUser = async (user_key, device, room_id, ip, member = null, regUser_
     let deviceUser = await userModal.findOne({ $or: [{ device: device }, { ip: ip }] });
     let user = await userModal.findOneAndUpdate(
         {
-            _id: deviceUser._id,
+            key: user_key,
         },
         {
             server_can_use_camera: deviceUser ? deviceUser.server_can_use_camera : true,
