@@ -542,6 +542,7 @@ module.exports = (io) => {
                 //         : 1,
                 flag: process.env.mediaUrl + 'flags/' + xclient.handshake.query.flag,
                 country_code: xclient.handshake.query.country_code,
+                country: xclient.handshake.query.country_code,
                 token: token,
                 socketId: xclient.id,
                 invited_to_meeting: false,
