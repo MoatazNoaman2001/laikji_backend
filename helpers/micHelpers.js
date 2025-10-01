@@ -55,7 +55,6 @@ const getUserTimeLeft = (userType, xroom) => {
 const clearActiveTimers = (xroomId) => {
     //console.log(`Clearing timers for room: ${xroomId}`);
     if (!activeTimers.has(xroomId)) {
-        console.log('not found');
         return;
     }
 

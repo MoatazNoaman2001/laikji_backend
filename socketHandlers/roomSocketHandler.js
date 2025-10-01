@@ -2227,7 +2227,6 @@ module.exports = (io) => {
             });
             xclient.on('mute-all', async () => {
                 try {
-                    console.log('all muted list started', xuser.name);
                     if (!xuser) return;
 
                     if (!allMutedList[xroomId].includes(xuser._id.toString())) {
@@ -2253,14 +2252,14 @@ module.exports = (io) => {
                 removeUserFromRoom(xroomId, xuser);
                 await removeUserFromWaiting(xroomId, xuser);
 
-                console.log(
-                    'disconnected client:',
-                    xuser._id.toString(),
-                    xuser.name,
-                    'from:',
-                    xroomId,
-                    data,
-                );
+                // console.log(
+                //     'disconnected client:',
+                //     xuser._id.toString(),
+                //     xuser.name,
+                //     'from:',
+                //     xroomId,
+                //     data,
+                // );
 
                 xclient.leave(xroomId);
                 if (!xuser) return;
@@ -2272,8 +2271,6 @@ module.exports = (io) => {
                 // Clear the timer if it exists
                 releaseMic(roomInfo, xuser._id.toString(), xroomId);
                 if (Array.from(roomInfo.speakers).length == 0) {
-                    console.log('clear timer from disconnect');
-
                     clearActiveTimers(xroomId);
                 }
 
@@ -2304,13 +2301,13 @@ module.exports = (io) => {
                     await addEntryLog(xuser, xroomId, enterDate, 0); // 0 for normal disconnect
                 }
 
-                console.log(
-                    'User disconnected:',
-                    xuser._id.toString(),
-                    xuser.name,
-                    'from:',
-                    xroomId,
-                );
+                // console.log(
+                //     'User disconnected:',
+                //     xuser._id.toString(),
+                //     xuser.name,
+                //     'from:',
+                //     xroomId,
+                // );
 
                 await helpers.notifyRoomChanged(xroomId, false, true);
 
