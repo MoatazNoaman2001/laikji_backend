@@ -495,7 +495,6 @@ router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
     }
 });
 
-// ✅ list stoppeds
 router.get('/stoppeds', async (req, res) => {
     var page = req.query.page ? parseInt(req.query.page) - 1 : 0;
     var room_id = req.query.room_id ? req.query.room_id : null;
@@ -505,42 +504,31 @@ router.get('/stoppeds', async (req, res) => {
         if (room_id) {
             query.roomRef = new ObjectId(room_id);
         }
-
-        let items = await stopModel
-            .find(query)
+        let items = await userModal
+            .find({ server_stop_time: { $ne: null } })
             .sort('-creationDate')
             .skip(page * in_page)
             .limit(in_page)
             .exec();
-
         items = items.sort(
             (a, b) => Date.parse(new Date(b.exitDate)) - Date.parse(new Date(a.exitDate)),
         );
-
         const data = [];
         await Promise.all(
             items.map(async (item) => {
-                if (item.roomRef) {
-                    const u = await getUserById(item.userRef, item.roomRef);
-                    data.push({ ...u, stop: item });
+                if (item.latestRoomRef) {
+                    const u = await getUserById(item._id, item.latestRoomRef);
+                    data.push(u);
                 } else {
                     data.push(item);
                 }
             }),
         );
-
-        res.status(200).send({
-            ok: true,
-            page: page,
-            in_page: in_page,
-            all_pages: 10,
-            data: data,
-        });
+        res.status(200).send({ ok: true, page: page, in_page: in_page, all_pages: 10, data: data });
     } catch (e) {
         res.status(500).send({ ok: false, error: e.message });
     }
 });
-
 // router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
 //     try {
 //         let key = req.params.key.trim();
