@@ -388,7 +388,6 @@ router.get('/unbanip/:ip', authCheckMiddleware, async (req, res) => {
     }
 });
 
-// ✅ set stop
 router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
     try {
         let key = req.params.key.trim();
@@ -408,13 +407,11 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             until = null;
         }
 
-        // 🔹 get user to extract device & ip
         const u = await userModal.findOne({ key: key });
         if (!u) {
             return res.status(404).send({ ok: false, error: 'User not found' });
         }
 
-        // 🔹 upsert stop doc based on device + ip
         const stopDoc = await stopModel.findOneAndUpdate(
             {
                 device: u.device,
@@ -438,6 +435,23 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
                 new: true,
                 upsert: true,
             },
+        );
+        await userModal.findOneAndUpdate(
+            {
+                //device: u.device,
+                key: key,
+            },
+            {
+                server_can_public_chat: !req.body.server_can_public_chat,
+                server_can_private_chat: !req.body.server_can_private_chat,
+                server_can_use_mic: !req.body.server_can_use_mic,
+                server_can_use_camera: !req.body.server_can_use_camera,
+                server_stop_until: until == -1 ? null : until,
+                server_stop_time: until ? req.body.time : null,
+                device: u.device,
+                ip: u.ip,
+            },
+            { new: true, sort: { creationDate: -1 } },
         );
 
         await notifyUserChanged(u._id, {}, true);
