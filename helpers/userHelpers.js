@@ -17,8 +17,6 @@ const spyModal = require('../models/spyModal');
 const stopModel = require('../models/stopModel');
 
 const createUser = async (user_key, device, room_id, ip, member = null, regUser_id = null) => {
-    console.log('ip from create user', ip);
-
     let deviceUser = await stopModel.findOne({ device: device });
     let ipUser = await stopModel.findOne({ ip: ip });
     let canMsg = true;

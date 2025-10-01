@@ -4,7 +4,7 @@ module.exports = (io) => {
     io.use(async (socket, next) => {
         // socket.handshake.query
         let ip = socket.request.connection.remoteAddress;
-        console.log('[home io] new client:', 'IP:', ip ?? 'no-ip');
+        // console.log('[home io] new client:', 'IP:', ip ?? 'no-ip');
         // console.log(socket.handshake.query);
 
         next();

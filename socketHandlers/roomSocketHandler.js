@@ -577,15 +577,15 @@ module.exports = (io) => {
             await removeUserFromWaiting(xroomId, xuser);
             enterDate = getNowDateTime(true);
 
-            console.info(
-                '[client accepted] id:',
-                xuser.name,
-                xuser._id,
-                'socketId:',
-                xclient.id,
-                'key:',
-                key,
-            );
+            // console.info(
+            //     '[client accepted] id:',
+            //     xuser.name,
+            //     xuser._id,
+            //     'socketId:',
+            //     xclient.id,
+            //     'key:',
+            //     key,
+            // );
             xuser = await getUserById(xuser._id, xroomId);
             await helpers.notifyRoomChanged(xroomId, false, true);
 
