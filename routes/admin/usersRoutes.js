@@ -474,7 +474,17 @@ router.get('/unstop/:key', authCheckMiddleware, async (req, res) => {
             device: u.device,
             ip: u.ip,
         });
-
+        await userModal.findOneAndUpdate(
+            { key: req.params.key },
+            {
+                server_can_public_chat: true,
+                server_can_private_chat: true,
+                server_can_use_mic: true,
+                server_can_use_camera: true,
+                server_stop_until: null,
+                server_stop_time: null,
+            },
+        );
         await notifyUserChanged(u._id);
 
         return res.status(200).send({ ok: true });
