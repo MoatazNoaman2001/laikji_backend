@@ -420,6 +420,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             {
                 device: u.device,
                 ip: u.ip,
+                key: u.key,
                 name: u.name,
                 country: u.country,
                 server_can_public_chat: !req.body.server_can_public_chat,
