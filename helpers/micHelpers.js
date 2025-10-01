@@ -53,7 +53,7 @@ const getUserTimeLeft = (userType, xroom) => {
 };
 
 const clearActiveTimers = (xroomId) => {
-    console.log(`Clearing timers for room: ${xroomId}`);
+    //console.log(`Clearing timers for room: ${xroomId}`);
     if (!activeTimers.has(xroomId)) {
         console.log('not found');
         return;
@@ -66,7 +66,7 @@ const clearActiveTimers = (xroomId) => {
     }
     activeTimers.delete(xroomId); // Remove all timers for the room
     currentSession = null;
-    console.log(`Timers cleared for room: ${xroomId}`);
+    // console.log(`Timers cleared for room: ${xroomId}`);
 };
 
 const releaseMic = async (roomInfo, userId, xroomId) => {
@@ -76,12 +76,11 @@ const releaseMic = async (roomInfo, userId, xroomId) => {
 
             global.io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
 
-            console.log('Mic released. Attempting to assign to next user.');
+            // console.log('Mic released. Attempting to assign to next user.');
             if (Array.from(roomInfo.speakers).length === 0) {
                 assignMic(xroomId, roomInfo);
             }
             if (roomInfo.youtubeLink && roomInfo.youtubeLink.userId == userId) {
-                console.log('ending youtube');
                 roomInfo.youtubeLink = {
                     userId: '',
                     paused: false,
@@ -99,7 +98,7 @@ const startInterval = async (time, xroomId, roomInfo) => {
     clearActiveTimers(xroomId);
     if (time > 0) {
         const timer = setTimeout(() => {
-            console.log(`Time's up for user`);
+            //  console.log(`Time's up for user`);
             global.io.to(xroomId).emit('speaker-time-update', {
                 userId: Array.from(roomInfo.speakers)[0],
                 timeLeft: 0,
@@ -107,7 +106,7 @@ const startInterval = async (time, xroomId, roomInfo) => {
             for (const speakerId of Array.from(roomInfo.speakers)) {
                 releaseMic(roomInfo, speakerId, xroomId);
             }
-            console.log('clear timer from start interval *2');
+            //  console.log('clear timer from start interval *2');
 
             clearActiveTimers(xroomId);
         }, time * 1000);
@@ -121,7 +120,6 @@ const startInterval = async (time, xroomId, roomInfo) => {
             if (time <= 0) {
                 for (const speakerId of Array.from(roomInfo.speakers)) {
                     releaseMic(roomInfo, speakerId, xroomId);
-                    console.log('clear timer from start interval *3');
                     clearActiveTimers(xroomId);
                 }
             }
@@ -154,8 +152,6 @@ const assignMic = async (xroomId, roomInfo) => {
         micAssigning = true; // Lock mic assignment immediately
         try {
             while (roomInfo.micQueue.length > 0) {
-                console.log('mic queue ' + roomInfo.micQueue);
-
                 let nextUserId = roomInfo.micQueue.shift();
                 global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
 
@@ -176,7 +172,6 @@ const assignMic = async (xroomId, roomInfo) => {
                     //  Place nextUserId at index 1 of the queue
 
                     if (roomInfo.micQueue.length + 1 > processedUsers.size) {
-                        console.log('added at index ' + processedUsers.size);
                         roomInfo.micQueue.splice(processedUsers.size, 0, nextUserId);
                     } else if (roomInfo.micQueue.length === processedUsers.size) {
                         roomInfo.micQueue = [];
@@ -219,8 +214,6 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
         global.io.to(xroomId).emit('update-speakers', Array.from(roomInfo.speakers));
         addAdminLog(speaker, xroomId, `قام باستخدام الميكروفون`, `is on mic `);
 
-        console.log('hello updated speakers');
-
         const userDir = path.join(__dirname, '../uploads', speakerId);
 
         if (fs.existsSync(userDir)) {
@@ -229,7 +222,6 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
                 const fileUrl = `http://185.203.118.57:9600/uploads/${speakerId}/${files[0]}`;
 
                 global.io.to(speaker.socketId).emit('audio-file', { fileUrl });
-                console.log('audio sent');
             } else {
                 global.io.to(speaker.socketId).emit('audio-file', { fileUrl: 'none' });
             }
@@ -241,7 +233,7 @@ const assignSpeaker = async (roomInfo, speakerId, speaker, newRoom, xroomId) => 
             roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== speakerId);
             global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);
         }
-        console.log(`Mic assigned to user: ${speakerId}`);
+        //   console.log(`Mic assigned to user: ${speakerId}`);
         await updateUser(speaker, speaker._id, xroomId);
 
         const timeLeft = getUserTimeLeft(speaker.type, newRoom);
@@ -257,12 +249,10 @@ const stopMic = async (userId, xroomId) => {
     if (roomInfo.speakers.has(userId)) {
         releaseMic(roomInfo, userId, xroomId);
         if (Array.from(roomInfo.speakers).length == 0) {
-            console.log('clear timer from admin disable mic');
+            // console.log('clear timer from admin disable mic');
             clearActiveTimers(xroomId);
         }
     } else if (Array.from(roomInfo.micQueue) && Array.from(roomInfo.micQueue).includes(userId)) {
-        console.log('condition is true for mic queue ' + roomInfo.micQueue.length);
-
         console.log(`User ${userId} is already in the queue.`);
         roomInfo.micQueue = roomInfo.micQueue.filter((id) => id !== userId);
         global.io.to(xroomId).emit('mic-queue-update', roomInfo.micQueue);

@@ -85,22 +85,22 @@ module.exports = (io) => {
         let isVPN = socket.handshake.query.isvpn ?? false;
         socket.handshake.query.icon = '0.png';
 
-        console.log(
-            'new client room:',
-            name,
-            'for room:',
-            room_id,
-            'IP:',
-            ip,
-            'KEY:',
-            user_key,
-            'DEVICE: ',
-            device,
-            'VERSION:',
-            version,
-            'OS',
-            os,
-        );
+        // console.log(
+        //     'new client room:',
+        //     name,
+        //     'for room:',
+        //     room_id,
+        //     'IP:',
+        //     ip,
+        //     'KEY:',
+        //     user_key,
+        //     'DEVICE: ',
+        //     device,
+        //     'VERSION:',
+        //     version,
+        //     'OS',
+        //     os,
+        // );
 
         if (ip) {
             if (checkIPAddress(ip)) {
@@ -455,7 +455,6 @@ module.exports = (io) => {
         var ignoredUsers = new Map();
         // get room
         var room = await roomModel.findById(xclient.handshake.query.roomId);
-        console.log('on connection for room');
 
         if (!room) {
             xclient.disconnect();

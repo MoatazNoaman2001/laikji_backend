@@ -556,7 +556,7 @@ router.post('/kick', userInRoomMiddleware, async (req, res) => {
                 });
             }
 
-            addAdminLog(req.user, room._id, `قام بحظر عضو`, `has banned a user`, user.name);
+            addAdminLog(req.user, room._id, `قام بطرد عضو`, `has banned a user`, user.name);
         }
 
         return res.status(200).send({

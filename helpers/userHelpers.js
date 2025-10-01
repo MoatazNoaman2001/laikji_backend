@@ -48,7 +48,6 @@ const createUser = async (user_key, device, room_id, ip, member = null, regUser_
             : true;
     }
 
-    console.log('device user', JSON.stringify(deviceUser, null, 2));
     let user = await userModal.findOneAndUpdate(
         {
             key: user_key.trim(),
