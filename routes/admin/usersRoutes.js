@@ -398,12 +398,14 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             until = getNowDateTime(true) + req.body.time * 3600 * 1000;
         }
 
-        if (
-            !req.body.server_can_public_chat &&
-            !req.body.server_can_private_chat &&
-            !req.body.server_can_use_mic &&
-            !req.body.server_can_use_camera
-        ) {
+        // If all are allowed, no stop
+        const allAllowed =
+            req.body.server_can_public_chat &&
+            req.body.server_can_private_chat &&
+            req.body.server_can_use_mic &&
+            req.body.server_can_use_camera;
+
+        if (allAllowed) {
             until = null;
         }
 
@@ -412,54 +414,55 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             return res.status(404).send({ ok: false, error: 'User not found' });
         }
 
-        const stopDoc = await stopModel.findOneAndUpdate(
+        if (allAllowed) {
+            // remove stopModel if exists
+            await stopModel.deleteOne({ device: u.device, ip: u.ip });
+        } else {
+            // Save/Update in stopModel
+            await stopModel.findOneAndUpdate(
+                {
+                    device: u.device,
+                    ip: u.ip,
+                },
+                {
+                    device: u.device,
+                    ip: u.ip,
+                    key: u.key,
+                    name: u.name,
+                    country: u.country,
+                    server_can_public_chat: !req.body.server_can_public_chat,
+                    server_can_private_chat: !req.body.server_can_private_chat,
+                    server_can_use_mic: !req.body.server_can_use_mic,
+                    server_can_use_camera: !req.body.server_can_use_camera,
+                    server_stop_until: until > 0 ? until : null,
+                    server_stop_time: until > 0 ? req.body.time : null,
+                    userRef: u._id,
+                    roomRef: u.latestRoomRef || null,
+                },
+                { new: true, upsert: true },
+            );
+        }
+
+        // Update all userModal docs with same device/ip/key
+        await userModal.updateMany(
+            { $or: [{ device: u.device }, { ip: u.ip }, { key: u.key }] },
             {
-                device: u.device,
-                ip: u.ip,
-            },
-            {
-                device: u.device,
-                ip: u.ip,
-                key: u.key,
-                name: u.name,
-                country: u.country,
                 server_can_public_chat: !req.body.server_can_public_chat,
                 server_can_private_chat: !req.body.server_can_private_chat,
                 server_can_use_mic: !req.body.server_can_use_mic,
                 server_can_use_camera: !req.body.server_can_use_camera,
-                server_stop_until: until == -1 ? null : until,
-                server_stop_time: until ? req.body.time : null,
-                userRef: u._id,
-                roomRef: u.latestRoomRef || null,
-            },
-            {
-                new: true,
-                upsert: true,
-            },
-        );
-        await userModal.findOneAndUpdate(
-            {
-                //device: u.device,
-                key: key,
-            },
-            {
-                server_can_public_chat: !req.body.server_can_public_chat,
-                server_can_private_chat: !req.body.server_can_private_chat,
-                server_can_use_mic: !req.body.server_can_use_mic,
-                server_can_use_camera: !req.body.server_can_use_camera,
-                server_stop_until: until == -1 ? null : until,
-                server_stop_time: until ? req.body.time : null,
+                server_stop_until: until > 0 ? until : null,
+                server_stop_time: until > 0 ? req.body.time : null,
                 device: u.device,
                 ip: u.ip,
             },
-            { new: true, sort: { creationDate: -1 } },
         );
 
         await notifyUserChanged(u._id, {}, true);
 
         return res.status(200).send({ ok: true });
     } catch (e) {
-        console.log(e);
+        console.error(e);
         return res.status(500).send({ ok: false, error: e.message });
     }
 });
