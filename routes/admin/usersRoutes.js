@@ -409,10 +409,17 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             until = null;
         }
 
-        const u = await userModal.findOne({ key: key });
-        if (!u) {
-            return res.status(404).send({ ok: false, error: 'User not found' });
+        // 🔹 Find all users by key, ip or device
+        const users = await userModal.find({
+            $or: [{ key: key }, { ip: req.ip }, { device: req.body.device }],
+        });
+
+        if (!users || users.length === 0) {
+            return res.status(404).send({ ok: false, error: 'User(s) not found' });
         }
+
+        // pick one "representative" user for stopModel
+        const u = users[0];
 
         if (allAllowed) {
             // remove stopModel if exists
@@ -443,9 +450,11 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             );
         }
 
-        // Update all userModal docs with same device/ip/key
+        // Update all matching users
         await userModal.updateMany(
-            { $or: [{ device: u.device }, { ip: u.ip }, { key: u.key }] },
+            {
+                $or: [{ device: u.device }, { ip: u.ip }, { key: u.key }],
+            },
             {
                 server_can_public_chat: !req.body.server_can_public_chat,
                 server_can_private_chat: !req.body.server_can_private_chat,
@@ -458,7 +467,8 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             },
         );
 
-        await notifyUserChanged(u._id, {}, true);
+        // notify all affected users
+        await Promise.all(users.map((user) => notifyUserChanged(user._id, {}, true)));
 
         return res.status(200).send({ ok: true });
     } catch (e) {
