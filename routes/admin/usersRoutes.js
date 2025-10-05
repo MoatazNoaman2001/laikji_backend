@@ -409,7 +409,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             until = null;
         }
 
-        // 🔹 Find all users by key, ip or device
+        // 🔹 Find initial user by key, ip or device
         const users = await userModal.find({
             $or: [{ key: key }, { ip: req.ip }, { device: req.body.device }],
         });
@@ -417,8 +417,6 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
         if (!users || users.length === 0) {
             return res.status(404).send({ ok: false, error: 'User(s) not found' });
         }
-
-        // pick one "representative" user for stopModel
         const u = users[0];
 
         if (allAllowed) {
@@ -450,7 +448,10 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             );
         }
 
-        // Update all matching users
+        const allAffectedUsers = await userModal.find({
+            $or: [{ device: u.device }, { ip: u.ip }, { key: u.key }],
+        });
+
         await userModal.updateMany(
             {
                 $or: [{ device: u.device }, { ip: u.ip }, { key: u.key }],
@@ -467,8 +468,7 @@ router.post('/set-stop/:key', authCheckMiddleware, async (req, res) => {
             },
         );
 
-        // notify all affected users
-        await Promise.all(users.map((user) => notifyUserChanged(user._id, {}, true)));
+        await Promise.all(allAffectedUsers.map((user) => notifyUserChanged(user._id, {}, true)));
 
         return res.status(200).send({ ok: true });
     } catch (e) {
