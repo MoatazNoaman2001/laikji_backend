@@ -513,31 +513,76 @@ router.get('/stoppeds', async (req, res) => {
     var room_id = req.query.room_id ? req.query.room_id : null;
     var in_page = 10000;
     try {
-        let query = {};
+        let query = {
+            server_stop_time: { $ne: null },
+            $or: [
+                { server_can_public_chat: false },
+                { server_can_private_chat: false },
+                { server_can_use_mic: false },
+                { server_can_use_camera: false },
+            ],
+        };
+
         if (room_id) {
             query.roomRef = new ObjectId(room_id);
         }
+
         let items = await userModal
-            .find({ server_stop_time: { $ne: null } })
+            .find(query)
             .sort('-creationDate')
             .skip(page * in_page)
             .limit(in_page)
             .exec();
+
         items = items.sort(
             (a, b) => Date.parse(new Date(b.exitDate)) - Date.parse(new Date(a.exitDate)),
         );
+
         const data = [];
+        const currentTime = new Date();
+        const idsToUpdate = [];
+
         await Promise.all(
             items.map(async (item) => {
-                if (item.latestRoomRef) {
-                    const u = await getUserById(item._id, item.latestRoomRef);
-                    data.push(u);
+                // Check if server stop time is up
+                if (item.server_stop_time && new Date(item.server_stop_time) <= currentTime) {
+                    idsToUpdate.push(item._id);
                 } else {
-                    data.push(item);
+                    // Only include items that haven't expired
+                    if (item.latestRoomRef) {
+                        const u = await getUserById(item._id, item.latestRoomRef);
+                        data.push(u);
+                    } else {
+                        data.push(item);
+                    }
                 }
             }),
         );
-        res.status(200).send({ ok: true, page: page, in_page: in_page, all_pages: 10, data: data });
+
+        // Update expired documents to set all permissions to true
+        if (idsToUpdate.length > 0) {
+            await userModal.updateMany(
+                { _id: { $in: idsToUpdate } },
+                {
+                    $set: {
+                        server_can_public_chat: true,
+                        server_can_private_chat: true,
+                        server_can_use_mic: true,
+                        server_can_use_camera: true,
+                    },
+                },
+            );
+            console.log(`Updated ${idsToUpdate.length} expired user document(s)`);
+        }
+
+        res.status(200).send({
+            ok: true,
+            page: page,
+            in_page: in_page,
+            all_pages: 10,
+            data: data,
+            updated_count: idsToUpdate.length,
+        });
     } catch (e) {
         res.status(500).send({ ok: false, error: e.message });
     }
