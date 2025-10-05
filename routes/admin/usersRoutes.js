@@ -514,7 +514,6 @@ router.get('/stoppeds', async (req, res) => {
     var in_page = 10000;
     try {
         let query = {
-            server_stop_time: { $ne: null },
             $or: [
                 { server_can_public_chat: false },
                 { server_can_private_chat: false },
@@ -545,7 +544,7 @@ router.get('/stoppeds', async (req, res) => {
         await Promise.all(
             items.map(async (item) => {
                 // Check if server stop time is up
-                if (item.server_stop_time && new Date(item.server_stop_time) <= currentTime) {
+                if (item.server_stop_until && new Date(item.server_stop_until) <= currentTime) {
                     idsToUpdate.push(item._id);
                 } else {
                     // Only include items that haven't expired
