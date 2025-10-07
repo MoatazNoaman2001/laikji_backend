@@ -548,7 +548,7 @@ router.get('/stoppeds', async (req, res) => {
                     idsToUpdate.push(item._id);
                 } else {
                     // Only include items that haven't expired
-                    if (item.latestRoomRef) {
+                    if (item.userRef.latestRoomRef) {
                         const u = await getUserById(item._id, item.latestRoomRef);
                         data.push(u);
                     } else {
