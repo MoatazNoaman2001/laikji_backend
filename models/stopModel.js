@@ -4,6 +4,10 @@ const { getNowDateTime } = require('../helpers/tools');
 
 const schema = Schema({
     name: String,
+    userRef: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users',
+    },
     key: String,
     device: String,
     ip: String,

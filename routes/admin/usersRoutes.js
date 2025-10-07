@@ -526,7 +526,7 @@ router.get('/stoppeds', async (req, res) => {
             query.roomRef = new ObjectId(room_id);
         }
 
-        let items = await userModal
+        let items = await stopModel
             .find(query)
             .sort('-creationDate')
             .skip(page * in_page)
@@ -560,6 +560,17 @@ router.get('/stoppeds', async (req, res) => {
 
         // Update expired documents to set all permissions to true
         if (idsToUpdate.length > 0) {
+            await stopModel.updateMany(
+                { userRef: { $in: idsToUpdate } },
+                {
+                    $set: {
+                        server_can_public_chat: true,
+                        server_can_private_chat: true,
+                        server_can_use_mic: true,
+                        server_can_use_camera: true,
+                    },
+                },
+            );
             await userModal.updateMany(
                 { _id: { $in: idsToUpdate } },
                 {
