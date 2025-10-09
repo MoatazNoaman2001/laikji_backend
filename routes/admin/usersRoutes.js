@@ -545,7 +545,7 @@ router.get('/stoppeds', async (req, res) => {
             items.map(async (item) => {
                 // Check if server stop time is up
                 if (item.server_stop_until && new Date(item.server_stop_until) <= currentTime) {
-                    idsToUpdate.push(item._id);
+                    idsToUpdate.push(item.userRef);
                 } else {
                     // Only include items that haven't expired
                     if (item.userRef.latestRoomRef) {
@@ -560,17 +560,7 @@ router.get('/stoppeds', async (req, res) => {
 
         // Update expired documents to set all permissions to true
         if (idsToUpdate.length > 0) {
-            await stopModel.updateMany(
-                { userRef: { $in: idsToUpdate } },
-                {
-                    $set: {
-                        server_can_public_chat: true,
-                        server_can_private_chat: true,
-                        server_can_use_mic: true,
-                        server_can_use_camera: true,
-                    },
-                },
-            );
+            await stopModel.deleteMany({ userRef: { $in: idsToUpdate } });
             await userModal.updateMany(
                 { _id: { $in: idsToUpdate } },
                 {
